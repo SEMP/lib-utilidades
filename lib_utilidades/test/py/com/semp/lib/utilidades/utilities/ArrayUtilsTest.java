@@ -180,4 +180,72 @@ class ArrayUtilsTest
 		
 		assertEquals(-1, ArrayUtils.findFirst(array, predicate));
 	}
+	
+	@Test
+	void testHexaStringToBytesValid()
+	{
+		byte[] result = ArrayUtils.hexaStringToBytes("0xAB0234");
+		byte[] expected = {(byte)0xAB, 0x02, 0x34};
+		
+		assertArrayEquals(expected, result);
+		
+		result = ArrayUtils.hexaStringToBytes("F");
+		expected = new byte[]{0x0F};
+		
+		assertArrayEquals(expected, result);
+	}
+	
+	@Test
+	public void testHexaStringToBytesWithWhiteSpace()
+	{
+		byte[] result = ArrayUtils.hexaStringToBytes(" 0xAB0234 ");
+		byte[] expected = {(byte)0xAB, 0x02, 0x34};
+		
+		assertArrayEquals(expected, result);
+	}
+	
+	@Test
+	public void testHexaStringToBytesNullInput()
+	{
+		byte[] result = ArrayUtils.hexaStringToBytes(null);
+		
+		assertNull(result);
+	}
+	
+	@Test
+	public void testHexaStringToBytesInvalidHex()
+	{
+		assertThrows(IllegalArgumentException.class, () -> ArrayUtils.hexaStringToBytes("ZXY"));
+	}
+	
+	@Test
+	public void testHexaStringToBytesEmptyString()
+	{
+		assertThrows(IllegalArgumentException.class, () -> ArrayUtils.hexaStringToBytes(""));
+	}
+	
+	@Test
+	void testToHexaStringValid()
+	{
+	    byte[] input = {(byte)0xAB, 0x02, 0x34};
+	    String result = ArrayUtils.toHexaString(input);
+	    String expected = "0xAB0234";
+	    
+	    assertEquals(expected, result);
+	    
+	    input = new byte[]{0x0F};
+	    result = ArrayUtils.toHexaString(input);
+	    expected = "0x0F";
+	    
+	    assertEquals(expected, result);
+	}
+
+	@Test
+	void testToHexaStringNullInput()
+	{
+	    byte[] input = null;
+	    String result = ArrayUtils.toHexaString(input);
+	    
+	    assertNull(result);
+	}
 }

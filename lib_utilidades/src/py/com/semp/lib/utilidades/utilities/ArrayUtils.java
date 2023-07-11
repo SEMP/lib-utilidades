@@ -580,4 +580,92 @@ public final class ArrayUtils
 		
 		return sb.toString();
 	}
+	
+	/**
+	 * Converts an hexadecimal string into a byte array.
+	 * @param hexaString
+	 * - the string that will be converted to a byte array.
+	 * @return
+	 * - a new byte array created from the hexadecimal string.<br>
+	 * - <b>null</b> if the string received is null.
+	 * @throws IllegalArgumentException
+	 * if the received string is not a valid hexadecimal string.
+	 * @author Sergio Morel
+	 */
+	public static byte[] hexaStringToBytes(String hexaString)
+	{
+		String processedHexString = hexaString;
+		
+		if(processedHexString == null)
+		{
+			return null;
+		}
+		
+		processedHexString = processedHexString.trim();
+		
+		if(processedHexString.startsWith("0x"))
+		{
+			processedHexString = processedHexString.substring(2);
+		}
+		
+		if(processedHexString.length() % 2 != 0)
+		{
+			processedHexString = "0" + processedHexString;
+		}
+		
+		String regex = "^[a-fA-F0-9]+$";
+		
+		if(!processedHexString.matches(regex))
+		{
+			StringBuilder errorMessage = new StringBuilder();
+			
+			errorMessage.append("Invalid hex string: ");
+			errorMessage.append(hexaString);
+			
+			throw new IllegalArgumentException(errorMessage.toString());
+		}
+		
+		byte[] bytes = new byte[processedHexString.length() / 2];
+		
+		for(int i = 0; i < bytes.length; i++)
+		{
+			int stringIndex = i * 2;
+			
+			String hexaPair = processedHexString.substring(stringIndex, stringIndex + 2);
+			
+			bytes[i] = (byte) Short.parseShort(hexaPair, 16);
+		}
+		
+		return bytes;
+	}
+	
+	/**
+	 * Creates a {@link String} from the byte array. The resulting string is
+	 * uses the following format: 0xA0BD7801
+	 * @param bytes
+	 * - bytes to be converted to the corresponding string.
+	 * @return
+	 * - {@link String} that represents the byte array in hexadecimal.<br>
+	 * - <b>null</b> if the parameter is null.
+	 * @author Sergio Morel
+	 */
+	
+	public static String toHexaString(byte... bytes)
+	{
+		if(bytes == null)
+		{
+			return null;
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("0x");
+		
+		for(int i = 0; i < bytes.length; i++)
+		{
+			sb.append(String.format("%02X", bytes[i]));
+		}
+		
+		return sb.toString();
+	}
 }
