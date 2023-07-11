@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Class with static method with utilities for arrays.
@@ -388,6 +389,37 @@ public final class ArrayUtils
 	}
 	
 	/**
+	 * Finds the index of the first occurrence of an element that
+	 * complies to the predicate.
+	 * 
+	 * @param array
+	 * - array to check.
+	 * @param predicate
+	 * - predicate that establishes if the element is found.
+	 * @return
+	 * - the index of the found element.<br>
+	 * - <b>-1</b> if the element wasn't found.
+	 * @author Sergio Morel
+	 */
+	public static int findFirst(byte[] array, Predicate<Byte> predicate)
+	{
+		if(array == null || predicate == null)
+		{
+			return -1;
+		}
+		
+		for(int i = 0; i < array.length; i++)
+		{
+			if(predicate.test(array[i]))
+			{
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
 	 * Finds the index of the first occurrence of an element in the array.
 	 * 
 	 * @param array
@@ -441,6 +473,39 @@ public final class ArrayUtils
 		for(int i = 0; i < array.length; i++)
 		{
 			if(Utilities.equals(array[i], element))
+			{
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the index of the first occurrence of an element that
+	 * complies to the predicate.
+	 * 
+	 * @param <T>
+	 * - type of the array's element.
+	 * @param array
+	 * - array to check.
+	 * @param predicate
+	 * - predicate that establishes if the element is found.
+	 * @return
+	 * - the index of the found element.<br>
+	 * - <b>-1</b> if the element wasn't found.
+	 * @author Sergio Morel
+	 */
+	public static <T> int findFirst(T[] array, Predicate<T> predicate)
+	{
+		if(array == null || predicate == null)
+		{
+			return -1;
+		}
+		
+		for(int i = 0; i < array.length; i++)
+		{
+			if(predicate.test(array[i]))
 			{
 				return i;
 			}
