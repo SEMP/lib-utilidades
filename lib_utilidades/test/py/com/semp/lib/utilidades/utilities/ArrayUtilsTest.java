@@ -248,4 +248,70 @@ class ArrayUtilsTest
 	    
 	    assertNull(result);
 	}
+	
+	@Test
+	void testFindFirst_WithExistingSubArray()
+	{
+		byte[] array = {1, 2, 3, 4, 5};
+		byte[] subArray = {3, 4};
+		
+		int result = ArrayUtils.findFirst(array, subArray);
+		
+		assertEquals(2, result);
+	}
+	
+	@Test
+	void testFindFirst_WithNonExistingSubArray()
+	{
+		byte[] array = {1, 2, 3, 4, 5};
+		byte[] subArray = {6, 7};
+		
+		int result = ArrayUtils.findFirst(array, subArray);
+		
+		assertEquals(-1, result);
+	}
+	
+	@Test
+	void testFindFirst_WithNullArray()
+	{
+		byte[] array = null;
+		byte[] subArray = {1, 2};
+		
+		int result = ArrayUtils.findFirst(array, subArray);
+		
+		assertEquals(-1, result);
+	}
+	
+	@Test
+	void testFindFirst_WithNullSubArray()
+	{
+		byte[] array = {1, 2, 3, 4, 5};
+		byte[] subArray = null;
+		
+		int result = ArrayUtils.findFirst(array, subArray);
+		
+		assertEquals(-1, result);
+	}
+	
+	@Test
+	void testFindFirst_WithEmptyArray()
+	{
+		byte[] array = {};
+		byte[] subArray = {1, 2};
+		
+		int result = ArrayUtils.findFirst(array, subArray);
+		
+		assertEquals(-1, result);
+	}
+	
+	@Test
+	void testFindFirst_WithEmptySubArray()
+	{
+		byte[] array = {1, 2, 3, 4, 5};
+		byte[] subArray = {};
+		
+		int result = ArrayUtils.findFirst(array, subArray);
+		
+		assertEquals(-1, result);
+	}
 }

@@ -389,6 +389,73 @@ public final class ArrayUtils
 	}
 	
 	/**
+	 * Finds the index of the first occurrence of an element in the array.
+	 * 
+	 * @param array
+	 * - array to check.
+	 * @param element
+	 * - element to be found in the array.
+	 * @return
+	 * - the index of the found element.<br>
+	 * - <b>-1</b> if the element wasn't found.
+	 * @author Sergio Morel
+	 */
+	public static int findFirst(byte[] array, byte element)
+	{
+		if(array == null)
+		{
+			return -1;
+		}
+		
+		for(int i = 0; i < array.length; i++)
+		{
+			if(array[i] == element)
+			{
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the index of the first occurrence of subArray in the array.
+	 * 
+	 * @param array
+	 * - array where you want to find the sub array.
+	 * @param subArray
+	 * - sub array whose index you want to find.
+	 * @return
+	 * - the index of the first element where the sub array was found.
+	 * @author Sergio Morel
+	 */
+	public static int findFirst(byte[] array, byte[] subArray)
+	{
+		if(array == null || subArray == null || subArray.length > array.length)
+		{
+			return -1;
+		}
+		
+		for(int i = 0; i <= (array.length - subArray.length); i++)
+		{
+			for(int j = i; (j - i) < subArray.length; j++)
+			{
+				if(array[j] != subArray[j - i])
+				{
+					break;
+				}
+				
+				if((j - i) == subArray.length - 1)
+				{
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
 	 * Finds the index of the first occurrence of an element that
 	 * complies to the predicate.
 	 * 
@@ -411,36 +478,6 @@ public final class ArrayUtils
 		for(int i = 0; i < array.length; i++)
 		{
 			if(predicate.test(array[i]))
-			{
-				return i;
-			}
-		}
-		
-		return -1;
-	}
-	
-	/**
-	 * Finds the index of the first occurrence of an element in the array.
-	 * 
-	 * @param array
-	 * - array to check.
-	 * @param element
-	 * - element to be found in the array.
-	 * @return
-	 * - the index of the found element.<br>
-	 * - <b>-1</b> if the element wasn't found.
-	 * @author Sergio Morel
-	 */
-	public static int findFirst(byte[] array, byte element)
-	{
-		if(array == null)
-		{
-			return -1;
-		}
-		
-		for(int i = 0; i < array.length; i++)
-		{
-			if(array[i] == element)
 			{
 				return i;
 			}
