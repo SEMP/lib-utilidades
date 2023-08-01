@@ -8,8 +8,13 @@ import java.util.Iterator;
  * 
  * @author Sergio Morel
  */
-public class Utilities
+public final class Utilities
 {
+	private Utilities()
+	{
+		super();
+	}
+	
 	/**
 	 * Checks if two objects are equal.
 	 * 
