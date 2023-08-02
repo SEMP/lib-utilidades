@@ -397,7 +397,7 @@ public final class ArrayUtils
 	 * - element to be found in the array.
 	 * @return
 	 * - the index of the found element.<br>
-	 * - <b>-1</b> if the element wasn't found.
+	 * - <b>-1</b> if the element wasn't found or the array is null.
 	 * @author Sergio Morel
 	 */
 	public static int findFirst(byte[] array, byte element)
@@ -426,7 +426,8 @@ public final class ArrayUtils
 	 * @param subArray
 	 * - sub array whose index you want to find.
 	 * @return
-	 * - the index of the first element where the sub array was found.
+	 * - the index of the first element where the sub array was found.<br>
+	 * - <b>-1</b> if the sub array wasn't found or the array is null.
 	 * @author Sergio Morel
 	 */
 	public static int findFirst(byte[] array, byte[] subArray)
@@ -497,7 +498,7 @@ public final class ArrayUtils
 	 * - element to be found in the array.
 	 * @return
 	 * - the index of the found element.<br>
-	 * - <b>-1</b> if the element wasn't found.
+	 * - <b>-1</b> if the element wasn't found or the array is null.
 	 * @author Sergio Morel
 	 */
 	public static <T> int findFirst(T[] array, T element)
@@ -530,7 +531,7 @@ public final class ArrayUtils
 	 * - predicate that establishes if the element is found.
 	 * @return
 	 * - the index of the found element.<br>
-	 * - <b>-1</b> if the element wasn't found.
+	 * - <b>-1</b> if the element wasn't found or if the array or predicate are null.
 	 * @author Sergio Morel
 	 */
 	public static <T> int findFirst(T[] array, Predicate<T> predicate)
