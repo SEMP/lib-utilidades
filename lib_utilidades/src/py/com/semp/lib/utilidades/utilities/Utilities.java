@@ -1,6 +1,7 @@
 package py.com.semp.lib.utilidades.utilities;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -13,6 +14,36 @@ public final class Utilities
 	private Utilities()
 	{
 		super();
+	}
+	
+	/**
+	 * Verifies if the object is present in the collection.
+	 * 
+	 * @param collection
+	 * - Collection from which to find the object.
+	 * @param object
+	 * - Object to be found.
+	 * @return
+	 * - <b>true</b> if the object is found.<br>
+	 * - <b>false</b> if the object is not found, or if the collection is null.
+	 * @author Sergio Morel
+	 */
+	public static boolean collectionContains(Collection<?> collection, Object object)
+	{
+		if(collection == null)
+		{
+			return false;
+		}
+		
+		for(Object element : collection)
+		{
+			if(Utilities.equals(element, object))
+			{
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	/**
