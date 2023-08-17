@@ -19,6 +19,10 @@ public final class ArrayUtils
 	private ArrayUtils()
 	{
 		super();
+		
+		String errorMessage = MessageUtil.getMessage(Messages.DONT_INSTANTIATE, this.getClass().getName());
+		
+		throw new AssertionError(errorMessage);
 	}
 	
 	/**
@@ -283,7 +287,7 @@ public final class ArrayUtils
 	 * smaller that the size received as parameter.
 	 * 
 	 * @param <T>
-	 * - type of the array'		bundle = ResourceBundle.getBundle(path + resource, locale);s element.
+	 * - type of the array's element.
 	 * @param array
 	 * - array from which you want to get a sub set of elements.
 	 * @param index
