@@ -10,7 +10,9 @@ import py.com.semp.lib.utilidades.messages.MessageKey;
 public enum Messages implements MessageKey
 {
 	INVALID_HEX_STRING("INVALID_HEX_STRING"),
-	DONT_INSTANTIATE("DONT_INSTANTIATE");
+	DONT_INSTANTIATE("DONT_INSTANTIATE"),
+	BUFFER_NOT_NULL_ERROR("BUFFER_NOT_NULL_ERROR"),
+	BUFFER_ARRAY_MINIMUM_SIZE("BUFFER_ARRAY_MINIMUM_SIZE");
 	
 	private final String messageKey;
 	

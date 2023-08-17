@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
-import py.com.semp.lib.utilidades.messages.MessageManager;
+import py.com.semp.lib.utilidades.internal.MessageUtil;
+import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**
@@ -75,13 +75,16 @@ public class CircularByteBuffer implements Collection<Byte>
 	{
 		if(byteArray == null)
 		{
-			String errorMessage = this.getMessage();
-			throw new NullPointerException("buffer no puede ser null");
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_NOT_NULL_ERROR);
+			
+			throw new NullPointerException(errorMessage);
 		}
 		
 		if(byteArray.length < 1)
 		{
-			throw new IllegalArgumentException("Tamaño de buffer debe ser más que 0");
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_ARRAY_MINIMUM_SIZE);
+			
+			throw new IllegalArgumentException(errorMessage);
 		}
 		
 		this.byteArray = byteArray;
@@ -90,24 +93,6 @@ public class CircularByteBuffer implements Collection<Byte>
 		this.setEnd(byteArray.length - 1);
 	}
 	
-	private String getMessage()
-	{
-		MessageManager messages = new MessageManager("py/com/semp/lib/utilidades", "messages");
-		
-		System.out.println(messages);
-		
-		return messages.getMessage("NULL_BUFFER_ERROR");
-	}
-	
-	public static void main(String[] args)
-	{
-		CircularByteBuffer buffer = new CircularByteBuffer(5);
-		
-		String message = buffer.getMessage();
-		
-		System.out.println(message);
-	}
-
 	@Override
 	public Object[] toArray()
 	{
