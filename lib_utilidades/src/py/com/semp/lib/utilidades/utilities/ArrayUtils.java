@@ -616,7 +616,7 @@ public final class ArrayUtils
 				sb.append(separator);
 			}
 			
-			sb.append(String.format("0x%02X", b));
+			sb.append(String.format("%02X", b));
 			
 			includeSeparator = true;
 		}

@@ -28,6 +28,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * 
 	 * @param size
 	 * - buffer's size.
+	 * @author Sergio Morel
 	 */
 	public CircularByteBuffer(int size)
 	{
@@ -40,6 +41,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * 
 	 * @param byteArray
 	 * - array with the initial values.
+	 * @author Sergio Morel
 	 */
 	public CircularByteBuffer(byte... byteArray)
 	{
@@ -71,7 +73,18 @@ public class CircularByteBuffer implements Collection<Byte>
 		return byteArray;
 	}
 	
-	private void setByteArray(byte[] byteArray)
+	/**
+	 * Sets the byte array as the underlying storage for the circular buffer.
+	 * 
+	 * @param byteArray
+	 * - The array to use as the data structure for the circular buffer.
+	 * @throws NullPointerException
+	 * if the provided byteArray is null.
+	 * @throws IllegalArgumentException
+	 * if the provided byteArray is empty.
+	 * @author Sergio Morel
+	 */
+	public void setByteArray(byte[] byteArray)
 	{
 		if(byteArray == null)
 		{
@@ -107,6 +120,13 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		T[] usedArray = array;
 		
+		if(array == null)
+		{
+			Class<T> type = (Class<T>) this.getClass().getComponentType();
+			
+			usedArray = (T[])Array.newInstance(type, dataSize);
+		}
+		
 		if(array.length < dataSize)
 		{
 			Class<T> type = (Class<T>) array.getClass().getComponentType();
@@ -127,27 +147,30 @@ public class CircularByteBuffer implements Collection<Byte>
 	@Override
 	public boolean addAll(Collection<? extends Byte> collection)
 	{
-		int size = this.getBufferSize();
-		
-		if(size < 1)
+		if(collection == null || collection.isEmpty())
 		{
 			return false;
 		}
 		
+		boolean dataAdded = false;
+		
 		for(Byte data : collection)
 		{
-			this.add(data);
+			dataAdded |= this.add(data);
 		}
 		
-		return true;
+		return dataAdded;
 	}
 	
 	/**
-	 * Agrega un conjunto de bytes al buffer
+	 * Adds the contents of the byte array to the buffer.
+	 * 
 	 * @param bytes
-	 * conjunto de bytes que se desea agregar.
+	 * - bytes to be added to the buffer.
 	 * @return
-	 * bytes eliminados por timeout.
+	 * <b>true</b> if the bytes are added succesfully.<br>
+	 * <b>false</b> if the bytes couldn't be added.
+	 * @author Sergio Morel
 	 */
 	public boolean add(byte... array)
 	{
@@ -178,18 +201,18 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Agrega un nuevo byte al buffer.
+	 * Adds a byte to the buffer.
+	 * If the buffer is full, the oldest byte will be overwritten.
+	 * 
 	 * @param data
-	 * byte que se desea agregar.
+	 * - byte to be added.
+	 * @return true
+	 * - if the byte was added successfully, false otherwise.
+	 * @author Sergio Morel
 	 */
-	private boolean add(byte data)
+	public boolean add(byte data)
 	{
 		int size = this.getBufferSize();
-		
-		if(size < 1)
-		{
-			return false;
-		}
 		
 		if(this.start == EMPTY_INDEX)
 		{
@@ -222,19 +245,27 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Obtiene los datos de buffer.<br>
+	 * Gets a new array with the data from the circular buffer.<br>
 	 * 
 	 * @return
-	 * array de bytes con los datos del buffer.
+	 * - new array with the data from the circular buffer.
+	 * @author Sergio Morel
 	 */
 	public byte[] getData()
 	{
 		int dataStart = this.getStart();
 		int dataEnd = this.getEnd();
 		
-		return extract(dataStart, dataEnd);
+		return this.extract(dataStart, dataEnd);
 	}
 	
+	/**
+	 * Gets a new array with the data from the circular buffer.<br>
+	 * 
+	 * @return
+	 * - new array with the data from the circular buffer.
+	 * @author Sergio Morel
+	 */
 	public Object[] getDataInObjectArray()
 	{
 		int dataStart = this.getStart();
@@ -243,6 +274,19 @@ public class CircularByteBuffer implements Collection<Byte>
 		return extractInObjectArray(dataStart, dataEnd);
 	}
 	
+	/**
+	 * Gets a new array with the data from the circular buffer. The data is taken
+	 * from a range defined by first index up to the last index in the arguments. (the element in the last
+	 * index is included)<br>
+	 * 
+	 * @param start
+	 * - the first index of the range.
+	 * @param end
+	 * - the last index of the range.
+	 * @return
+	 * - new array with the data from the range in the circular buffer.
+	 * @author Sergio Morel
+	 */
 	public byte[] getData(int start, int end)
 	{
 		int dataStart = this.getStart();
@@ -254,21 +298,27 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		if(!this.inRange(startIndex, endIndex))
 		{
-			StringBuilder errorMessage = new StringBuilder();
+			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.getDataSize());
 			
-			errorMessage.append("Out of Range: (");
-			errorMessage.append(startIndex).append(", ");
-			errorMessage.append(endIndex).append(")\n");
-			errorMessage.append("Buffer: (");
-			errorMessage.append(this.getStart()).append(", ");
-			errorMessage.append(this.getEnd()).append(")\n");
-			
-			throw new IndexOutOfBoundsException();
+			throw new IndexOutOfBoundsException(errorMessage);
 		}
 		
 		return extract(startIndex, endIndex);
 	}
 	
+	/**
+	 * Indicates if the range defined by the start and end indices is included
+	 * inside the range of data of the circular buffer.
+	 * 
+	 * @param start
+	 * - start index.
+	 * @param end
+	 * - end index.
+	 * @return
+	 * <b>true</b> if the indices are inside the data range.<br>
+	 * <b>false</b> if the indices are not in the data range.
+	 * @author Sergio Morel
+	 */
 	private boolean inRange(int start, int end)
 	{
 		CircularByteBufferIterator iterator = this.iterator();
@@ -277,17 +327,17 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Obtiene la cantidad de datos contenidos dentro de los
-	 * l&iacute;mites pasados por par&aacute;metro.
+	 * Calculates the size of the data range defined by the start and end indices.
 	 * 
 	 * @param start
-	 * l&iacute;mite inical.
+	 * - The starting index of the data range.
 	 * @param end
-	 * l&iacute;mite final.
+	 * - The ending index of the data range.
 	 * @return
-	 * cantidad de datos.
+	 * - The size of the data range inside the buffer.
+	 * @author Sergio Morel
 	 */
-	public int getDataSize(int start, int end)
+	private int getDataSize(int start, int end)
 	{
 		if(start == EMPTY_INDEX || end == EMPTY_INDEX)
 		{
@@ -305,10 +355,11 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Obtiene la cantidad de datos contenida en el buffer.
+	 * Gets the size of the data inside the circular buffer.
 	 * 
 	 * @return
-	 * cantidad de datos.
+	 * - size of the data in the circular buffer.
+	 * @author Sergio Morel
 	 */
 	public int getDataSize()
 	{
@@ -319,10 +370,11 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Obtiene el tama&ntilde;o del buffer.
+	 * Gets the size of the underlying buffer.
 	 * 
 	 * @return
-	 * tama&ntilde;o del buffer.
+	 * - size of the underlying buffer.
+	 * @author Sergio Morel
 	 */
 	public int getBufferSize()
 	{
@@ -336,7 +388,9 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Vac&iacute;a el buffer.
+	 * Clears the data of the buffer.
+	 * 
+	 * @author Sergio Morel
 	 */
 	public void clear()
 	{
@@ -344,6 +398,15 @@ public class CircularByteBuffer implements Collection<Byte>
 		this.end = EMPTY_INDEX;
 	}
 	
+	/**
+	 * Verifies if the buffer is empty.
+	 * 
+	 * @return
+	 * <b>true</b> if the buffer is empty.<br>
+	 * <b>false</b> if the buffer has any data.
+	 * 
+	 * @author Sergio Morel
+	 */
 	public boolean isEmpty()
 	{
 		return start == EMPTY_INDEX;
