@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import py.com.semp.lib.messages.MessageManager;
+import py.com.semp.lib.utilidades.messages.MessageManager;
 import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**

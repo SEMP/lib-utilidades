@@ -656,7 +656,7 @@ public final class ArrayUtils
 		if(!processedHexString.matches(regex))
 		{
 			StringBuilder errorMessage = new StringBuilder();
-			
+			//TODO usar el MessageManager.
 			errorMessage.append("Invalid hex string: ");
 			errorMessage.append(hexaString);
 			
