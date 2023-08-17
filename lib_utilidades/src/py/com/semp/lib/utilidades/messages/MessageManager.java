@@ -78,6 +78,11 @@ public record MessageManager(String path, String resource, Locale locale)
 		
 		String message = bundle.getString(messageKey);
 		
+		if(arguments == null || arguments.length < 1)
+		{
+			return message;
+		}
+		
 		return MessageFormat.format(message, arguments);
 	}
 	

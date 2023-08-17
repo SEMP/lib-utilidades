@@ -30,6 +30,8 @@ public final class MessageUtil
 	
 	private MessageUtil()
 	{
+		super();
+		
 		String errorMessage = getMessage(Messages.DONT_INSTANTIATE, this.getClass().getName());
 		
 		throw new AssertionError(errorMessage);

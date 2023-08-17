@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+import py.com.semp.lib.utilidades.internal.MessageUtil;
+import py.com.semp.lib.utilidades.internal.Messages;
+
 /**
  * Class with static methods with utilities.
  * 
@@ -14,6 +17,10 @@ public final class Utilities
 	private Utilities()
 	{
 		super();
+		
+		String errorMessage = MessageUtil.getMessage(Messages.DONT_INSTANTIATE, this.getClass().getName());
+		
+		throw new AssertionError(errorMessage);
 	}
 	
 	/**

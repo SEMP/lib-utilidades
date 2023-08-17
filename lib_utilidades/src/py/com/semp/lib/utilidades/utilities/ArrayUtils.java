@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import py.com.semp.lib.utilidades.internal.MessageUtil;
+import py.com.semp.lib.utilidades.internal.Messages;
+
 /**
  * Class with static method with utilities for arrays.
  * 
@@ -280,7 +283,7 @@ public final class ArrayUtils
 	 * smaller that the size received as parameter.
 	 * 
 	 * @param <T>
-	 * - type of the array's element.
+	 * - type of the array'		bundle = ResourceBundle.getBundle(path + resource, locale);s element.
 	 * @param array
 	 * - array from which you want to get a sub set of elements.
 	 * @param index
@@ -655,12 +658,9 @@ public final class ArrayUtils
 		
 		if(!processedHexString.matches(regex))
 		{
-			StringBuilder errorMessage = new StringBuilder();
-			//TODO usar el MessageManager.
-			errorMessage.append("Invalid hex string: ");
-			errorMessage.append(hexaString);
+			String errorMessage = MessageUtil.getMessage(Messages.INVALID_HEX_STRING, hexaString);
 			
-			throw new IllegalArgumentException(errorMessage.toString());
+			throw new IllegalArgumentException(errorMessage);
 		}
 		
 		byte[] bytes = new byte[processedHexString.length() / 2];
