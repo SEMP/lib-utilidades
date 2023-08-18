@@ -13,6 +13,12 @@ import py.com.semp.lib.utilidades.utilities.Utilities;
  * Circular buffer, when the buffer is full, the oldest data is
  * overwritten.
  * 
+ * <p>
+ * Note: This implementation is not thread-safe by design to favor performance.
+ * If used in a multithreaded environment, users are responsible for handling 
+ * synchronization externally.
+ * </p>
+ * 
  * @author Sergio Morel
  */
 public class CircularByteBuffer implements Collection<Byte>
@@ -441,14 +447,16 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Extrae del buffer los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
+	 * Extracts from the buffer all the data segments found between occurrences of the start header and end header.
+	 * Each segment of data extracted includes both the start and end headers.
+	 * 
 	 * @param startHeader
-	 * cabecera inicial.
+	 * - The starting header in String format. Converted to bytes using the system's default charset.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
 	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
+	 * - A list containing segments of data found between the headers, including the headers.
+	 * @author Sergio Morel
 	 */
 	public List<byte[]> extract(String startHeader, String endHeader)
 	{
@@ -456,50 +464,52 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Extrae del buffer los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
+	 * Extracts from the buffer all the data segments found between occurrences of the start header and end header.
+	 * Each segment of data extracted includes both the start and end headers.
+	 * 
 	 * @param startHeader
-	 * cabecera inicial.
+	 * - The starting header.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
+	 * - A list containing segments of data found between the headers, including the headers.
+	 * @author Sergio Morel
 	 */
 	public List<byte[]> extract(byte[] startHeader, byte[] endHeader)
 	{
 		List<byte[]> extraction = new LinkedList<>();
 		
-		boolean insideMessage = false;
+		boolean betweenHeaders = false;
 		
 		CircularByteBufferIterator iterator = this.iterator();
 		
 		while(iterator.hasNext())
 		{
-			//Cabecera inicial encontrada
+			// Start header found
 			if(iterator.patternFound(startHeader))
 			{
 				int index = iterator.getIndex();
 				
 				this.start = iterator.rewind(index, startHeader.length - 1);
 				
-				insideMessage = true;
+				betweenHeaders = true;
 			}
 			
-			//Cabecera final encontrada
+			// End header found
 			if(iterator.patternFound(endHeader))
 			{
 				int index = iterator.getIndex();
 				
-				if(insideMessage)
+				if(betweenHeaders)
 				{
-					byte[] message = this.extract(this.start, index);
+					byte[] segment = this.extract(this.start, index);
 					
-					extraction.add(message);
+					extraction.add(segment);
 				}
 				
 				this.start = iterator.goNext(index);
 				
-				insideMessage = false;
+				betweenHeaders = false;
 			}
 			
 			iterator.goNext();
@@ -528,7 +538,7 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		while(iterator.hasNext())
 		{
-			//Cabecera inicial encontrada
+			// Start header found
 			if(iterator.patternFound(startHeader))
 			{
 				int index = iterator.getIndex();
@@ -538,7 +548,7 @@ public class CircularByteBuffer implements Collection<Byte>
 				insideMessage = true;
 			}
 			
-			//Cabecera final encontrada
+			// End header found
 			if(iterator.patternFound(endHeader))
 			{
 				int index = iterator.getIndex();
