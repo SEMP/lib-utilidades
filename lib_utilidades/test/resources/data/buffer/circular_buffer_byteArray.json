@@ -1,0 +1,18 @@
+[
+    {
+	    "testScenario": "Buffer created using byte array constructor with additions",
+	    "constructorType": "byteArray",
+	    "constructorArgument": [10, 11, 12],
+	    "dataToAdd": [13, 14, 15],
+	    "expectedSize": 3,
+	    "expectedData": [13, 14, 15]
+	},
+    {
+        "testScenario": "Buffer created using byte array constructor without additions",
+        "constructorType": "byteArray",
+        "constructorArgument": [20, 21, 22],
+        "dataToAdd": [],
+        "expectedSize": 3,
+        "expectedData": [20, 21, 22]
+    }
+]

@@ -1,0 +1,18 @@
+[
+    {
+        "testScenario": "Buffer created using capacity constructor with overflow",
+        "constructorType": "capacity",
+        "constructorArgument": [5],
+        "dataToAdd": [1, 2, 3, 4, 5, 6, 7],
+        "expectedSize": 5,
+        "expectedData": [3, 4, 5, 6, 7]
+    },
+    {
+        "testScenario": "Buffer created using capacity constructor without overflow",
+        "constructorType": "capacity",
+        "constructorArgument": [5],
+        "dataToAdd": [1, 2, 3],
+        "expectedSize": 3,
+        "expectedData": [1, 2, 3]
+    }
+]
