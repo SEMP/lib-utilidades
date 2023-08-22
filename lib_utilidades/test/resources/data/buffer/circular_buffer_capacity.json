@@ -14,5 +14,53 @@
         "dataToAdd": [1, 2, 3],
         "expectedSize": 3,
         "expectedData": [1, 2, 3]
-    }
+    },
+    {
+	    "testScenario": "Buffer Full Scenario",
+	    "constructorType": "capacity",
+	    "constructorArgument": [3],
+	    "dataToAdd": [10, 11, 12, 13, 14],
+	    "expectedSize": 3,
+	    "expectedData": [12, 13, 14]
+	},
+	{
+	    "testScenario": "Buffer Underflow - Retrieving more data than available",
+	    "constructorType": "capacity",
+	    "constructorArgument": [3],
+	    "dataToAdd": [10, 11],
+	    "expectedSize": 2,
+	    "expectedData": [10, 11]
+	},
+	{
+	    "testScenario": "Buffer Overflow - Adding more data than buffer's capacity",
+	    "constructorType": "capacity",
+	    "constructorArgument": [3],
+	    "dataToAdd": [10, 11, 12, 13, 14, 15],
+	    "expectedSize": 3,
+	    "expectedData": [13, 14, 15]
+	},
+	{
+	    "testScenario": "Buffer with capacity of 1",
+	    "constructorType": "capacity",
+	    "constructorArgument": [1],
+	    "dataToAdd": [10, 11],
+	    "expectedSize": 1,
+	    "expectedData": [11]
+	},
+	{
+	    "testScenario": "Add Empty Data",
+	    "constructorType": "capacity",
+	    "constructorArgument": [3],
+	    "dataToAdd": [],
+	    "expectedSize": 0,
+	    "expectedData": []
+	},
+	{
+	    "testScenario": "Using Special Byte Values",
+	    "constructorType": "capacity",
+	    "constructorArgument": [3],
+	    "dataToAdd": [0, 255],
+	    "expectedSize": 2,
+	    "expectedData": [0, 255]
+	}
 ]

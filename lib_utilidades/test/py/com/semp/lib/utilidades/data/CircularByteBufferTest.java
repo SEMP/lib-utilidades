@@ -297,15 +297,6 @@ class CircularByteBufferTest
 		private String getString(byte[] data)
 		{
 			return Arrays.toString(data);
-//            String jsonString = "[]";
-//            
-//			try
-//			{
-//				jsonString = OBJECT_MAPPER.writeValueAsString(data);
-//			}
-//			catch(JsonProcessingException e){}
-//            
-//			return jsonString;
 		}
 	}
 }
