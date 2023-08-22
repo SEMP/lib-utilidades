@@ -519,20 +519,20 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Extrae del buffer los primeros datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
+	 * Extracts from the buffer the first data segment found between occurrences of the start header and end header.
+	 * The segment of data extracted includes both the start and end headers.
+	 * 
 	 * @param startHeader
-	 * cabecera inicial.
+	 * - The starting header.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
+	 * - The first segment of data found between the headers, including the headers.
+	 * @author Sergio Morel
 	 */
 	public byte[] extractOne(byte[] startHeader, byte[] endHeader)
 	{
-		byte[] extraction = new byte[] {};
-		
-		boolean insideMessage = false;
+		boolean betweenHeaders = false;
 		
 		CircularByteBufferIterator iterator = this.iterator();
 		
@@ -545,7 +545,7 @@ public class CircularByteBuffer implements Collection<Byte>
 				
 				this.start = iterator.rewind(index, startHeader.length - 1);
 				
-				insideMessage = true;
+				betweenHeaders = true;
 			}
 			
 			// End header found
@@ -553,35 +553,37 @@ public class CircularByteBuffer implements Collection<Byte>
 			{
 				int index = iterator.getIndex();
 				
-				if(insideMessage)
+				if(betweenHeaders)
 				{
-					byte[] message = this.extract(this.start, index);
+					byte[] segment = this.extract(this.start, index);
 					
-					extraction = message;
+					this.start = iterator.goNext(index);
+					
+					return segment;
 				}
 				
 				this.start = iterator.goNext(index);
 				
-				insideMessage = false;
-				
-				break;
+				betweenHeaders = false;
 			}
 			
 			iterator.goNext();
 		}
 		
-		return extraction;
+		return new byte[] {};
 	}
 	
 	/**
-	 * Extrae del buffer los primeros datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
+	 * Extracts from the buffer the first segment found between occurrences of the start header and end header.
+	 * The segment of data extracted includes both the start and end headers.
+	 * 
 	 * @param startHeader
-	 * cabecera inicial.
+	 * - The starting header in String format. Converted to bytes using the system's default charset.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
 	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
+	 * - The first segment of data found between the headers, including the headers.
+	 * @author Sergio Morel
 	 */
 	public byte[] extractOne(String startHeader, String endHeader)
 	{

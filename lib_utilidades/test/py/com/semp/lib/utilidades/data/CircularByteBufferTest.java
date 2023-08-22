@@ -23,9 +23,15 @@ class CircularByteBufferTest
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	
 	private static final String DATA_DIRECTORY = "/resources/data/buffer/";
+	
 	private static final String[] JSON_FILE_NAME_EXTRACT_TEST =
 	{
 		"extract_test.json"
+	};
+	
+	private static final String[] JSON_FILE_NAME_EXTRACT_ONE_TEST =
+	{
+		"extract_one_test.json"
 	};
 	
 	private static final String[] JSON_FILE_NAME_CIRCULAR_BUFFER =
@@ -69,6 +75,46 @@ class CircularByteBufferTest
 			
 			assertEquals(expected, actual, message);
 		}
+	}
+	
+	@ParameterizedTest
+	@MethodSource("readExtractOneTestData")
+	public void testExtractOne(ExtractTestDto testDTO)
+	{
+		String startHeader = testDTO.getStartHeader();
+		String endHeader = testDTO.getEndHeader();
+		String input = testDTO.getInput();
+		String[] expectedOutput = testDTO.getExpectedOutput();
+		String expectedRemainingData = testDTO.getExpectedRemainingData();
+		
+		byte[] inputBytes = input.getBytes();
+		
+		CircularByteBuffer buffer;
+		
+		if(inputBytes.length < 1)
+		{
+			buffer = new CircularByteBuffer(10);
+		}
+		else
+		{
+			buffer = new CircularByteBuffer(inputBytes);
+		}
+		
+		byte[] extracted = buffer.extractOne(startHeader, endHeader);
+		
+		assertEquals(1, expectedOutput.length, testDTO.toString());
+		
+		String expected = expectedOutput[0];
+		String actual = new String(extracted);
+		String message = testDTO + expected + " != " + actual;
+		
+		assertEquals(expected, actual, message);
+		
+		byte[] remainingBytes = buffer.getData();
+		String remaining = new String(remainingBytes);
+		message = testDTO + expectedRemainingData + " != " + remaining;
+		
+		assertEquals(expectedRemainingData, remaining, message);
 	}
 	
 	@ParameterizedTest
@@ -133,6 +179,26 @@ class CircularByteBufferTest
 		return testData.stream();
 	}
 	
+	private static Stream<Arguments> readExtractOneTestData() throws Exception
+	{
+		List<Arguments> testData = new LinkedList<>();
+		
+		TypeReference<List<ExtractTestDto>> typeReference = new TypeReference<List<ExtractTestDto>>(){};
+		
+		for(String fileName : JSON_FILE_NAME_EXTRACT_ONE_TEST)
+		{
+			InputStream inputStream = CircularByteBufferTest.class.getResourceAsStream(DATA_DIRECTORY + fileName);
+			
+			List<ExtractTestDto> testDTOs = OBJECT_MAPPER.readValue(inputStream, typeReference);
+			
+			testDTOs.forEach(testDTO -> testDTO.setFileName(fileName));
+			
+			testData.addAll(testDTOs.stream().map(Arguments::of).collect(Collectors.toList()));
+		}
+		
+		return testData.stream();
+	}
+	
 	private static Stream<Arguments> readCircularTestData() throws Exception
 	{
 		List<Arguments> testData = new LinkedList<>();
@@ -160,6 +226,7 @@ class CircularByteBufferTest
 		public String startHeader;
 		public String endHeader;
 		public String[] expectedOutput;
+		public String expectedRemainingData;
 		public String fileName;
 		
 		public String getTestName()
@@ -187,6 +254,11 @@ class CircularByteBufferTest
 			return expectedOutput;
 		}
 		
+		public String getExpectedRemainingData()
+		{
+			return expectedRemainingData;
+		}
+		
 		public String getFileName()
 		{
 			return this.fileName;
@@ -208,6 +280,11 @@ class CircularByteBufferTest
 			sb.append("Ending header: ").append(this.getEndHeader()).append(" | ");
 			sb.append("Input: ").append(this.getInput()).append(" | ");
 			sb.append("Expected: ").append(this.getExpectedString()).append(" | ");
+			
+			if(this.getExpectedRemainingData() != null)
+			{
+				sb.append("Expected Remaining Data: ").append(this.getExpectedRemainingData()).append(" | ");
+			}
 			
 			return sb.toString();
 		}
