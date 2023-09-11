@@ -4,7 +4,6 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-
 /**
  * MessageManager provides functionality to retrieve localized messages 
  * based on the specified locale.

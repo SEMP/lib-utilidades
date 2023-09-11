@@ -7,56 +7,52 @@
         "expectedRemainingData": " Remainder data here"
     },
     {
-        "testName": "Multiple Segments Extraction",
+        "testName": "First of Multiple Segments Extraction",
         "input": "First segment<end> Second segment<end> Last segment<end> Extra data",
         "endHeader": "<end>",
-        "expectedOutput": [
-            "First segment<end>", 
-            " Second segment<end>", 
-            " Last segment<end>"
-        ],
-        "expectedRemainingData": " Extra data"
+        "expectedOutput": ["First segment<end>"],
+        "expectedRemainingData": " Second segment<end> Last segment<end> Extra data"
     },
     {
         "testName": "No End Header",
         "input": "This is data without the header",
         "endHeader": "<end>",
-        "expectedOutput": [],
+        "expectedOutput": [""],
         "expectedRemainingData": "This is data without the header"
     },
     {
         "testName": "Partial End Header at the Buffer's End",
         "input": "This is a segment ending with partial header<en",
         "endHeader": "<end>",
-        "expectedOutput": [],
+        "expectedOutput": [""],
         "expectedRemainingData": "This is a segment ending with partial header<en"
     },
     {
-        "testName": "Segment Extraction with CRLF",
+        "testName": "First Segment Extraction with CRLF",
         "input": "Segment 1\r\nSegment 2\r\n Remainder data here",
         "endHeader": "\r\n",
-        "expectedOutput": ["Segment 1\r\n", "Segment 2\r\n"],
-        "expectedRemainingData": " Remainder data here"
+        "expectedOutput": ["Segment 1\r\n"],
+        "expectedRemainingData": "Segment 2\r\n Remainder data here"
     },
     {
-        "testName": "Segment Extraction with LF",
+        "testName": "First Segment Extraction with LF",
         "input": "Segment A\nSegment B\n Remainder data here",
         "endHeader": "\n",
-        "expectedOutput": ["Segment A\n", "Segment B\n"],
-        "expectedRemainingData": " Remainder data here"
+        "expectedOutput": ["Segment A\n"],
+        "expectedRemainingData": "Segment B\n Remainder data here"
     },
     {
-        "testName": "Multiple Segments with CRLF",
+        "testName": "First of Multiple Segments with CRLF",
         "input": "Header1\r\nHeader2\r\nHeader3\r\n Remainder data here",
         "endHeader": "\r\n",
-        "expectedOutput": ["Header1\r\n", "Header2\r\n", "Header3\r\n"],
-        "expectedRemainingData": " Remainder data here"
+        "expectedOutput": ["Header1\r\n"],
+        "expectedRemainingData": "Header2\r\nHeader3\r\n Remainder data here"
     },
     {
-        "testName": "Multiple Segments with LF",
+        "testName": "First of Multiple Segments with LF",
         "input": "Part1\nPart2\nPart3\n Remainder data here",
         "endHeader": "\n",
-        "expectedOutput": ["Part1\n", "Part2\n", "Part3\n"],
-        "expectedRemainingData": " Remainder data here"
+        "expectedOutput": ["Part1\n"],
+        "expectedRemainingData": "Part2\nPart3\n Remainder data here"
     }
 ]
