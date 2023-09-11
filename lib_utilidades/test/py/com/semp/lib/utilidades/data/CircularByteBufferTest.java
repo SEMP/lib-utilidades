@@ -62,7 +62,7 @@ class CircularByteBufferTest
 			buffer = new CircularByteBuffer(inputBytes);
 		}
 		
-		List<byte[]> extracted = buffer.extract(startHeader, endHeader);
+		List<byte[]> extracted = buffer.extractAll(startHeader, endHeader);
 		
 		assertEquals(expectedOutput.length, extracted.size(), testDTO.toString());
 		

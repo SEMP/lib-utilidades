@@ -1,7 +1,6 @@
 package py.com.semp.lib.utilidades.data;
 import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,11 +22,11 @@ import py.com.semp.lib.utilidades.utilities.Utilities;
  */
 public class CircularByteBuffer implements Collection<Byte>
 {
-	private static final int EMPTY_INDEX = -1;
+	static final int EMPTY_INDEX = -1;
 	
-	private int start;
-	private int end;
-	private byte[] byteArray;
+	int start;
+	int end;
+	byte[] byteArray;
 	
 	/**
 	 * Constructor that initializes the buffer with a fixed size.
@@ -54,27 +53,13 @@ public class CircularByteBuffer implements Collection<Byte>
 		this.setByteArray(byteArray);
 	}
 	
-	private int getStart()
-	{
-		return start;
-	}
-	
-	private void setStart(int start)
-	{
-		this.start = start;
-	}
-	
-	private int getEnd()
-	{
-		return end;
-	}
-	
-	private void setEnd(int end)
-	{
-		this.end = end;
-	}
-	
-	private byte[] getByteArray()
+	/**
+	 * Gets the underlying byte array for the circular byte buffer
+	 * @return
+	 * - The underlying array
+	 * @author Sergio Morel
+	 */
+	public byte[] getByteArray()
 	{
 		return byteArray;
 	}
@@ -108,8 +93,8 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		this.byteArray = byteArray;
 		
-		this.setStart(0);
-		this.setEnd(byteArray.length - 1);
+		this.start = 0;
+		this.end = byteArray.length - 1;
 	}
 	
 	@Override
@@ -259,10 +244,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public byte[] getData()
 	{
-		int dataStart = this.getStart();
-		int dataEnd = this.getEnd();
-		
-		return this.extract(dataStart, dataEnd);
+		return this.extract(this.start, this.end);
 	}
 	
 	/**
@@ -274,10 +256,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public Object[] getDataInObjectArray()
 	{
-		int dataStart = this.getStart();
-		int dataEnd = this.getEnd();
-		
-		return extractInObjectArray(dataStart, dataEnd);
+		return extractInObjectArray(this.start, this.end);
 	}
 	
 	/**
@@ -295,7 +274,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public byte[] getData(int start, int end)
 	{
-		int dataStart = this.getStart();
+		int dataStart = this.start;
 		
 		CircularByteBufferIterator iterator = this.iterator();
 		
@@ -369,10 +348,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public int getDataSize()
 	{
-		int dataStart = this.getStart();
-		int dataEnd = this.getEnd();
-		
-		return this.getDataSize(dataStart, dataEnd);
+		return this.getDataSize(this.start, this.end);
 	}
 	
 	/**
@@ -458,9 +434,9 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * - A list containing segments of data found between the headers, including the headers.
 	 * @author Sergio Morel
 	 */
-	public List<byte[]> extract(String startHeader, String endHeader)
+	public List<byte[]> extractAll(String startHeader, String endHeader)
 	{
-		return this.extract(startHeader.getBytes(), endHeader.getBytes());
+		return this.extractAll(startHeader.getBytes(), endHeader.getBytes());
 	}
 	
 	/**
@@ -475,7 +451,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * - A list containing segments of data found between the headers, including the headers.
 	 * @author Sergio Morel
 	 */
-	public List<byte[]> extract(byte[] startHeader, byte[] endHeader)
+	public List<byte[]> extractAll(byte[] startHeader, byte[] endHeader)
 	{
 		List<byte[]> extraction = new LinkedList<>();
 		
@@ -591,17 +567,18 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Obtiene un segmento del array de bytes delimitado
-	 * por los par&aacute;metros.<br>
+	 * Extracts from the buffer the segment contained between the indexes. The
+	 * segment includes the content of both indexes.
 	 * 
 	 * @param start
-	 * posici&oacute;n inicial.
+	 * - start index.
 	 * @param end
-	 * posici&oacute;n final.
+	 * - end index.
 	 * @return
-	 * array de bytes con los datos entre los l&iacute;mites.
+	 * - the extracted segment.
+	 * @author Sergio Morel.
 	 */
-	public byte[] extract(int start, int end)
+	private byte[] extract(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
 		int bufferSize = this.getBufferSize();
@@ -628,6 +605,18 @@ public class CircularByteBuffer implements Collection<Byte>
 		return segment;
 	}
 	
+	/**
+	 * Extracts from the buffer the segment contained between the indexes into an Object array. The
+	 * segment includes the content of both indexes.
+	 * 
+	 * @param start
+	 * - start index.
+	 * @param end
+	 * - end index.
+	 * @return
+	 * - An Object array with the extracted segment elements.
+	 * @author Sergio Morel.
+	 */
 	private Object[] extractInObjectArray(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
@@ -664,9 +653,9 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * @return
 	 * lista de datos extraidos.
 	 */
-	public List<byte[]> extract(String endHeader)
+	public List<byte[]> extractAll(String endHeader)
 	{
-		return this.extract(endHeader.getBytes());
+		return this.extractAll(endHeader.getBytes());
 	}
 	
 	/**
@@ -678,7 +667,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * @return
 	 * lista de datos extraidos.
 	 */
-	public List<byte[]> extract(byte[] endHeader)
+	public List<byte[]> extractAll(byte[] endHeader)
 	{
 		List<byte[]> extraction = new LinkedList<>();
 		
@@ -686,14 +675,14 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		while(iterator.hasNext())
 		{
-			//Cabecera final encontrada
+			// End header found
 			if(iterator.patternFound(endHeader))
 			{
 				int index = iterator.getIndex();
 				
-				byte[] message = this.extract(this.start, index);
+				byte[] segment = this.extract(this.start, index);
 				
-				extraction.add(message);
+				extraction.add(segment);
 				
 				this.start = iterator.goNext(index);
 			}
@@ -898,7 +887,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	{
 		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
 		
-		return circularByteBuffer.extract(startHeader, endHeader);
+		return circularByteBuffer.extractAll(startHeader, endHeader);
 	}
 	
 	/**
@@ -954,7 +943,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	{
 		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
 		
-		return circularByteBuffer.extract(endHeader);
+		return circularByteBuffer.extractAll(endHeader);
 	}
 	
 	/**
@@ -1071,445 +1060,5 @@ public class CircularByteBuffer implements Collection<Byte>
 	public CircularByteBufferIterator iterator()
 	{
 		return new CircularByteBufferIterator(this);
-	}
-	
-	public static class CircularByteBufferIterator implements Iterator<Byte>
-	{
-		private CircularByteBuffer buffer;
-		private int index;
-		
-		public CircularByteBufferIterator(CircularByteBuffer buffer)
-		{
-			this.buffer = buffer;
-			this.index = buffer.getStart();
-		}
-		
-		public int getIndex()
-		{
-			return index;
-		}
-		
-		public void setIndex(int index)
-		{
-			this.index = index;
-		}
-		
-		public boolean isFirstIteration()
-		{
-			int start = this.buffer.getStart();
-			
-			return this.index == start;
-		}
-		
-		public boolean inRange(int start, int end)
-		{
-			boolean fi =  this.buffer.end >= this.buffer.start;
-			boolean es = end >= start;
-			boolean si = start >= this.buffer.start;
-			boolean fe = this.buffer.end >= end;
-			
-			if(fi == es)
-			{
-				return si && fe;
-			}
-			
-			if(!es)
-			{
-				return false;
-			}
-			
-			boolean ei = end >= this.buffer.start;
-			boolean fs = this.buffer.end >= start;
-			
-			return (si && ei) || (fs && fe);
-		}
-		
-		public boolean patternFound(byte[] pattern)
-		{
-			byte[] byteArray = this.buffer.byteArray;
-			
-			int index = this.index;
-			int i = pattern.length - 1;
-			
-			while(i >= 0 && index != EMPTY_INDEX)
-			{
-				if(byteArray[index] != pattern[i])
-				{
-					return false;
-				}
-				
-				index = this.goPrevious(index);
-				i--;
-			}
-			
-			if(i == EMPTY_INDEX)
-			{
-				return true;
-			}
-			
-			return false;
-		}
-		
-		@Override
-		public boolean hasNext()
-		{
-			return index != EMPTY_INDEX;
-		}
-		
-		@Override
-		public Byte next()
-		{
-			if(this.index == EMPTY_INDEX)
-			{
-				return null;
-			}
-			
-			byte[] byteArray = this.buffer.getByteArray();
-			
-			byte data = byteArray[this.index];
-			
-			this.goNext();
-			
-			return data;
-		}
-		
-		public int goNext()
-		{
-			if(this.index == this.buffer.getEnd())
-			{
-				return this.index = EMPTY_INDEX;
-			}
-			
-			if(this.index == EMPTY_INDEX)
-			{
-				return this.index = this.buffer.getStart();
-			}
-			
-			this.index++;
-			
-			if(this.index == this.buffer.getBufferSize())
-			{
-				this.index = 0;
-			}
-			
-			return this.index;
-		}
-		
-		public int goNext(int index)
-		{
-			if(index == this.buffer.getEnd())
-			{
-				return EMPTY_INDEX;
-			}
-			
-			if(index == EMPTY_INDEX)
-			{
-				return this.buffer.getStart();
-			}
-			
-			index++;
-			
-			if(index == this.buffer.getBufferSize())
-			{
-				index = 0;
-			}
-			
-			return index;
-		}
-		
-		public int goPrevious()
-		{
-			if(this.index == this.buffer.getStart())
-			{
-				return this.index = EMPTY_INDEX;
-			}
-			
-			if(this.index == EMPTY_INDEX)
-			{
-				return this.index = this.buffer.getEnd();
-			}
-			
-			this.index--;
-			
-			if(this.index < 0)
-			{
-				this.index = this.buffer.getBufferSize() - 1;
-			}
-			
-			return this.index;
-		}
-		
-		public int goPrevious(int index)
-		{
-			if(index == this.buffer.getStart())
-			{
-				return EMPTY_INDEX;
-			}
-			
-			if(index == EMPTY_INDEX)
-			{
-				return this.buffer.getEnd();
-			}
-			
-			index--;
-			
-			if(index < 0)
-			{
-				index = this.buffer.getBufferSize() - 1;
-			}
-			
-			return index;
-		}
-		
-		public int forward(int steps)
-		{
-			if(this.index == EMPTY_INDEX)
-			{
-				this.index = 0;
-			}
-			
-			int bufferSize = this.buffer.getBufferSize();
-			
-			this.index += steps % bufferSize;
-			
-			if(this.index >= bufferSize)
-			{
-				this.index -= bufferSize;
-			}
-			
-			return this.index;
-		}
-		
-		public int forward(int index, int steps)
-		{
-			if(index == EMPTY_INDEX)
-			{
-				index = 0;
-			}
-			
-			int bufferSize = this.buffer.getBufferSize();
-			
-			index += steps % bufferSize;
-			
-			if(index >= bufferSize)
-			{
-				index -= bufferSize;
-			}
-			
-			return index;
-		}
-		
-		public int rewind(int steps)
-		{
-			if(this.index == EMPTY_INDEX)
-			{
-				this.index = 0;
-			}
-			
-			int bufferSize = this.buffer.getBufferSize();
-			
-			this.index -= steps % bufferSize;
-			
-			if(this.index < 0)
-			{
-				this.index += bufferSize;
-			}
-			
-			return this.index;
-		}
-		
-		public int rewind(int index, int steps)
-		{
-			if(index == EMPTY_INDEX)
-			{
-				index = 0;
-			}
-			
-			int bufferSize = this.buffer.getBufferSize();
-			
-			index -= steps % bufferSize;
-			
-			if(index < 0)
-			{
-				index += bufferSize;
-			}
-			
-			return index;
-		}
-		
-		/**
-		 * Removers the first element.
-		 * @return
-		 * - first element.<br>
-		 * - null if the buffer is empty.
-		 */
-		public Byte removeFirst()
-		{
-			int dataStart = this.buffer.getStart();
-			int dataEnd = this.buffer.getEnd();
-			byte[] byteArray = this.buffer.getByteArray();
-			
-			if(dataStart == EMPTY_INDEX)
-			{
-				return null;
-			}
-			
-			byte data = byteArray[dataStart];
-			
-			if(dataStart == dataEnd)
-			{
-				this.buffer.clear();
-			}
-			else
-			{
-				this.buffer.start = this.goNext(dataStart);
-			}
-			
-			return data;
-		}
-		
-		/**
-		 * Removers the last element.
-		 * @return
-		 * - last element.<br>
-		 * - null if the buffer is empty.
-		 */
-		public Byte removeLast()
-		{
-			int dataStart = this.buffer.getStart();
-			int dataEnd = this.buffer.getEnd();
-			byte[] byteArray = this.buffer.getByteArray();
-			
-			if(dataStart == EMPTY_INDEX)
-			{
-				return null;
-			}
-			
-			byte data = byteArray[dataEnd];
-			
-			if(dataStart == dataEnd)
-			{
-				this.buffer.clear();
-			}
-			else
-			{
-				this.buffer.end = this.goPrevious(dataEnd);
-			}
-			
-			return data;
-		}
-		
-		@Override
-		public void remove()
-		{
-			int dataStart = this.buffer.start;
-			int dataEnd = this.buffer.end;
-			int removeIndex = this.goPrevious(this.index);
-			
-			if(dataStart == EMPTY_INDEX)
-			{
-				return;
-			}
-			
-			if(removeIndex == dataStart)
-			{
-				this.removeFirst();
-				
-				return;
-			}
-			
-			if(removeIndex == dataEnd)
-			{
-				this.removeLast();
-				
-				return;
-			}
-			
-			int copyFromIndex = this.goNext(removeIndex);
-			int copyToIndex = removeIndex;
-			
-			while(copyFromIndex != EMPTY_INDEX)
-			{
-				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
-				
-				copyToIndex = this.goNext(copyToIndex);
-				copyFromIndex = this.goNext(copyFromIndex);
-			}
-			
-			this.buffer.end = this.goPrevious(copyToIndex);
-			
-			this.goPrevious();
-		}
-		
-		public void remove(int start, int end)
-		{
-			int dataStart = this.buffer.start;
-			int dataEnd = this.buffer.end;
-			
-			if(!this.inRange(start, end))
-			{
-				StringBuilder sb = new StringBuilder();
-				
-				sb.append("Rango fuera de limites:\n");
-				sb.append("Rango: (").append(start);
-				sb.append(", ").append(end).append(")\n");
-				sb.append("Data: (").append(dataStart);
-				sb.append(", ").append(dataEnd).append(")");
-				
-				throw new IndexOutOfBoundsException(sb.toString());
-			}
-			
-			if(dataStart == EMPTY_INDEX)
-			{
-				return;
-			}
-			
-			if(start == dataStart)
-			{
-				this.buffer.start = this.goNext(end);
-				
-				if(this.buffer.start == EMPTY_INDEX)
-				{
-					this.buffer.end = EMPTY_INDEX;
-				}
-				
-				return;
-			}
-			
-			if(end == dataEnd)
-			{
-				this.buffer.end = this.goPrevious(start);
-				
-				if(this.buffer.end == EMPTY_INDEX)
-				{
-					this.buffer.start = EMPTY_INDEX;
-				}
-				
-				return;
-			}
-			
-			int copyFromIndex = this.goNext(end);
-			int copyToIndex = start;
-			
-			while(copyFromIndex != EMPTY_INDEX)
-			{
-				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
-				
-				copyToIndex = this.goNext(copyToIndex);
-				copyFromIndex = this.goNext(copyFromIndex);
-			}
-			
-			this.buffer.end = this.goPrevious(copyToIndex);
-		}
-		
-		@Override
-		public String toString()
-		{
-			StringBuilder sb = new StringBuilder();
-			
-			sb.append(this.index);
-			
-			return sb.toString();
-		}
 	}
 }
