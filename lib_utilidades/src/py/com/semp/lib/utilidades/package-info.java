@@ -1,5 +1,5 @@
 /**
- * Paquete de la Librer&iacute;a de utilidades.
+ * Package of the Utilities Library.
  * 
  * @author Sergio Morel
  */

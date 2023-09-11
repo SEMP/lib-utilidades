@@ -1,5 +1,5 @@
 /**
- * Paquete para clases de utilidades varias.
+ * Package for various utility classes.
  * 
  * @author Sergio Morel
  */

@@ -4,69 +4,79 @@
         "input": "Hello <start> this is the message <end> Goodbye",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": ["<start> this is the message <end>"]
+        "expectedOutput": ["<start> this is the message <end>"],
+        "expectedRemainingData": " Goodbye"
     },
     {
         "testName": "No Matches Found",
         "input": "Hello this is just a message",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": []
+        "expectedOutput": [],
+        "expectedRemainingData": "Hello this is just a message"
     },
     {
         "testName": "Multiple Matches",
         "input": "Hello <start> first message <end> Hi <start> second message <end> Bye",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": ["<start> first message <end>", "<start> second message <end>"]
+        "expectedOutput": ["<start> first message <end>", "<start> second message <end>"],
+        "expectedRemainingData": " Bye"
     },
     {
         "testName": "Overlapping Matches",
         "input": "<start> message <start> another message <end>",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": ["<start> another message <end>"]
+        "expectedOutput": ["<start> another message <end>"],
+        "expectedRemainingData": ""
     },
     {
         "testName": "Mismatched Headers",
         "input": "<start> message without an end",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": []
+        "expectedOutput": [],
+        "expectedRemainingData": "<start> message without an end"
     },
     {
         "testName": "Headers with No Content In-between",
         "input": "Hello <start><end> Goodbye",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": ["<start><end>"]
+        "expectedOutput": ["<start><end>"],
+        "expectedRemainingData": " Goodbye"
     },
     {
         "testName": "Start Header At the Beginning",
         "input": "<start> message with no end",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": []
+        "expectedOutput": [],
+        "expectedRemainingData": "<start> message with no end"
     },
     {
         "testName": "End Header At the End",
         "input": "Message with start but no <end>",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": []
+        "expectedOutput": [],
+        "expectedRemainingData": ""
     },
     {
         "testName": "Empty Buffer",
         "input": "",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": []
+        "expectedOutput": [],
+        "expectedRemainingData": ""
     },
     {
         "testName": "Buffer with Only Headers",
         "input": "<start><end><start><end><start><end>",
         "startHeader": "<start>",
         "endHeader": "<end>",
-        "expectedOutput": ["<start><end>", "<start><end>", "<start><end>"]
+        "expectedOutput": ["<start><end>", "<start><end>", "<start><end>"],
+        "expectedRemainingData": ""
     }
 ]

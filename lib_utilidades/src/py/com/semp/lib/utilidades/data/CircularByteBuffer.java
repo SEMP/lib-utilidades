@@ -645,13 +645,14 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Extrae del buffer los datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * La extracci&oacute;n incluye la cabecera final.
+	 * Extracts from the buffer all the data segments terminated by an ending header.
+	 * Each segment of data extracted includes the end header.
+	 * 
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * lista de datos extraidos.
+	 * - A list containing segments of data terminated by the end header, including the header.
+	 * @author Sergio Morel
 	 */
 	public List<byte[]> extractAll(String endHeader)
 	{
@@ -659,13 +660,14 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Extrae del buffer los datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * La extracci&oacute;n incluye la cabecera final.
+	 * Extracts from the buffer all the data segments terminated by an ending header.
+	 * Each segment of data extracted includes the end header.
+	 * 
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * lista de datos extraidos.
+	 * - A list containing segments of data terminated by the end header, including the header.
+	 * @author Sergio Morel
 	 */
 	public List<byte[]> extractAll(byte[] endHeader)
 	{

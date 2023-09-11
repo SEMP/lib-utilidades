@@ -1,0 +1,34 @@
+[
+    {
+        "testName": "Single Segment Extraction",
+        "input": "This is the data segment<end> Remainder data here",
+        "endHeader": "<end>",
+        "expectedOutput": ["This is the data segment<end>"],
+        "expectedRemainingData": " Remainder data here"
+    },
+    {
+        "testName": "Multiple Segments Extraction",
+        "input": "First segment<end> Second segment<end> Last segment<end> Extra data",
+        "endHeader": "<end>",
+        "expectedOutput": [
+            "First segment<end>", 
+            " Second segment<end>", 
+            " Last segment<end>"
+        ],
+        "expectedRemainingData": " Extra data"
+    },
+    {
+        "testName": "No End Header",
+        "input": "This is data without the header",
+        "endHeader": "<end>",
+        "expectedOutput": [],
+        "expectedRemainingData": "This is data without the header"
+    },
+    {
+        "testName": "Partial End Header at the Buffer's End",
+        "input": "This is a segment ending with partial header<en",
+        "endHeader": "<end>",
+        "expectedOutput": [],
+        "expectedRemainingData": "This is a segment ending with partial header<en"
+    }
+]
