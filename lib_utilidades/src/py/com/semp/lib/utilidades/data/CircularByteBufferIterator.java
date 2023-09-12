@@ -54,11 +54,37 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		return index;
 	}
 	
+	/**
+	 * Determines if the current iteration is the first by comparing the index with the buffer's start.
+	 * 
+	 * @return
+	 * - <b>true</b> if the current index matches the buffer's start position,
+	 * indicating the first iteration.<br>
+	 * - <b>false</b> otherwise.
+	 * @author Sergio Morel
+	 */
 	public boolean isFirstIteration()
 	{
 		return this.index == this.buffer.start;
 	}
 	
+	/**
+	 * Checks if the given range, from start to end, falls within the buffer's range.
+	 * <p>
+	 * This method is designed to handle cases where the buffer is circular, 
+	 * meaning that data might wrap around from the end back to the start of the buffer.
+	 * </p>
+	 * 
+	 * @param start
+	 * - The starting index of the range to check.
+	 * @param end
+	 * - The ending index of the range to check.
+	 * 
+	 * @return
+	 * - <b>true</b> if the entire range from start to end is within the buffer's range.<br>
+	 * - <b>false</b> otherwise.
+	 * @author Sergio Morel
+	 */
 	public boolean inRange(int start, int end)
 	{
 		boolean fi = this.buffer.end >= this.buffer.start;
@@ -82,6 +108,20 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		return (si && ei) || (fs && fe);
 	}
 	
+	/**
+	 * Checks if the given pattern exists immediately preceding the current index in the buffer.
+	 * <p>
+	 * This method looks backward from the current index to determine if the pattern is present.
+	 * The search is done in reverse order, starting from the end of the pattern towards its beginning,
+	 * and it stops as soon as a mismatch is found or the pattern is fully matched.
+	 * </p>
+	 *
+	 * @param pattern The byte array pattern to search for within the buffer.
+	 * 
+	 * @return
+	 * - <b>true</b> if the entire pattern is found immediately preceding the current index.<br>
+	 * - <b>false</b> otherwise or if the pattern is not fully matched.
+	 */
 	public boolean patternFound(byte[] pattern)
 	{
 		byte[] byteArray = this.buffer.byteArray;
@@ -100,7 +140,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 			i--;
 		}
 		
-		if(i == EMPTY_INDEX)
+		if(i < 0)
 		{
 			return true;
 		}
@@ -160,6 +200,15 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		return data;
 	}
 	
+	/**
+	 * Updates the current index to point to the next position in the buffer.
+	 * 
+	 * @return The updated index after the operation.<br>
+	 * - If the current index is at the end of the buffer, the index is set to EMPTY_INDEX.<br>
+	 * - If the current index is EMPTY_INDEX, the index is reset to the start of the buffer.<br>
+	 * - In other cases, the index is incremented and wrapped around if it exceeds the buffer size.<br>
+	 * @author Sergio Morel
+	 */
 	public int goNext()
 	{
 		if(this.index == this.buffer.end)
@@ -172,16 +221,24 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 			return this.index = this.buffer.start;
 		}
 		
-		this.index++;
-		
-		if(this.index == this.buffer.getBufferSize())
-		{
-			this.index = 0;
-		}
+		this.index = (this.index + 1) % this.buffer.getBufferSize();
 		
 		return this.index;
 	}
 	
+	/**
+	 * Moves to the next position in the buffer from a given index. It doesn't change
+	 * the iterator's index value.
+	 * 
+	 * @param index
+	 * - The index from which to move to the next position.
+	 * @return The updated index after the operation.<br>
+	 * - If the provided index is at the end of the buffer, the returned index is EMPTY_INDEX.<br>
+	 * - If the provided index is EMPTY_INDEX, the returned index is set to the start of the buffer.<br>
+	 * - For other values of the provided index, it is incremented, and if it exceeds the buffer size, 
+	 *   it wraps around to the start.
+	 *   @author Sergio Morel
+	 */
 	public int goNext(int index)
 	{
 		if(index == this.buffer.end)
@@ -194,16 +251,20 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 			return this.buffer.start;
 		}
 		
-		index++;
-		
-		if(index == this.buffer.getBufferSize())
-		{
-			index = 0;
-		}
+		index = (index + 1) % this.buffer.getBufferSize();
 		
 		return index;
 	}
 	
+	/**
+	 * Moves the iterator to the previous position in the buffer.
+	 * 
+	 * @return The updated index after the operation:<br>
+	 * - If the iterator's index is at the start of the buffer, the returned index is set to EMPTY_INDEX.<br>
+	 * - If the iterator's index is EMPTY_INDEX, the returned index is set to the end of the buffer.<br>
+	 * - For other positions of the iterator's index, it is decremented, and if it goes negative, it wraps around to the end of the buffer.<br>
+	 * @author Sergio Morel
+	 */
 	public int goPrevious()
 	{
 		if(this.index == this.buffer.start)
