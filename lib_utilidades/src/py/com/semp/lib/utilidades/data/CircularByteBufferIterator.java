@@ -270,7 +270,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	}
 	
 	/**
-	 * Removers the first element.
+	 * Removes the first element.
 	 * 
 	 * @return - first element.<br>
 	 *         - null if the buffer is empty.
@@ -301,7 +301,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	}
 	
 	/**
-	 * Removers the last element.
+	 * Removes the last element.
 	 * 
 	 * @return - last element.<br>
 	 *         - null if the buffer is empty.

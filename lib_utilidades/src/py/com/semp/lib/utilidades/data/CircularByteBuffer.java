@@ -397,9 +397,16 @@ public class CircularByteBuffer implements Collection<Byte>
 	@Override
 	public boolean contains(Object compareObject)
 	{
-		for(Byte data : this)
+		if(!(compareObject instanceof Byte))
 		{
-			if(Utilities.equals(data, compareObject))
+			return false;
+		}
+		
+		byte compareByte = (Byte) compareObject;
+		
+		for(byte data : this.byteArray)
+		{
+			if(data == compareByte)
 			{
 				return true;
 			}
@@ -696,13 +703,14 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Extrae del buffer los primeros datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * La extracci&oacute;n incluye la cabecera final.
+	 * Extracts from the buffer the first segment finalized by the end header.
+	 * The segment of data extracted includes theend header.
+	 * 
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
 	 * @return
-	 * datos extraidos.
+	 * - The first segment of data found, including the header.
+	 * @author Sergio Morel
 	 */
 	public byte[] extractOne(String endHeader)
 	{
@@ -710,13 +718,14 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Extrae del buffer los primeros datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * La extracci&oacute;n incluye la cabecera final.
+	 * Extracts from the buffer the first segment finalized by the end header.
+	 * The segment of data extracted includes theend header.
+	 * 
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * datos extraidos.
+	 * - The first segment of data found, including the header.
+	 * @author Sergio Morel
 	 */
 	public byte[] extractOne(byte[] endHeader)
 	{
@@ -733,7 +742,7 @@ public class CircularByteBuffer implements Collection<Byte>
 				
 				byte[] message = this.extract(this.start, index);
 				
-				extraction =message;
+				extraction = message;
 				
 				this.start = iterator.goNext(index);
 				
@@ -747,7 +756,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Removers the first element.
+	 * Removes the first element.
 	 * @return
 	 * - first element.<br>
 	 * - null if the buffer is empty.
@@ -760,7 +769,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Removers the last element.
+	 * Removes the last element.
 	 * @return
 	 * - last element.<br>
 	 * - null if the buffer is empty.
