@@ -1,6 +1,10 @@
 package py.com.semp.lib.utilidades.data;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+import py.com.semp.lib.utilidades.internal.MessageUtil;
+import py.com.semp.lib.utilidades.internal.Messages;
 
 public class CircularByteBufferIterator implements Iterator<Byte>
 {
@@ -93,7 +97,36 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	{
 		if(this.index == EMPTY_INDEX)
 		{
-			return null;
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		byte[] byteArray = this.buffer.byteArray;
+		
+		byte data = byteArray[this.index];
+		
+		this.goNext();
+		
+		return data;
+	}
+	
+	/**
+	 * Retrieves the next byte from the buffer.
+	 * 
+	 * @return
+	 * - the next byte in the buffer.
+	 * @throws NoSuchElementException
+	 * if the buffer is empty.
+	 * @author Sergio Morel
+	 */
+	public byte nextByte()
+	{
+		if(this.index == EMPTY_INDEX)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
 		}
 		
 		byte[] byteArray = this.buffer.byteArray;

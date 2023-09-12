@@ -1,12 +1,14 @@
 package py.com.semp.lib.utilidades.data;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
-import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**
  * Circular buffer, when the buffer is full, the oldest data is
@@ -22,10 +24,24 @@ import py.com.semp.lib.utilidades.utilities.Utilities;
  */
 public class CircularByteBuffer implements Collection<Byte>
 {
+	/**
+	 * Value of index when not referring to a position in the buffer.
+	 */
 	static final int EMPTY_INDEX = -1;
 	
+	/**
+	 * Index for the first element of the buffer.
+	 */
 	int start;
+	
+	/**
+	 * Index for the last element of the buffer.
+	 */
 	int end;
+	
+	/**
+	 * Underlying byte array for the circular buffer.
+	 */
 	byte[] byteArray;
 	
 	/**
@@ -38,6 +54,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	public CircularByteBuffer(int size)
 	{
 		this.setByteArray(new byte[size]);
+		
 		this.clear();
 	}
 	
@@ -212,21 +229,11 @@ public class CircularByteBuffer implements Collection<Byte>
 		}
 		else
 		{
-			this.end++;
-			
-			if(this.end == size)
-			{
-				this.end = 0;
-			}
+			this.end = (this.end + 1) % size;
 			
 			if(this.start == this.end)
 			{
-				this.start++;
-				
-				if(this.start == size)
-				{
-					this.start = 0;
-				}
+				this.start = (this.start + 1) % size;
 			}
 		}
 		
@@ -784,13 +791,18 @@ public class CircularByteBuffer implements Collection<Byte>
 	@Override
 	public boolean remove(Object removeObject)
 	{
+		if(!(removeObject instanceof Byte))
+		{
+			return false;
+		}
+		
 		CircularByteBufferIterator iterator = this.iterator();
 		
 		while(iterator.hasNext())
 		{
 			Byte data = iterator.next();
 			
-			if(Utilities.equals(data, removeObject))
+			if(data.equals(removeObject))
 			{
 				iterator.remove();
 				
@@ -804,6 +816,13 @@ public class CircularByteBuffer implements Collection<Byte>
 	@Override
 	public boolean removeAll(Collection<?> collection)
 	{
+		if(collection == null || collection.isEmpty())
+		{
+			return false;
+		}
+		
+		Set<?> efficientSet = (collection instanceof Set) ? (Set<?>) collection : new HashSet<>(collection);
+		
 		CircularByteBufferIterator iterator = this.iterator();
 		
 		boolean removed = false;
@@ -812,7 +831,7 @@ public class CircularByteBuffer implements Collection<Byte>
 		{
 			Byte data = iterator.next();
 			
-			if(collection.contains(data))
+			if(efficientSet.contains(data))
 			{
 				iterator.remove();
 				
@@ -826,23 +845,39 @@ public class CircularByteBuffer implements Collection<Byte>
 	@Override
 	public boolean retainAll(Collection<?> collection)
 	{
-		CircularByteBufferIterator iterator = this.iterator();
+		if(collection == null)
+		{
+			return false;
+		}
 		
-		boolean removed = false;
+		boolean wasModified = false;
+		
+		if(collection.isEmpty())
+		{
+			wasModified = this.size() > 0;
+			
+			this.clear();
+			
+			return wasModified;
+		}
+		
+		Set<?> efficientSet = (collection instanceof Set) ? (Set<?>) collection : new HashSet<>(collection);
+		
+		CircularByteBufferIterator iterator = this.iterator();
 		
 		while(iterator.hasNext())
 		{
 			Byte data = iterator.next();
 			
-			if(!collection.contains(data))
+			if(!efficientSet.contains(data))
 			{
 				iterator.remove();
 				
-				removed = true;
+				wasModified = true;
 			}
 		}
 		
-		return removed;
+		return wasModified;
 	}
 	
 	/**
@@ -994,24 +1029,24 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	@Override
-	public boolean equals(Object obj)
+	public boolean equals(Object object)
 	{
-		if(obj == null)
+		if(object == null)
 		{
 			return false;
 		}
 		
-		if(this == obj)
+		if(this == object)
 		{
 			return true;
 		}
 		
-		if(!this.getClass().equals(obj.getClass()))
+		if(!this.getClass().equals(object.getClass()))
 		{
 			return false;
 		}
 		
-		CircularByteBuffer byteBuffer = (CircularByteBuffer) obj;
+		CircularByteBuffer byteBuffer = (CircularByteBuffer) object;
 		
 		int dataSize1 = this.getDataSize();
 		int dataSize2 = byteBuffer.getDataSize();
@@ -1026,16 +1061,24 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		while(iterator1.hasNext())
 		{
-			Byte data1 = iterator1.next();
-			Byte data2 = iterator2.next();
+			byte data1 = iterator1.nextByte();
+			byte data2 = iterator2.nextByte();
 			
-			if(!data1.equals(data2))
+			if(data1 != data2)
 			{
 				return false;
 			}
 		}
 		
 		return true;
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		byte[] data = this.getData();
+		
+		return Arrays.hashCode(data);
 	}
 	
 	@Override
