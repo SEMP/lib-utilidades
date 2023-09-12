@@ -1,5 +1,6 @@
 package py.com.semp.lib.utilidades.utilities;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import py.com.semp.lib.utilidades.data.CircularByteBuffer;
@@ -29,14 +30,14 @@ public final class BufferUtils
 	 * @param buffer
 	 * - buffer from which the data would be extracted.
 	 * @param endHeader
-	 * - The ending header in String format. Converted to bytes using the system's default charset.
+	 * - The ending header in String format.
 	 * @return
 	 * - The first segment of data found, including the header.
 	 * @author Sergio Morel
 	 */
 	public static byte[] extractOne(byte[] buffer, String endHeader)
 	{
-		return extractOne(buffer, endHeader.getBytes());
+		return extractOne(buffer, endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**
@@ -72,7 +73,7 @@ public final class BufferUtils
 	 */
 	public static List<byte[]> extractAll(byte[] buffer, String endHeader)
 	{
-		return extractAll(buffer, endHeader.getBytes());
+		return extractAll(buffer, endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**
@@ -101,16 +102,16 @@ public final class BufferUtils
 	 * @param buffer
 	 * - buffer from which the data would be extracted.
 	 * @param startHeader
-	 * - The starting header in String format. Converted to bytes using the system's default charset.
+	 * - The starting header in String format.
 	 * @param endHeader
-	 * - The ending header in String format. Converted to bytes using the system's default charset.
+	 * - The ending header in String format.
 	 * @return
 	 * - The first segment of data found between the headers, including the headers.
 	 * @author Sergio Morel
 	 */
 	public static byte[] extractOne(byte[] buffer, String startHeader, String endHeader)
 	{
-		return extractOne(buffer, startHeader.getBytes(), endHeader.getBytes());
+		return extractOne(buffer, startHeader.getBytes(StandardCharsets.UTF_8), endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**
@@ -141,16 +142,16 @@ public final class BufferUtils
 	 * @param buffer
 	 * - buffer from which the data would be extracted.
 	 * @param startHeader
-	 * - The starting header in String format. Converted to bytes using the system's default charset.
+	 * - The starting header in String format.
 	 * @param endHeader
-	 * - The ending header in String format. Converted to bytes using the system's default charset.
+	 * - The ending header in String format.
 	 * @return
 	 * - A list containing segments of data found between the headers, including the headers.
 	 * @author Sergio Morel
 	 */
 	public static List<byte[]> extractAll(byte[] buffer, String startHeader, String endHeader)
 	{
-		return extractAll(buffer, startHeader.getBytes(), endHeader.getBytes());
+		return extractAll(buffer, startHeader.getBytes(StandardCharsets.UTF_8), endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**

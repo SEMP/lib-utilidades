@@ -1,6 +1,7 @@
 package py.com.semp.lib.utilidades.data;
 
 import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -651,7 +652,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public byte[] extractOne(String endHeader)
 	{
-		return this.extractOne(endHeader.getBytes());
+		return this.extractOne(endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**
@@ -704,7 +705,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public List<byte[]> extractAll(String endHeader)
 	{
-		return this.extractAll(endHeader.getBytes());
+		return this.extractAll(endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**
@@ -757,7 +758,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public byte[] extractOne(String startHeader, String endHeader)
 	{
-		return this.extractOne(startHeader.getBytes(), endHeader.getBytes());
+		return this.extractOne(startHeader.getBytes(StandardCharsets.UTF_8), endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**
@@ -829,7 +830,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public List<byte[]> extractAll(String startHeader, String endHeader)
 	{
-		return this.extractAll(startHeader.getBytes(), endHeader.getBytes());
+		return this.extractAll(startHeader.getBytes(StandardCharsets.UTF_8), endHeader.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	/**

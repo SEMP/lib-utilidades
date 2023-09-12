@@ -6,35 +6,57 @@ import java.util.NoSuchElementException;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 
+/**
+ * Iterator for {@link CircularByteBuffer}
+ * 
+ * @author Sergio Morel
+ */
 public class CircularByteBufferIterator implements Iterator<Byte>
 {
+	/**
+	 * Value of index when not referring to a position in the buffer.
+	 */
 	private static final int EMPTY_INDEX = CircularByteBuffer.EMPTY_INDEX;
 	
+	/**
+	 * Buffer to be iterated.
+	 */
 	private CircularByteBuffer buffer;
+	
+	/**
+	 * Index for the current position.
+	 */
 	private int index;
 	
-	
+	/**
+	 * Constructor with argument for the {@link CircularByteBuffer}.
+	 * 
+	 * @param buffer
+	 * - buffer to be iterated.
+	 * @author Sergio Morel
+	 */
 	public CircularByteBufferIterator(CircularByteBuffer buffer)
 	{
+		super();
+		
 		this.buffer = buffer;
 		this.index = buffer.start;
 	}
 	
+	/**
+	 * Returns the index for the current position.
+	 * 
+	 * @return
+	 * - the index for the current position.
+	 */
 	public int getIndex()
 	{
 		return index;
 	}
 	
-	public void setIndex(int index)
-	{
-		this.index = index;
-	}
-	
 	public boolean isFirstIteration()
 	{
-		int start = this.buffer.start;
-		
-		return this.index == start;
+		return this.index == this.buffer.start;
 	}
 	
 	public boolean inRange(int start, int end)

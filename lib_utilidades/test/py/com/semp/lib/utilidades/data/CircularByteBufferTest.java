@@ -3,6 +3,7 @@ package py.com.semp.lib.utilidades.data;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -54,7 +55,7 @@ public class CircularByteBufferTest
 		String[] expectedOutput = testDTO.getExpectedOutput();
 		String expectedRemainingData = testDTO.getExpectedRemainingData();
 		
-		byte[] inputBytes = input.getBytes();
+		byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
 		
 		CircularByteBuffer buffer;
 		
@@ -97,7 +98,7 @@ public class CircularByteBufferTest
 		String[] expectedOutput = testDTO.getExpectedOutput();
 		String expectedRemainingData = testDTO.getExpectedRemainingData();
 		
-		byte[] inputBytes = input.getBytes();
+		byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
 		
 		CircularByteBuffer buffer;
 		
@@ -137,7 +138,7 @@ public class CircularByteBufferTest
 		String[] expectedOutput = testDTO.getExpectedOutput();
 		String expectedRemainingData = testDTO.getExpectedRemainingData();
 		
-		byte[] inputBytes = input.getBytes();
+		byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
 		
 		CircularByteBuffer buffer;
 		
@@ -181,7 +182,7 @@ public class CircularByteBufferTest
 		String[] expectedOutput = testDTO.getExpectedOutput();
 		String expectedRemainingData = testDTO.getExpectedRemainingData();
 		
-		byte[] inputBytes = input.getBytes();
+		byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
 		
 		CircularByteBuffer buffer;
 		
