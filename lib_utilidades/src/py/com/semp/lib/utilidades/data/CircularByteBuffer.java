@@ -1,4 +1,5 @@
 package py.com.semp.lib.utilidades.data;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
@@ -130,23 +131,23 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		if(array == null)
 		{
-			Class<T> type = (Class<T>) this.getClass().getComponentType();
+			Class<T> type = (Class<T>)this.getClass().getComponentType();
 			
 			usedArray = (T[])Array.newInstance(type, dataSize);
 		}
 		
 		if(array.length < dataSize)
 		{
-			Class<T> type = (Class<T>) array.getClass().getComponentType();
+			Class<T> type = (Class<T>)array.getClass().getComponentType();
 			
 			usedArray = (T[])Array.newInstance(type, dataSize);
 		}
 		
 		int index = 0;
 		
-		for(Byte data: this)
+		for(Byte data : this)
 		{
-			usedArray[index++] = (T) data;
+			usedArray[index++] = (T)data;
 		}
 		
 		return usedArray;
@@ -409,7 +410,7 @@ public class CircularByteBuffer implements Collection<Byte>
 			return false;
 		}
 		
-		byte compareByte = (Byte) compareObject;
+		byte compareByte = (Byte)compareObject;
 		
 		for(byte data : this.byteArray)
 		{
@@ -434,6 +435,384 @@ public class CircularByteBuffer implements Collection<Byte>
 		}
 		
 		return true;
+	}
+	
+	@Override
+	public boolean remove(Object removeObject)
+	{
+		if(!(removeObject instanceof Byte))
+		{
+			return false;
+		}
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		while(iterator.hasNext())
+		{
+			Byte data = iterator.next();
+			
+			if(data.equals(removeObject))
+			{
+				iterator.remove();
+				
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Removes the first element.
+	 * @return
+	 * - first element.<br>
+	 * - null if the buffer is empty.
+	 */
+	public Byte removeFirst()
+	{
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		return iterator.removeFirst();
+	}
+	
+	/**
+	 * Removes the last element.
+	 * @return
+	 * - last element.<br>
+	 * - null if the buffer is empty.
+	 */
+	public Byte removeLast()
+	{
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		return iterator.removeLast();
+	}
+	
+	@Override
+	public boolean removeAll(Collection<?> collection)
+	{
+		if(collection == null || collection.isEmpty())
+		{
+			return false;
+		}
+		
+		Set<?> efficientSet = (collection instanceof Set) ? (Set<?>)collection : new HashSet<>(collection);
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		boolean removed = false;
+		
+		while(iterator.hasNext())
+		{
+			Byte data = iterator.next();
+			
+			if(efficientSet.contains(data))
+			{
+				iterator.remove();
+				
+				removed = true;
+			}
+		}
+		
+		return removed;
+	}
+	
+	@Override
+	public boolean retainAll(Collection<?> collection)
+	{
+		if(collection == null)
+		{
+			return false;
+		}
+		
+		boolean wasModified = false;
+		
+		if(collection.isEmpty())
+		{
+			wasModified = this.size() > 0;
+			
+			this.clear();
+			
+			return wasModified;
+		}
+		
+		Set<?> efficientSet = (collection instanceof Set) ? (Set<?>)collection : new HashSet<>(collection);
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		while(iterator.hasNext())
+		{
+			Byte data = iterator.next();
+			
+			if(!efficientSet.contains(data))
+			{
+				iterator.remove();
+				
+				wasModified = true;
+			}
+		}
+		
+		return wasModified;
+	}
+	
+	@Override
+	public CircularByteBufferIterator iterator()
+	{
+		return new CircularByteBufferIterator(this);
+	}
+	
+	/**
+	 * Extracts from the buffer the segment contained between the indexes. The
+	 * segment includes the content of both indexes.
+	 * 
+	 * @param start
+	 * - start index.
+	 * @param end
+	 * - end index.
+	 * @return
+	 * - the extracted segment.
+	 * @author Sergio Morel.
+	 */
+	private byte[] extract(int start, int end)
+	{
+		int dataSize = this.getDataSize(start, end);
+		int bufferSize = this.getBufferSize();
+		
+		byte[] segment = new byte[dataSize];
+		
+		int j = 0;
+		
+		for(int i = start; j < dataSize; i++)
+		{
+			if(i == bufferSize)
+			{
+				i = 0;
+			}
+			
+			segment[j++] = this.byteArray[i];
+			
+			if(i == end)
+			{
+				break;
+			}
+		}
+		
+		return segment;
+	}
+	
+	/**
+	 * Extracts from the buffer the segment contained between the indexes into an Object array. The
+	 * segment includes the content of both indexes.
+	 * 
+	 * @param start
+	 * - start index.
+	 * @param end
+	 * - end index.
+	 * @return
+	 * - An Object array with the extracted segment elements.
+	 * @author Sergio Morel.
+	 */
+	private Object[] extractInObjectArray(int start, int end)
+	{
+		int dataSize = this.getDataSize(start, end);
+		int bufferSize = this.getBufferSize();
+		
+		Object[] segment = new Object[dataSize];
+		
+		int j = 0;
+		
+		for(int i = start; j < dataSize; i++)
+		{
+			if(i == bufferSize)
+			{
+				i = 0;
+			}
+			
+			segment[j++] = this.byteArray[i];
+			
+			if(i == end)
+			{
+				break;
+			}
+		}
+		
+		return segment;
+	}
+	
+	/**
+	 * Extracts from the buffer the first segment finalized by the end header.
+	 * The segment of data extracted includes theend header.
+	 * 
+	 * @param endHeader
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
+	 * @return
+	 * - The first segment of data found, including the header.
+	 * @author Sergio Morel
+	 */
+	public byte[] extractOne(String endHeader)
+	{
+		return this.extractOne(endHeader.getBytes());
+	}
+	
+	/**
+	 * Extracts from the buffer the first segment finalized by the end header.
+	 * The segment of data extracted includes theend header.
+	 * 
+	 * @param endHeader
+	 * - The ending header.
+	 * @return
+	 * - The first segment of data found, including the header.
+	 * @author Sergio Morel
+	 */
+	public byte[] extractOne(byte[] endHeader)
+	{
+		byte[] extraction = new byte[]{};
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		while(iterator.hasNext())
+		{
+			// End header found
+			if(iterator.patternFound(endHeader))
+			{
+				int index = iterator.getIndex();
+				
+				byte[] message = this.extract(this.start, index);
+				
+				extraction = message;
+				
+				this.start = iterator.goNext(index);
+				
+				break;
+			}
+			
+			iterator.goNext();
+		}
+		
+		return extraction;
+	}
+	
+	/**
+	 * Extracts from the buffer all the data segments terminated by an ending header.
+	 * Each segment of data extracted includes the end header.
+	 * 
+	 * @param endHeader
+	 * - The ending header.
+	 * @return
+	 * - A list containing segments of data terminated by the end header, including the header.
+	 * @author Sergio Morel
+	 */
+	public List<byte[]> extractAll(String endHeader)
+	{
+		return this.extractAll(endHeader.getBytes());
+	}
+	
+	/**
+	 * Extracts from the buffer all the data segments terminated by an ending header.
+	 * Each segment of data extracted includes the end header.
+	 * 
+	 * @param endHeader
+	 * - The ending header.
+	 * @return
+	 * - A list containing segments of data terminated by the end header, including the header.
+	 * @author Sergio Morel
+	 */
+	public List<byte[]> extractAll(byte[] endHeader)
+	{
+		List<byte[]> extraction = new LinkedList<>();
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		while(iterator.hasNext())
+		{
+			// End header found
+			if(iterator.patternFound(endHeader))
+			{
+				int index = iterator.getIndex();
+				
+				byte[] segment = this.extract(this.start, index);
+				
+				extraction.add(segment);
+				
+				this.start = iterator.goNext(index);
+			}
+			
+			iterator.goNext();
+		}
+		
+		return extraction;
+	}
+	
+	/**
+	 * Extracts from the buffer the first segment found between occurrences of the start header and end header.
+	 * The segment of data extracted includes both the start and end headers.
+	 * 
+	 * @param startHeader
+	 * - The starting header in String format. Converted to bytes using the system's default charset.
+	 * @param endHeader
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
+	 * @return
+	 * - The first segment of data found between the headers, including the headers.
+	 * @author Sergio Morel
+	 */
+	public byte[] extractOne(String startHeader, String endHeader)
+	{
+		return this.extractOne(startHeader.getBytes(), endHeader.getBytes());
+	}
+	
+	/**
+	 * Extracts from the buffer the first data segment found between occurrences of the start header and end header.
+	 * The segment of data extracted includes both the start and end headers.
+	 * 
+	 * @param startHeader
+	 * - The starting header.
+	 * @param endHeader
+	 * - The ending header.
+	 * @return
+	 * - The first segment of data found between the headers, including the headers.
+	 * @author Sergio Morel
+	 */
+	public byte[] extractOne(byte[] startHeader, byte[] endHeader)
+	{
+		boolean betweenHeaders = false;
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		while(iterator.hasNext())
+		{
+			// Start header found
+			if(iterator.patternFound(startHeader))
+			{
+				int index = iterator.getIndex();
+				
+				this.start = iterator.rewind(index, startHeader.length - 1);
+				
+				betweenHeaders = true;
+			}
+			
+			// End header found
+			if(iterator.patternFound(endHeader))
+			{
+				int index = iterator.getIndex();
+				
+				if(betweenHeaders)
+				{
+					byte[] segment = this.extract(this.start, index);
+					
+					this.start = iterator.goNext(index);
+					
+					return segment;
+				}
+				
+				this.start = iterator.goNext(index);
+				
+				betweenHeaders = false;
+			}
+			
+			iterator.goNext();
+		}
+		
+		return new byte[]{};
 	}
 	
 	/**
@@ -508,524 +887,9 @@ public class CircularByteBuffer implements Collection<Byte>
 		return extraction;
 	}
 	
-	/**
-	 * Extracts from the buffer the first data segment found between occurrences of the start header and end header.
-	 * The segment of data extracted includes both the start and end headers.
-	 * 
-	 * @param startHeader
-	 * - The starting header.
-	 * @param endHeader
-	 * - The ending header.
-	 * @return
-	 * - The first segment of data found between the headers, including the headers.
-	 * @author Sergio Morel
-	 */
-	public byte[] extractOne(byte[] startHeader, byte[] endHeader)
+	private String formatValue(byte value)
 	{
-		boolean betweenHeaders = false;
-		
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		while(iterator.hasNext())
-		{
-			// Start header found
-			if(iterator.patternFound(startHeader))
-			{
-				int index = iterator.getIndex();
-				
-				this.start = iterator.rewind(index, startHeader.length - 1);
-				
-				betweenHeaders = true;
-			}
-			
-			// End header found
-			if(iterator.patternFound(endHeader))
-			{
-				int index = iterator.getIndex();
-				
-				if(betweenHeaders)
-				{
-					byte[] segment = this.extract(this.start, index);
-					
-					this.start = iterator.goNext(index);
-					
-					return segment;
-				}
-				
-				this.start = iterator.goNext(index);
-				
-				betweenHeaders = false;
-			}
-			
-			iterator.goNext();
-		}
-		
-		return new byte[] {};
-	}
-	
-	/**
-	 * Extracts from the buffer the first segment found between occurrences of the start header and end header.
-	 * The segment of data extracted includes both the start and end headers.
-	 * 
-	 * @param startHeader
-	 * - The starting header in String format. Converted to bytes using the system's default charset.
-	 * @param endHeader
-	 * - The ending header in String format. Converted to bytes using the system's default charset.
-	 * @return
-	 * - The first segment of data found between the headers, including the headers.
-	 * @author Sergio Morel
-	 */
-	public byte[] extractOne(String startHeader, String endHeader)
-	{
-		return this.extractOne(startHeader.getBytes(), endHeader.getBytes());
-	}
-	
-	/**
-	 * Extracts from the buffer the segment contained between the indexes. The
-	 * segment includes the content of both indexes.
-	 * 
-	 * @param start
-	 * - start index.
-	 * @param end
-	 * - end index.
-	 * @return
-	 * - the extracted segment.
-	 * @author Sergio Morel.
-	 */
-	private byte[] extract(int start, int end)
-	{
-		int dataSize = this.getDataSize(start, end);
-		int bufferSize = this.getBufferSize();
-		
-		byte[] segment = new byte[dataSize];
-		
-		int j = 0;
-		
-		for(int i = start; j < dataSize ; i++)
-		{
-			if(i == bufferSize)
-			{
-				i = 0;
-			}
-			
-			segment[j++] = this.byteArray[i];
-			
-			if(i == end)
-			{
-				break;
-			}
-		}
-		
-		return segment;
-	}
-	
-	/**
-	 * Extracts from the buffer the segment contained between the indexes into an Object array. The
-	 * segment includes the content of both indexes.
-	 * 
-	 * @param start
-	 * - start index.
-	 * @param end
-	 * - end index.
-	 * @return
-	 * - An Object array with the extracted segment elements.
-	 * @author Sergio Morel.
-	 */
-	private Object[] extractInObjectArray(int start, int end)
-	{
-		int dataSize = this.getDataSize(start, end);
-		int bufferSize = this.getBufferSize();
-		
-		Object[] segment = new Object[dataSize];
-		
-		int j = 0;
-		
-		for(int i = start; j < dataSize ; i++)
-		{
-			if(i == bufferSize)
-			{
-				i = 0;
-			}
-			
-			segment[j++] = this.byteArray[i];
-			
-			if(i == end)
-			{
-				break;
-			}
-		}
-		
-		return segment;
-	}
-	
-	/**
-	 * Extracts from the buffer all the data segments terminated by an ending header.
-	 * Each segment of data extracted includes the end header.
-	 * 
-	 * @param endHeader
-	 * - The ending header.
-	 * @return
-	 * - A list containing segments of data terminated by the end header, including the header.
-	 * @author Sergio Morel
-	 */
-	public List<byte[]> extractAll(String endHeader)
-	{
-		return this.extractAll(endHeader.getBytes());
-	}
-	
-	/**
-	 * Extracts from the buffer all the data segments terminated by an ending header.
-	 * Each segment of data extracted includes the end header.
-	 * 
-	 * @param endHeader
-	 * - The ending header.
-	 * @return
-	 * - A list containing segments of data terminated by the end header, including the header.
-	 * @author Sergio Morel
-	 */
-	public List<byte[]> extractAll(byte[] endHeader)
-	{
-		List<byte[]> extraction = new LinkedList<>();
-		
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		while(iterator.hasNext())
-		{
-			// End header found
-			if(iterator.patternFound(endHeader))
-			{
-				int index = iterator.getIndex();
-				
-				byte[] segment = this.extract(this.start, index);
-				
-				extraction.add(segment);
-				
-				this.start = iterator.goNext(index);
-			}
-			
-			iterator.goNext();
-		}
-		
-		return extraction;
-	}
-	
-	/**
-	 * Extracts from the buffer the first segment finalized by the end header.
-	 * The segment of data extracted includes theend header.
-	 * 
-	 * @param endHeader
-	 * - The ending header in String format. Converted to bytes using the system's default charset.
-	 * @return
-	 * - The first segment of data found, including the header.
-	 * @author Sergio Morel
-	 */
-	public byte[] extractOne(String endHeader)
-	{
-		return this.extractOne(endHeader.getBytes());
-	}
-	
-	/**
-	 * Extracts from the buffer the first segment finalized by the end header.
-	 * The segment of data extracted includes theend header.
-	 * 
-	 * @param endHeader
-	 * - The ending header.
-	 * @return
-	 * - The first segment of data found, including the header.
-	 * @author Sergio Morel
-	 */
-	public byte[] extractOne(byte[] endHeader)
-	{
-		byte[] extraction = new byte[]{};
-		
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		while(iterator.hasNext())
-		{
-			//Cabecera final encontrada
-			if(iterator.patternFound(endHeader))
-			{
-				int index = iterator.getIndex();
-				
-				byte[] message = this.extract(this.start, index);
-				
-				extraction = message;
-				
-				this.start = iterator.goNext(index);
-				
-				break;
-			}
-			
-			iterator.goNext();
-		}
-		
-		return extraction;
-	}
-	
-	/**
-	 * Removes the first element.
-	 * @return
-	 * - first element.<br>
-	 * - null if the buffer is empty.
-	 */
-	public Byte removeFirst()
-	{
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		return iterator.removeFirst();
-	}
-	
-	/**
-	 * Removes the last element.
-	 * @return
-	 * - last element.<br>
-	 * - null if the buffer is empty.
-	 */
-	public Byte removeLast()
-	{
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		return iterator.removeLast();
-	}
-	
-	@Override
-	public boolean remove(Object removeObject)
-	{
-		if(!(removeObject instanceof Byte))
-		{
-			return false;
-		}
-		
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		while(iterator.hasNext())
-		{
-			Byte data = iterator.next();
-			
-			if(data.equals(removeObject))
-			{
-				iterator.remove();
-				
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	@Override
-	public boolean removeAll(Collection<?> collection)
-	{
-		if(collection == null || collection.isEmpty())
-		{
-			return false;
-		}
-		
-		Set<?> efficientSet = (collection instanceof Set) ? (Set<?>) collection : new HashSet<>(collection);
-		
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		boolean removed = false;
-		
-		while(iterator.hasNext())
-		{
-			Byte data = iterator.next();
-			
-			if(efficientSet.contains(data))
-			{
-				iterator.remove();
-				
-				removed = true;
-			}
-		}
-		
-		return removed;
-	}
-	
-	@Override
-	public boolean retainAll(Collection<?> collection)
-	{
-		if(collection == null)
-		{
-			return false;
-		}
-		
-		boolean wasModified = false;
-		
-		if(collection.isEmpty())
-		{
-			wasModified = this.size() > 0;
-			
-			this.clear();
-			
-			return wasModified;
-		}
-		
-		Set<?> efficientSet = (collection instanceof Set) ? (Set<?>) collection : new HashSet<>(collection);
-		
-		CircularByteBufferIterator iterator = this.iterator();
-		
-		while(iterator.hasNext())
-		{
-			Byte data = iterator.next();
-			
-			if(!efficientSet.contains(data))
-			{
-				iterator.remove();
-				
-				wasModified = true;
-			}
-		}
-		
-		return wasModified;
-	}
-	
-	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
-	 */
-	public static List<byte[]> extractData(byte[] data, String startHeader, String endHeader)
-	{
-		return extractData(data, startHeader.getBytes(), endHeader.getBytes());
-	}
-	
-	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * Datos que se encuentran entre las cabeceras.
-	 */
-	public static byte[] extractOneData(byte[] data, String startHeader, String endHeader)
-	{
-		return extractOneData(data, startHeader.getBytes(), endHeader.getBytes());
-	}
-	
-	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
-	 */
-	public static List<byte[]> extractData(byte[] data, byte[] startHeader, byte[] endHeader)
-	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
-		
-		return circularByteBuffer.extractAll(startHeader, endHeader);
-	}
-	
-	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * Datos que se encuentran entre las cabeceras.
-	 */
-	public static byte[] extractOneData(byte[] data, byte[] startHeader, byte[] endHeader)
-	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
-		
-		return circularByteBuffer.extractOne(startHeader, endHeader);
-	}
-	
-	/**
-	 * Extrae los datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * lista de datos extraidos.
-	 */
-	public static List<byte[]> extractData(byte[] data, String endHeader)
-	{
-		return extractData(data, endHeader.getBytes());
-	}
-	
-	/**
-	 * Extrae los datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * lista de datos extraidos.
-	 */
-	public static List<byte[]> extractData(byte[] data, byte[] endHeader)
-	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
-		
-		return circularByteBuffer.extractAll(endHeader);
-	}
-	
-	/**
-	 * Extrae los primeros datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * datos extraidos.
-	 */
-	public static byte[] extractOneData(byte[] data, String endHeader)
-	{
-		return extractOneData(data, endHeader.getBytes());
-	}
-	
-	/**
-	 * Extrae los primeros datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * datos extraidos.
-	 */
-	public static byte[] extractOneData(byte[] data, byte[] endHeader)
-	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
-		
-		return circularByteBuffer.extractOne(endHeader);
+		return String.format("%02x", value).toUpperCase();
 	}
 	
 	@Override
@@ -1046,7 +910,7 @@ public class CircularByteBuffer implements Collection<Byte>
 			return false;
 		}
 		
-		CircularByteBuffer byteBuffer = (CircularByteBuffer) object;
+		CircularByteBuffer byteBuffer = (CircularByteBuffer)object;
 		
 		int dataSize1 = this.getDataSize();
 		int dataSize2 = byteBuffer.getDataSize();
@@ -1103,16 +967,5 @@ public class CircularByteBuffer implements Collection<Byte>
 		sb.append("]");
 		
 		return sb.toString();
-	}
-	
-	private String formatValue(byte value)
-	{
-		return String.format("%02x", value).toUpperCase();
-	}
-	
-	@Override
-	public CircularByteBufferIterator iterator()
-	{
-		return new CircularByteBufferIterator(this);
 	}
 }
