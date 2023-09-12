@@ -641,7 +641,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	
 	/**
 	 * Extracts from the buffer the first segment finalized by the end header.
-	 * The segment of data extracted includes theend header.
+	 * The segment of data extracted includes the end header.
 	 * 
 	 * @param endHeader
 	 * - The ending header in String format. Converted to bytes using the system's default charset.
@@ -656,7 +656,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	
 	/**
 	 * Extracts from the buffer the first segment finalized by the end header.
-	 * The segment of data extracted includes theend header.
+	 * The segment of data extracted includes the end header.
 	 * 
 	 * @param endHeader
 	 * - The ending header.

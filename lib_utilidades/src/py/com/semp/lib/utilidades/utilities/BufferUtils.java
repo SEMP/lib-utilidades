@@ -6,6 +6,11 @@ import py.com.semp.lib.utilidades.data.CircularByteBuffer;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 
+/**
+ * Class with static methods with utilities for managing byte buffers.
+ * 
+ * @author Sergio Morel
+ */
 public final class BufferUtils
 {
 	private BufferUtils()
@@ -16,152 +21,156 @@ public final class BufferUtils
 		
 		throw new AssertionError(errorMessage);
 	}
-
+	
 	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
+	 * Extracts from the buffer the first segment finalized by the end header.
+	 * The segment of data extracted includes the end header.
 	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
 	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
+	 * - The first segment of data found, including the header.
+	 * @author Sergio Morel
 	 */
-	public static List<byte[]> extractAll(byte[] data, String startHeader, String endHeader)
+	public static byte[] extractOne(byte[] buffer, String endHeader)
 	{
-		return extractAll(data, startHeader.getBytes(), endHeader.getBytes());
+		return extractOne(buffer, endHeader.getBytes());
 	}
-
+	
 	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
+	 * Extracts from the buffer the first segment finalized by the end header.
+	 * The segment of data extracted includes the end header.
 	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * Datos que se encuentran entre las cabeceras.
+	 * - The first segment of data found, including the header.
+	 * @author Sergio Morel
 	 */
-	public static byte[] extractOne(byte[] data, String startHeader, String endHeader)
+	public static byte[] extractOne(byte[] buffer, byte[] endHeader)
 	{
-		return extractOne(data, startHeader.getBytes(), endHeader.getBytes());
-	}
-
-	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * lista de datos que se encuentran entre las cabeceras.
-	 */
-	public static List<byte[]> extractAll(byte[] data, byte[] startHeader, byte[] endHeader)
-	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
+		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(buffer);
 		
-		return circularByteBuffer.extractAll(startHeader, endHeader);
+		return circularByteBuffer.extractOne(endHeader);
 	}
-
+	
 	/**
-	 * Extrae los datos que se encuentran entre las cabeceras
-	 * iniciales y finales. La extracci&oacute;n incluye las cabeceras.
+	 * Extracts from the buffer all the data segments terminated by an ending header.
+	 * Each segment of data extracted includes the end header.
 	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * @param startHeader
-	 * cabecera inicial.
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * Datos que se encuentran entre las cabeceras.
+	 * - A list containing segments of data terminated by the end header, including the header.
+	 * @author Sergio Morel
 	 */
-	public static byte[] extractOne(byte[] data, byte[] startHeader, byte[] endHeader)
+	public static List<byte[]> extractAll(byte[] buffer, String endHeader)
 	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
-		
-		return circularByteBuffer.extractOne(startHeader, endHeader);
+		return extractAll(buffer, endHeader.getBytes());
 	}
-
+	
 	/**
-	 * Extrae los datos que se encuentran finalizados por
-	 * una cabecera final.
+	 * Extracts from the buffer all the data segments terminated by an ending header.
+	 * Each segment of data extracted includes the end header.
 	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * lista de datos extraidos.
+	 * - A list containing segments of data terminated by the end header, including the header.
+	 * @author Sergio Morel
 	 */
-	public static List<byte[]> extractAll(byte[] data, String endHeader)
+	public static List<byte[]> extractAll(byte[] buffer, byte[] endHeader)
 	{
-		return extractAll(data, endHeader.getBytes());
-	}
-
-	/**
-	 * Extrae los datos que se encuentran finalizados por
-	 * una cabecera final.
-	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
-	 * @param endHeader
-	 * cabecera final.
-	 * @return
-	 * lista de datos extraidos.
-	 */
-	public static List<byte[]> extractAll(byte[] data, byte[] endHeader)
-	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
+		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(buffer);
 		
 		return circularByteBuffer.extractAll(endHeader);
 	}
-
+	
 	/**
-	 * Extrae los primeros datos que se encuentran finalizados por
-	 * una cabecera final.
+	 * Extracts from the buffer the first segment found between occurrences of the start header and end header.
+	 * The segment of data extracted includes both the start and end headers.
 	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
+	 * @param startHeader
+	 * - The starting header in String format. Converted to bytes using the system's default charset.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
 	 * @return
-	 * datos extraidos.
+	 * - The first segment of data found between the headers, including the headers.
+	 * @author Sergio Morel
 	 */
-	public static byte[] extractOne(byte[] data, String endHeader)
+	public static byte[] extractOne(byte[] buffer, String startHeader, String endHeader)
 	{
-		return extractOne(data, endHeader.getBytes());
+		return extractOne(buffer, startHeader.getBytes(), endHeader.getBytes());
 	}
-
+	
 	/**
-	 * Extrae los primeros datos que se encuentran finalizados por
-	 * una cabecera final.
+	 * Extracts from the buffer the first data segment found between occurrences of the start header and end header.
+	 * The segment of data extracted includes both the start and end headers.
 	 * 
-	 * @param data
-	 * array de bytes de donde se desea extraer los datos.
-	 * La extracci&oacute;n incluye la cabecera final.
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
+	 * @param startHeader
+	 * - The starting header.
 	 * @param endHeader
-	 * cabecera final.
+	 * - The ending header.
 	 * @return
-	 * datos extraidos.
+	 * - The first segment of data found between the headers, including the headers.
+	 * @author Sergio Morel
 	 */
-	public static byte[] extractOne(byte[] data, byte[] endHeader)
+	public static byte[] extractOne(byte[] buffer, byte[] startHeader, byte[] endHeader)
 	{
-		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(data);
+		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(buffer);
 		
-		return circularByteBuffer.extractOne(endHeader);
+		return circularByteBuffer.extractOne(startHeader, endHeader);
+	}
+	
+	/**
+	 * Extracts from the buffer all the data segments found between occurrences of the start header and end header.
+	 * Each segment of data extracted includes both the start and end headers.
+	 * 
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
+	 * @param startHeader
+	 * - The starting header in String format. Converted to bytes using the system's default charset.
+	 * @param endHeader
+	 * - The ending header in String format. Converted to bytes using the system's default charset.
+	 * @return
+	 * - A list containing segments of data found between the headers, including the headers.
+	 * @author Sergio Morel
+	 */
+	public static List<byte[]> extractAll(byte[] buffer, String startHeader, String endHeader)
+	{
+		return extractAll(buffer, startHeader.getBytes(), endHeader.getBytes());
+	}
+	
+	/**
+	 * Extracts from the buffer all the data segments found between occurrences of the start header and end header.
+	 * Each segment of data extracted includes both the start and end headers.
+	 * 
+	 * @param buffer
+	 * - buffer from which the data would be extracted.
+	 * @param startHeader
+	 * - The starting header.
+	 * @param endHeader
+	 * - The ending header.
+	 * @return
+	 * - A list containing segments of data found between the headers, including the headers.
+	 * @author Sergio Morel
+	 */
+	public static List<byte[]> extractAll(byte[] buffer, byte[] startHeader, byte[] endHeader)
+	{
+		CircularByteBuffer circularByteBuffer = new CircularByteBuffer(buffer);
+		
+		return circularByteBuffer.extractAll(startHeader, endHeader);
 	}
 }
