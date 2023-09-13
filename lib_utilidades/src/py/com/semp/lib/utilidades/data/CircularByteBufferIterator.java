@@ -287,6 +287,18 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		return this.index;
 	}
 	
+	/**
+	 * Moves to the previous position in the buffer from a given index. It doesn't change
+	 * the iterator's index value.
+	 * 
+	 * @param index
+	 * - The index from which to move to the previous position.
+	 * @return The updated index after the operation:<br>
+	 * - If the provided index is at the start of the buffer, the returned index is set to EMPTY_INDEX.<br>
+	 * - If the provided index is EMPTY_INDEX, the returned index is set to the end of the buffer.<br>
+	 * - For other positions of the provided index, it is decremented, and if it goes negative, it wraps around to the end of the buffer.
+	 * @author Sergio Morel
+	 */
 	public int goPrevious(int index)
 	{
 		if(index == this.buffer.start)
@@ -309,6 +321,17 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		return index;
 	}
 	
+	/**
+	 * Advances the iterator's index position by the given number of steps in the buffer. The method
+	 * handles cases where the index goes out of bounds by wrapping it around.
+	 * 
+	 * @param steps
+	 * - The number of positions to advance. It can be negative to move backward.
+	 * @return The updated index position after advancing.<br> 
+	 * - If the current index is EMPTY_INDEX, the method resets it to 0 before advancing.<br>
+	 * - If the resultant index goes out of bounds, it wraps around to stay within buffer limits.
+	 * @author Sergio Morel
+	 */
 	public int forward(int steps)
 	{
 		if(this.index == EMPTY_INDEX)
@@ -318,16 +341,30 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		int bufferSize = this.buffer.getBufferSize();
 		
-		this.index += steps % bufferSize;
+		this.index = (this.index + steps) % bufferSize;
 		
-		if(this.index >= bufferSize)
-		{
-			this.index -= bufferSize;
-		}
+		if(this.index < 0)
+	    {
+	        this.index += bufferSize;
+	    }
 		
 		return this.index;
 	}
 	
+	/**
+	 * Advances a given index position by the specified number of steps in the buffer without
+	 * affecting the iterator's current index. The method handles cases where the index goes
+	 * out of bounds by wrapping it around.
+	 * 
+	 * @param index
+	 * - The current index position to advance from.
+	 * @param steps
+	 * - The number of positions to advance. It can be negative to move backward.
+	 * @return The updated index position after advancing.<br> 
+	 * - If the provided index is EMPTY_INDEX, the method resets it to 0 before advancing.<br>
+	 * - If the resultant index goes out of bounds, it wraps around to stay within buffer limits.
+	 * @author Sergio Morel
+	 */
 	public int forward(int index, int steps)
 	{
 		if(index == EMPTY_INDEX)
@@ -337,16 +374,28 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		int bufferSize = this.buffer.getBufferSize();
 		
-		index += steps % bufferSize;
+		index = (index + steps) % bufferSize;
 		
-		if(index >= bufferSize)
-		{
-			index -= bufferSize;
-		}
+		if(index < 0)
+	    {
+	        index += bufferSize;
+	    }
 		
 		return index;
 	}
 	
+	/**
+	 * Rewinds the internal index of the iterator by a specified number of steps.
+	 * 
+	 * @param steps
+	 * - The number of steps to rewind the iterator. If the number of steps is larger
+	 * than the buffer size, the rewinding will wrap around the buffer.
+	 * @return The updated index after the rewind operation.<br>
+	 * - If the internal index is set to EMPTY_INDEX, it gets initialized to 0 before the rewind operation.<br>
+	 * - After the rewind operation, if the updated index becomes negative (indicating a move past the start of
+	 * the buffer), the index will wrap around to the end of the buffer.
+	 * @author Sergio Morel
+	 */
 	public int rewind(int steps)
 	{
 		if(this.index == EMPTY_INDEX)
@@ -356,7 +405,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		int bufferSize = this.buffer.getBufferSize();
 		
-		this.index -= steps % bufferSize;
+		this.index = (this.index - steps) % bufferSize;
 		
 		if(this.index < 0)
 		{
@@ -366,6 +415,19 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		return this.index;
 	}
 	
+	/**
+	 * Rewinds a specified index by a specified number of steps.
+	 * 
+	 * @param index
+	 * - The index from which to start the rewind operation.
+	 * @param steps
+	 * - The number of steps to rewind from the given index.
+	 * @return The updated index after the rewind operation.<br>
+	 * - If the provided index is set to EMPTY_INDEX, it gets initialized to 0 before the rewind operation.<br>
+	 * - After the rewind operation, if the updated index becomes negative (indicating a move past the start
+	 * of the buffer), the index will wrap around to the end of the buffer.
+	 * @author Sergio Morel
+	 */
 	public int rewind(int index, int steps)
 	{
 		if(index == EMPTY_INDEX)
@@ -375,7 +437,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		int bufferSize = this.buffer.getBufferSize();
 		
-		index -= steps % bufferSize;
+		index = (index - steps) % bufferSize;
 		
 		if(index < 0)
 		{
@@ -386,12 +448,21 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	}
 	
 	/**
-	 * Removes the first element.
+	 * Removes the first element from the buffer.
+	 * <p>
+	 * Note:<br>
+	 * If the internal iterator index is at the start of the buffer (the position of the
+	 * element being removed), this method will also update the iterator's index to the next
+	 * position after the removal.
+	 * </p>
+	 * @return
+	 * - The first byte data from the buffer.
 	 * 
-	 * @return - first element.<br>
-	 *         - null if the buffer is empty.
+	 * @throws NoSuchElementException
+	 * If the buffer is empty.
+	 * @author Sergio Morel
 	 */
-	public Byte removeFirst()
+	public byte removeFirst()
 	{
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
@@ -399,7 +470,9 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		if(dataStart == EMPTY_INDEX)
 		{
-			return null;
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
 		}
 		
 		byte data = byteArray[dataStart];
@@ -410,19 +483,36 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		}
 		else
 		{
-			this.buffer.start = this.goNext(dataStart);
+			if(this.index == dataStart)
+			{
+				this.buffer.start = this.goNext();
+			}
+			else
+			{
+				this.buffer.start = this.goNext(dataStart);
+			}
 		}
 		
 		return data;
 	}
 	
 	/**
-	 * Removes the last element.
+	 * Removes the last element from the buffer.
+	 * <p>
+	 * Note:<br>
+	 * If the internal iterator index is at the end of the buffer (the position of
+	 * the element being removed), this method will also update the iterator's index
+	 * to the previous position after the removal.
+	 * </p>
 	 * 
-	 * @return - last element.<br>
-	 *         - null if the buffer is empty.
+	 * @return
+	 * - The last byte data from the buffer.
+	 * 
+	 * @throws NoSuchElementException
+	 * If the buffer is empty.
+	 * @author Sergio Morel
 	 */
-	public Byte removeLast()
+	public byte removeLast()
 	{
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
@@ -430,7 +520,9 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		if(dataStart == EMPTY_INDEX)
 		{
-			return null;
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
 		}
 		
 		byte data = byteArray[dataEnd];
@@ -441,11 +533,60 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		}
 		else
 		{
-			this.buffer.end = this.goPrevious(dataEnd);
+			if(this.index == dataEnd)
+			{
+				this.buffer.end = this.goPrevious();
+			}
+			else
+			{
+				this.buffer.end = this.goPrevious(dataEnd);
+			}
 		}
 		
 		return data;
 	}
+	
+//	@Override
+//	public void remove()
+//	{
+//		int dataStart = this.buffer.start;
+//		int dataEnd = this.buffer.end;
+//		int removeIndex = this.goPrevious(this.index);
+//		
+//		if(dataStart == EMPTY_INDEX)
+//		{
+//			return;
+//		}
+//		
+//		if(removeIndex == dataStart)
+//		{
+//			this.removeFirst();
+//			
+//			return;
+//		}
+//		
+//		if(removeIndex == dataEnd)
+//		{
+//			this.removeLast();
+//			
+//			return;
+//		}
+//		
+//		int copyFromIndex = this.goNext(removeIndex);
+//		int copyToIndex = removeIndex;
+//		
+//		while(copyFromIndex != EMPTY_INDEX)
+//		{
+//			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+//			
+//			copyToIndex = this.goNext(copyToIndex);
+//			copyFromIndex = this.goNext(copyFromIndex);
+//		}
+//		
+//		this.buffer.end = this.goPrevious(copyToIndex);
+//		
+//		this.goPrevious();
+//	}
 	
 	@Override
 	public void remove()
@@ -456,7 +597,9 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		if(dataStart == EMPTY_INDEX)
 		{
-			return;
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
 		}
 		
 		if(removeIndex == dataStart)
