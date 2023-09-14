@@ -2,11 +2,12 @@ package py.com.semp.lib.utilidades.data;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -69,7 +70,7 @@ public class CircularByteBufferTest
 		byte[] byteArray1 = buffer1.getByteArray();
 		byte[] byteArray2 = buffer2.getByteArray();
 		Object[] objectArray1 = buffer1.toArray();
-		Object[] objectArray2 = buffer1.toArray();
+		Object[] objectArray2 = buffer2.toArray();
 		
 		assertEquals(true, buffer1.equals(buffer2));
 		assertArrayEquals(data1, data2);
@@ -79,6 +80,122 @@ public class CircularByteBufferTest
 		{
 			assertEquals(true, objectArray1[i].equals(byteArray1[i]));
 		}
+		
+		assertThrows(NullPointerException.class, () -> buffer1.toArray((Byte[])null));
+		assertThrows(ArrayStoreException.class, () -> buffer1.toArray(new String[20]));
+		
+		Byte[] baseArray = new Byte[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 3, 4};
+		Byte[] expectedArray = new Byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, null, 1, 2, 3, 4};
+		
+		assertArrayEquals(expectedArray, buffer1.toArray(baseArray));
+		assertEquals(false, Arrays.equals(buffer1.toArray(new Byte[]{}), buffer1.toArray(baseArray)));
+		assertEquals(true, Arrays.equals(buffer2.toArray(new Object[]{}), objectArray2));
+		
+		String expectedString = "[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0A]";
+		
+		assertEquals(expectedString, buffer1.toString());
+	}
+	
+	@Test
+	public void testAddAll()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(3);
+		
+		buffer.add((byte)1);
+		buffer.add((byte)2);
+		
+		List<Byte> newData = Arrays.asList((byte)3, (byte)4, (byte)5);
+		buffer.addAll(newData);
+		
+		assertTrue(buffer.contains((byte)3));
+		assertTrue(buffer.contains((byte)4));
+		assertTrue(buffer.contains((byte)5));
+		assertFalse(buffer.contains((byte)1));
+		assertFalse(buffer.contains((byte)2));
+	}
+	
+	@Test
+	public void testContainsAll()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2, 3, 4
+		});
+		assertTrue(buffer.containsAll(Arrays.asList((byte)2, (byte)3)));
+		assertFalse(buffer.containsAll(Arrays.asList((byte)2, (byte)6)));
+	}
+	
+	@Test
+	public void testRemove()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2, 3, 4
+		});
+		assertTrue(buffer.remove((byte)2));
+		assertFalse(buffer.contains((byte)2));
+		assertFalse(buffer.remove((byte)5));
+	}
+	
+	@Test
+	public void testRemoveAll()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2, 3, 4
+		});
+		assertTrue(buffer.removeAll(Arrays.asList((byte)2, (byte)3)));
+		assertFalse(buffer.contains((byte)2));
+		assertFalse(buffer.contains((byte)3));
+		assertEquals(3, buffer.size());
+	}
+	
+	@Test
+	public void testRetainAll()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2, 3, 4
+		});
+		assertTrue(buffer.retainAll(Arrays.asList((byte)2, (byte)3)));
+		assertTrue(buffer.contains((byte)2));
+		assertTrue(buffer.contains((byte)3));
+		assertEquals(2, buffer.size());
+	}
+	
+	@Test
+	public void testEquals()
+	{
+		CircularByteBuffer buffer1 = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2
+		});
+		CircularByteBuffer buffer2 = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2
+		});
+		CircularByteBuffer buffer3 = new CircularByteBuffer(new byte[]
+		{
+				2, 3, 4
+		});
+		
+		assertTrue(buffer1.equals(buffer2));
+		assertFalse(buffer1.equals(buffer3));
+	}
+	
+	@Test
+	public void testHashCode()
+	{
+		CircularByteBuffer buffer1 = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2
+		});
+		CircularByteBuffer buffer2 = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2
+		});
+		
+		assertEquals(buffer1.hashCode(), buffer2.hashCode());
 	}
 	
 	@ParameterizedTest

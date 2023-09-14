@@ -1,6 +1,5 @@
 package py.com.semp.lib.utilidades.data;
 
-import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -123,35 +122,56 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	public <T> T[] toArray(T[] array)
 	{
-		int dataSize = this.getDataSize();
-		
-		T[] usedArray = array;
-		
 		if(array == null)
 		{
-			Class<T> type = (Class<T>)this.getClass().getComponentType();
-			
-			usedArray = (T[])Array.newInstance(type, dataSize);
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_NOT_NULL_ERROR);
+			throw new NullPointerException(errorMessage);
 		}
+		
+		int dataSize = this.getDataSize();
 		
 		if(array.length < dataSize)
 		{
-			Class<T> type = (Class<T>)array.getClass().getComponentType();
+			Class<?> type = array.getClass().getComponentType();
 			
-			usedArray = (T[])Array.newInstance(type, dataSize);
+			@SuppressWarnings("unchecked")
+			T[] newArray = (T[])java.lang.reflect.Array.newInstance(type, dataSize);
+			
+			array = newArray;
 		}
 		
 		int index = 0;
 		
 		for(Byte data : this)
 		{
-			usedArray[index++] = (T)data;
+			try
+			{
+				@SuppressWarnings("unchecked")
+				T element = (T)data;
+				
+				array[index++] = element;
+			}
+			catch(ClassCastException e)
+			{
+				String errorMessage = MessageUtil.getMessage
+				(
+					Messages.ELEMENT_ARRAY_TYPE_ERROR,
+					array.getClass().getName(),
+					data.getClass().getName()
+				);
+				
+				throw new ArrayStoreException(errorMessage);
+			}
 		}
 		
-		return usedArray;
+		if(array.length > dataSize)
+		{
+			array[dataSize] = null;
+		}
+		
+		return array;
 	}
 	
 	@Override
