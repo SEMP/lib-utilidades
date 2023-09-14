@@ -2,12 +2,15 @@ package py.com.semp.lib.utilidades.data;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -45,6 +48,38 @@ public class CircularByteBufferTest
 		"circular_buffer_byteArray.json",
 		"circular_buffer_capacity.json"
 	};
+	
+	@Test
+	public void testBytes()
+	{
+		assertThrows(NullPointerException.class, () -> new CircularByteBuffer(null));
+		assertThrows(IllegalArgumentException.class, () -> new CircularByteBuffer(new byte[]{}));
+		
+		byte[] originalArray1 = new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+		byte[] originalArray2 = new byte[]{7, 8, 9, 10, 0, 1, 2, 3, 4, 5, 6};
+		
+		CircularByteBuffer buffer1 = new CircularByteBuffer(originalArray1);
+		CircularByteBuffer buffer2 = new CircularByteBuffer(originalArray2);
+		
+		buffer2.start = 4;
+		buffer2.end = 3;
+		
+		byte[] data1 = buffer1.getData();
+		byte[] data2 = buffer2.getData();
+		byte[] byteArray1 = buffer1.getByteArray();
+		byte[] byteArray2 = buffer2.getByteArray();
+		Object[] objectArray1 = buffer1.toArray();
+		Object[] objectArray2 = buffer1.toArray();
+		
+		assertEquals(true, buffer1.equals(buffer2));
+		assertArrayEquals(data1, data2);
+		assertEquals(false, Arrays.equals(byteArray1, byteArray2));
+		
+		for(int i = 0; i < buffer1.size(); i++)
+		{
+			assertEquals(true, objectArray1[i].equals(byteArray1[i]));
+		}
+	}
 	
 	@ParameterizedTest
 	@MethodSource("readExtractAll1HData")

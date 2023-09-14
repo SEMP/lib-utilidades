@@ -58,5 +58,12 @@
         "endHeader": "\n",
         "expectedOutput": ["Part1\n", "Part2\n", "Part3\n"],
         "expectedRemainingData": " Remainder data here"
+    },
+    {
+        "testName": "Empty buffer",
+        "input": "",
+        "endHeader": "\n",
+        "expectedOutput": [],
+        "expectedRemainingData": ""
     }
 ]
