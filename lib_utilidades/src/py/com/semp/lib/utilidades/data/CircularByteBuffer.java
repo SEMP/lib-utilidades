@@ -517,13 +517,6 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Removes the last element.
-	 * @return
-	 * - last element.<br>
-	 * - null if the buffer is empty.
-	 */
-	
-	/**
 	 * Removes the last element from the buffer.
 	 * 
 	 * @return
