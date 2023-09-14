@@ -27,7 +27,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 * Index for the current position.
 	 */
 	private int index;
-
+	
 	private boolean removeEnabled;
 	
 	/**
@@ -69,91 +69,6 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	public boolean isFirstIteration()
 	{
 		return this.index == this.buffer.start;
-	}
-	
-	/**
-	 * Checks if the given range, from start to end, falls within the buffer's range.
-	 * <p>
-	 * This method is designed to handle cases where the buffer is circular, 
-	 * meaning that data might wrap around from the end back to the start of the buffer.
-	 * </p>
-	 * 
-	 * @param start
-	 * - The starting index of the range to check.
-	 * @param end
-	 * - The ending index of the range to check.
-	 * 
-	 * @return
-	 * - <b>true</b> if the entire range from start to end is within the buffer's range.<br>
-	 * - <b>false</b> otherwise.
-	 * @author Sergio Morel
-	 */
-	public boolean inRange(int start, int end)
-	{
-		// True if the buffer doesn't wrap around
-		boolean bufferIsLinear = this.buffer.end >= this.buffer.start;
-		// True if the provided range doesn't wrap around
-		boolean rangeIsLinear = end >= start;
-		boolean startIsAfterBufferStart = start >= this.buffer.start;
-		boolean endIsBeforeBufferEnd = this.buffer.end >= end;
-		
-		// If both the buffer's data and the provided range are either linear or both wrap around
-		if(bufferIsLinear == rangeIsLinear)
-		{
-			return startIsAfterBufferStart && endIsBeforeBufferEnd;
-		}
-		
-		// If the provided range wraps around
-		if(!rangeIsLinear)
-		{
-			return false;
-		}
-		
-		// If only the buffer's data wraps around, but the range is linear
-		boolean endIsAfterBufferStart = end >= this.buffer.start;
-		boolean startIsBeforeBufferEnd = this.buffer.end >= start;
-		
-		return (startIsAfterBufferStart && endIsAfterBufferStart) || (startIsBeforeBufferEnd && endIsBeforeBufferEnd);
-	}
-	
-	/**
-	 * Checks if the given pattern exists immediately preceding the current index in the buffer.
-	 * <p>
-	 * This method looks backward from the current index to determine if the pattern is present.
-	 * The search is done in reverse order, starting from the end of the pattern towards its beginning,
-	 * and it stops as soon as a mismatch is found or the pattern is fully matched.
-	 * </p>
-	 *
-	 * @param pattern The byte array pattern to search for within the buffer.
-	 * 
-	 * @return
-	 * - <b>true</b> if the entire pattern is found immediately preceding the current index.<br>
-	 * - <b>false</b> otherwise or if the pattern is not fully matched.
-	 */
-	public boolean patternFound(byte[] pattern)
-	{
-		byte[] byteArray = this.buffer.byteArray;
-		
-		int index = this.index;
-		int i = pattern.length - 1;
-		
-		while(i >= 0 && index != EMPTY_INDEX)
-		{
-			if(byteArray[index] != pattern[i])
-			{
-				return false;
-			}
-			
-			index = this.goPrevious(index);
-			i--;
-		}
-		
-		if(i < 0)
-		{
-			return true;
-		}
-		
-		return false;
 	}
 	
 	@Override
@@ -356,9 +271,9 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		this.index = (this.index + steps) % bufferSize;
 		
 		if(this.index < 0)
-	    {
-	        this.index += bufferSize;
-	    }
+		{
+			this.index += bufferSize;
+		}
 		
 		return this.index;
 	}
@@ -389,9 +304,9 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		index = (index + steps) % bufferSize;
 		
 		if(index < 0)
-	    {
-	        index += bufferSize;
-	    }
+		{
+			index += bufferSize;
+		}
 		
 		return index;
 	}
@@ -457,6 +372,150 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		}
 		
 		return index;
+	}
+	
+	@Override
+	public void remove()
+	{
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		int removeIndex = this.goPrevious(this.index);
+		
+		if(dataStart == EMPTY_INDEX)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		if(!this.removeEnabled)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_BEFORE_REMOVE_ERROR);
+			
+			throw new IllegalStateException(errorMessage);
+		}
+		
+		this.removeEnabled = false;
+		
+		if(removeIndex == dataStart)
+		{
+			this.removeFirst();
+			
+			return;
+		}
+		
+		if(removeIndex == dataEnd)
+		{
+			this.removeLast();
+			
+			return;
+		}
+		
+		int forwardDistance = Math.abs(dataEnd - removeIndex);
+		int backwardDistance = Math.abs(dataStart - removeIndex);
+		
+		if(forwardDistance <= backwardDistance)
+		{
+			int copyFromIndex = this.goNext(removeIndex);
+			int copyToIndex = removeIndex;
+			
+			while(copyFromIndex != EMPTY_INDEX)
+			{
+				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+				
+				copyToIndex = this.goNext(copyToIndex);
+				copyFromIndex = this.goNext(copyFromIndex);
+			}
+			
+			this.buffer.end = this.goPrevious(copyToIndex);
+		}
+		else
+		{
+			int copyFromIndex = this.goPrevious(removeIndex);
+			int copyToIndex = removeIndex;
+			
+			while(copyFromIndex != EMPTY_INDEX)
+			{
+				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+				
+				copyToIndex = this.goPrevious(copyToIndex);
+				copyFromIndex = this.goPrevious(copyFromIndex);
+			}
+			
+			this.buffer.start = this.goNext(copyToIndex);
+		}
+		
+		this.goPrevious();
+	}
+	
+	/**
+	 * Removes the elements in the buffer within the specified range (inclusive of start and end).
+	 * If the buffer is empty or the range is out of bounds, an exception is thrown.
+	 * 
+	 * @param start
+	 * - The starting index of the range to be removed.
+	 * @param end
+	 * - The ending index of the range to be removed.
+	 * @throws NoSuchElementException
+	 * if the buffer is empty.
+	 * @throws IndexOutOfBoundsException
+	 * if the specified range is out of the buffer bounds.
+	 */
+	public void remove(int start, int end)
+	{
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		
+		if(dataStart == EMPTY_INDEX)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		if(!this.inRange(start, end))
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.buffer.size());
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		if(start == dataStart)
+		{
+			this.buffer.start = this.goNext(end);
+			
+			if(this.buffer.start == EMPTY_INDEX)
+			{
+				this.buffer.end = EMPTY_INDEX;
+			}
+			
+			return;
+		}
+		
+		if(end == dataEnd)
+		{
+			this.buffer.end = this.goPrevious(start);
+			
+			if(this.buffer.end == EMPTY_INDEX)
+			{
+				this.buffer.start = EMPTY_INDEX;
+			}
+			
+			return;
+		}
+		
+		int copyFromIndex = this.goNext(end);
+		int copyToIndex = start;
+		
+		while(copyFromIndex != EMPTY_INDEX)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyToIndex = this.goNext(copyToIndex);
+			copyFromIndex = this.goNext(copyFromIndex);
+		}
+		
+		this.buffer.end = this.goPrevious(copyToIndex);
 	}
 	
 	/**
@@ -558,148 +617,89 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		return data;
 	}
 	
-	@Override
-	public void remove()
+	/**
+	 * Checks if the given range, from start to end, falls within the buffer's range.
+	 * <p>
+	 * This method is designed to handle cases where the buffer is circular, 
+	 * meaning that data might wrap around from the end back to the start of the buffer.
+	 * </p>
+	 * 
+	 * @param start
+	 * - The starting index of the range to check.
+	 * @param end
+	 * - The ending index of the range to check.
+	 * 
+	 * @return
+	 * - <b>true</b> if the entire range from start to end is within the buffer's range.<br>
+	 * - <b>false</b> otherwise.
+	 * @author Sergio Morel
+	 */
+	public boolean inRange(int start, int end)
 	{
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
-		int removeIndex = this.goPrevious(this.index);
+		// True if the buffer doesn't wrap around
+		boolean bufferIsLinear = this.buffer.end >= this.buffer.start;
+		// True if the provided range doesn't wrap around
+		boolean rangeIsLinear = end >= start;
+		boolean startIsAfterBufferStart = start >= this.buffer.start;
+		boolean endIsBeforeBufferEnd = this.buffer.end >= end;
 		
-		if(dataStart == EMPTY_INDEX)
+		// If both the buffer's data and the provided range are either linear or both wrap around
+		if(bufferIsLinear == rangeIsLinear)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
-			
-			throw new NoSuchElementException(errorMessage);
+			return startIsAfterBufferStart && endIsBeforeBufferEnd;
 		}
 		
-		if(!this.removeEnabled)
+		// If the provided range wraps around
+		if(!rangeIsLinear)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_BEFORE_REMOVE_ERROR);
-			
-			throw new IllegalStateException(errorMessage);
+			return false;
 		}
 		
-		this.removeEnabled = false;
+		// If only the buffer's data wraps around, but the range is linear
+		boolean endIsAfterBufferStart = end >= this.buffer.start;
+		boolean startIsBeforeBufferEnd = this.buffer.end >= start;
 		
-		if(removeIndex == dataStart)
-		{
-			this.removeFirst();
-			
-			return;
-		}
-		
-		if(removeIndex == dataEnd)
-		{
-			this.removeLast();
-			
-			return;
-		}
-		
-		int forwardDistance = Math.abs(dataEnd - removeIndex);
-	    int backwardDistance = Math.abs(dataStart - removeIndex);
-	    
-	    if(forwardDistance <= backwardDistance)
-	    {
-	    	int copyFromIndex = this.goNext(removeIndex);
-	    	int copyToIndex = removeIndex;
-	    	
-	    	while(copyFromIndex != EMPTY_INDEX)
-	    	{
-	    		this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
-	    		
-	    		copyToIndex = this.goNext(copyToIndex);
-	    		copyFromIndex = this.goNext(copyFromIndex);
-	    	}
-	    	
-	    	this.buffer.end = this.goPrevious(copyToIndex);
-	    }
-	    else
-	    {
-	    	int copyFromIndex = this.goPrevious(removeIndex);
-	    	int copyToIndex = removeIndex;
-	    	
-	    	while(copyFromIndex != EMPTY_INDEX)
-	    	{
-	    		this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
-	    		
-	    		copyToIndex = this.goPrevious(copyToIndex);
-	    		copyFromIndex = this.goPrevious(copyFromIndex);
-	    	}
-	    	
-	    	this.buffer.start = this.goNext(copyToIndex);
-	    }
-		
-		this.goPrevious();
+		return (startIsAfterBufferStart && endIsAfterBufferStart) || (startIsBeforeBufferEnd && endIsBeforeBufferEnd);
 	}
 	
 	/**
-	 * Removes the elements in the buffer within the specified range (inclusive of start and end).
-	 * If the buffer is empty or the range is out of bounds, an exception is thrown.
+	 * Checks if the given pattern exists immediately preceding the current index in the buffer.
+	 * <p>
+	 * This method looks backward from the current index to determine if the pattern is present.
+	 * The search is done in reverse order, starting from the end of the pattern towards its beginning,
+	 * and it stops as soon as a mismatch is found or the pattern is fully matched.
+	 * </p>
+	 *
+	 * @param pattern The byte array pattern to search for within the buffer.
 	 * 
-	 * @param start
-	 * - The starting index of the range to be removed.
-	 * @param end
-	 * - The ending index of the range to be removed.
-	 * @throws NoSuchElementException
-	 * if the buffer is empty.
-	 * @throws IndexOutOfBoundsException
-	 * if the specified range is out of the buffer bounds.
+	 * @return
+	 * - <b>true</b> if the entire pattern is found immediately preceding the current index.<br>
+	 * - <b>false</b> otherwise or if the pattern is not fully matched.
 	 */
-	public void remove(int start, int end)
+	public boolean patternFound(byte[] pattern)
 	{
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
+		byte[] byteArray = this.buffer.byteArray;
 		
-		if(dataStart == EMPTY_INDEX)
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
-			
-			throw new NoSuchElementException(errorMessage);
-		}
+		int index = this.index;
+		int i = pattern.length - 1;
 		
-		if(!this.inRange(start, end))
+		while(i >= 0 && index != EMPTY_INDEX)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.buffer.size());
-			
-			throw new IndexOutOfBoundsException(errorMessage);
-		}
-		
-		if(start == dataStart)
-		{
-			this.buffer.start = this.goNext(end);
-			
-			if(this.buffer.start == EMPTY_INDEX)
+			if(byteArray[index] != pattern[i])
 			{
-				this.buffer.end = EMPTY_INDEX;
+				return false;
 			}
 			
-			return;
+			index = this.goPrevious(index);
+			i--;
 		}
 		
-		if(end == dataEnd)
+		if(i < 0)
 		{
-			this.buffer.end = this.goPrevious(start);
-			
-			if(this.buffer.end == EMPTY_INDEX)
-			{
-				this.buffer.start = EMPTY_INDEX;
-			}
-			
-			return;
+			return true;
 		}
 		
-		int copyFromIndex = this.goNext(end);
-		int copyToIndex = start;
-		
-		while(copyFromIndex != EMPTY_INDEX)
-		{
-			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
-			
-			copyToIndex = this.goNext(copyToIndex);
-			copyFromIndex = this.goNext(copyFromIndex);
-		}
-		
-		this.buffer.end = this.goPrevious(copyToIndex);
+		return false;
 	}
 	
 	@Override
