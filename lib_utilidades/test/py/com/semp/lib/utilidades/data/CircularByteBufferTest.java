@@ -7,8 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -112,6 +114,8 @@ public class CircularByteBufferTest
 		assertTrue(buffer.contains((byte)5));
 		assertFalse(buffer.contains((byte)1));
 		assertFalse(buffer.contains((byte)2));
+		assertFalse(buffer.addAll(null));
+		assertFalse(buffer.addAll(new ArrayList<>()));
 	}
 	
 	@Test
@@ -128,13 +132,23 @@ public class CircularByteBufferTest
 	@Test
 	public void testRemove()
 	{
-		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
-		{
-				0, 1, 2, 3, 4
-		});
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4});
+		
 		assertTrue(buffer.remove((byte)2));
 		assertFalse(buffer.contains((byte)2));
 		assertFalse(buffer.remove((byte)5));
+		
+		assertEquals(Byte.valueOf((byte)0), buffer.removeFirst());
+		assertFalse(buffer.contains((byte)0));
+		
+		assertEquals(Byte.valueOf((byte)4), buffer.removeLast());
+		assertFalse(buffer.contains((byte)4));
+		
+		assertArrayEquals(new byte[]{1, 3}, buffer.getData());
+		
+		buffer.clear();
+		assertThrows(NoSuchElementException.class, buffer::removeFirst);
+		assertThrows(NoSuchElementException.class, buffer::removeLast);
 	}
 	
 	@Test
@@ -161,6 +175,20 @@ public class CircularByteBufferTest
 		assertTrue(buffer.contains((byte)2));
 		assertTrue(buffer.contains((byte)3));
 		assertEquals(2, buffer.size());
+	}
+	
+	@Test
+	public void testGetData()
+	{
+		byte[] initialData = new byte[]{1, 2, 3, 4, 5};
+	    CircularByteBuffer buffer = new CircularByteBuffer(initialData);
+	    
+	    byte[] result = buffer.getData(1, 3);
+	    assertArrayEquals(new byte[]{2, 3, 4}, result);
+	    
+	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.getData(0, 5));
+	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.getData(-1, 3));
+	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.getData(2, 0));
 	}
 	
 	@Test

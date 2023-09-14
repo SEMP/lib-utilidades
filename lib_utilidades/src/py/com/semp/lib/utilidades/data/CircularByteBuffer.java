@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import py.com.semp.lib.utilidades.internal.MessageUtil;
@@ -303,6 +304,15 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public byte[] getData(int start, int end)
 	{
+		int dataSize = this.getDataSize();
+		
+		if(start < 0 || start >= dataSize || end < 0 || end >= dataSize || start > end)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.getDataSize());
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
 		int dataStart = this.start;
 		
 		CircularByteBufferIterator iterator = this.iterator();
@@ -431,10 +441,14 @@ public class CircularByteBuffer implements Collection<Byte>
 			return false;
 		}
 		
+		CircularByteBufferIterator iterator = this.iterator();
+		
 		byte compareByte = (Byte)compareObject;
 		
-		for(byte data : this.byteArray)
+		while(iterator.hasNext())
 		{
+			byte data = iterator.nextByte();
+			
 			if(data == compareByte)
 			{
 				return true;
@@ -468,11 +482,13 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		CircularByteBufferIterator iterator = this.iterator();
 		
+		byte removeByte = (Byte)removeObject;
+		
 		while(iterator.hasNext())
 		{
-			Byte data = iterator.next();
+			byte data = iterator.nextByte();
 			
-			if(data.equals(removeObject))
+			if(data == removeByte)
 			{
 				iterator.remove();
 				
@@ -484,10 +500,14 @@ public class CircularByteBuffer implements Collection<Byte>
 	}
 	
 	/**
-	 * Removes the first element.
+	 * Removes the first element from the buffer.
+	 * 
 	 * @return
-	 * - first element.<br>
-	 * - null if the buffer is empty.
+	 * - The first byte data from the buffer.
+	 * 
+	 * @throws NoSuchElementException
+	 * If the buffer is empty.
+	 * @author Sergio Morel
 	 */
 	public Byte removeFirst()
 	{
@@ -501,6 +521,17 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * @return
 	 * - last element.<br>
 	 * - null if the buffer is empty.
+	 */
+	
+	/**
+	 * Removes the last element from the buffer.
+	 * 
+	 * @return
+	 * - The last byte data from the buffer.
+	 * 
+	 * @throws NoSuchElementException
+	 * If the buffer is empty.
+	 * @author Sergio Morel
 	 */
 	public Byte removeLast()
 	{
@@ -584,7 +615,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	
 	/**
 	 * Extracts from the buffer the segment contained between the indexes. The
-	 * segment includes the content of both indexes.
+	 * segment includes the content of both indexes. This does not modify the buffer.
 	 * 
 	 * @param start
 	 * - start index.
@@ -982,7 +1013,7 @@ public class CircularByteBuffer implements Collection<Byte>
 				sb.append(", ");
 			}
 			
-			sb.append(this.formatValue(iterator.next()));
+			sb.append(this.formatValue(iterator.nextByte()));
 		}
 		
 		sb.append("]");
