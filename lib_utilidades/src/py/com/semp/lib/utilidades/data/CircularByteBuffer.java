@@ -343,7 +343,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * <b>false</b> if the indices are not in the data range.
 	 * @author Sergio Morel
 	 */
-	private boolean inRange(int start, int end)
+	boolean inRange(int start, int end)
 	{
 		CircularByteBufferIterator iterator = this.iterator();
 		
@@ -361,9 +361,9 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * - The size of the data range inside the buffer.
 	 * @author Sergio Morel
 	 */
-	private int getDataSize(int start, int end)
+	int getDataSize(int start, int end)
 	{
-		if(start == EMPTY_INDEX || end == EMPTY_INDEX)
+		if(this.isEmpty())
 		{
 			return 0;
 		}
@@ -618,7 +618,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * - the extracted segment.
 	 * @author Sergio Morel.
 	 */
-	private byte[] extract(int start, int end)
+	byte[] extract(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
 		int bufferSize = this.getBufferSize();
@@ -657,7 +657,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * - An Object array with the extracted segment elements.
 	 * @author Sergio Morel.
 	 */
-	private Object[] extractInObjectArray(int start, int end)
+	Object[] extractInObjectArray(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
 		int bufferSize = this.getBufferSize();

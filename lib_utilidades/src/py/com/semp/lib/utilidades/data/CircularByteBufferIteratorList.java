@@ -1,8 +1,9 @@
 package py.com.semp.lib.utilidades.data;
 
-import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
+import py.com.semp.lib.utilidades.enumerations.IterationMovement;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 
@@ -11,7 +12,7 @@ import py.com.semp.lib.utilidades.internal.Messages;
  * 
  * @author Sergio Morel
  */
-public class CircularByteBufferIterator implements Iterator<Byte>
+public class CircularByteBufferIteratorList implements ListIterator<Byte>
 {
 	/**
 	 * Value of index when not referring to a position in the buffer.
@@ -28,7 +29,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 */
 	private int index;
 	
-	private boolean removeEnabled;
+	private IterationMovement lastMovement;
 	
 	/**
 	 * Constructor with argument for the {@link CircularByteBuffer}.
@@ -37,13 +38,13 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 * - buffer to be iterated.
 	 * @author Sergio Morel
 	 */
-	public CircularByteBufferIterator(CircularByteBuffer buffer)
+	public CircularByteBufferIteratorList(CircularByteBuffer buffer)
 	{
 		super();
 		
 		this.buffer = buffer;
 		this.index = buffer.start;
-		this.removeEnabled = false;
+		this.lastMovement = IterationMovement.NONE;
 	}
 	
 	/**
@@ -93,7 +94,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		this.goNext();
 		
-		this.removeEnabled = true;
+		this.lastMovement = IterationMovement.NEXT;
 		
 		return data;
 	}
@@ -122,7 +123,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		this.goNext();
 		
-		this.removeEnabled = true;
+		this.lastMovement = IterationMovement.NEXT;
 		
 		return data;
 	}
@@ -373,13 +374,13 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		return index;
 	}
-	
+	//TODO hacer el codigo para previous
 	@Override
 	public void remove()
 	{
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
-		int removeIndex = this.goPrevious(this.index);
+		int removeIndex = this.index;
 		
 		if(dataStart == EMPTY_INDEX)
 		{
@@ -388,14 +389,31 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 			throw new NoSuchElementException(errorMessage);
 		}
 		
-		if(!this.removeEnabled)
+		switch(this.lastMovement)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_BEFORE_REMOVE_ERROR);
+			case NEXT:
+			{
+				removeIndex = this.goPrevious(removeIndex);
+				
+				break;
+			}
 			
-			throw new IllegalStateException(errorMessage);
+			case PREVIOUS:
+			{
+				removeIndex = this.goNext(removeIndex);
+				
+				break;
+			}
+			
+			case NONE:
+			{
+				String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_BEFORE_REMOVE_ERROR);
+				
+				throw new IllegalStateException(errorMessage);
+			}
 		}
 		
-		this.removeEnabled = false;
+		this.lastMovement = IterationMovement.NONE;
 		
 		if(removeIndex == dataStart)
 		{
@@ -710,5 +728,80 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		sb.append(this.index);
 		
 		return sb.toString();
+	}
+	
+	@Override
+	public boolean hasPrevious()
+	{
+		return this.previousIndex() != EMPTY_INDEX;
+	}
+	
+	@Override
+	public Byte previous()
+	{
+		if(this.index == EMPTY_INDEX)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		byte[] byteArray = this.buffer.byteArray;
+		
+		byte data = byteArray[this.index];
+		
+		this.goPrevious();
+		
+		this.lastMovement = IterationMovement.PREVIOUS;
+		
+		return data;
+	}
+	
+	public byte previousByte()
+	{
+		if(this.index == EMPTY_INDEX)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		byte[] byteArray = this.buffer.byteArray;
+		
+		byte data = byteArray[this.index];
+		
+		this.goPrevious();
+		
+		this.lastMovement = IterationMovement.PREVIOUS;
+		
+		return data;
+	}
+	
+	@Override
+	public int nextIndex()
+	{
+		int nextIndex = this.goNext(this.index);
+		
+	    return (nextIndex == EMPTY_INDEX) ? this.buffer.size() : nextIndex;
+	}
+	
+	@Override
+	public int previousIndex()
+	{
+		return this.goPrevious(this.index);
+	}
+	
+	@Override
+	public void set(Byte e)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public void add(Byte e)
+	{
+		// TODO Auto-generated method stub
+		
 	}
 }
