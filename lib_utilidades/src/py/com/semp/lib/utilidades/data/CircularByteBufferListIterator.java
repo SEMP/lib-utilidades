@@ -836,10 +836,35 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	}
 	
 	@Override
-	public void set(Byte e)
+	public void set(Byte element)
 	{
-		// TODO Auto-generated method stub
-		
+		switch(this.lastMovement)
+		{
+			case NEXT:
+			{
+				int setIndex = this.goPrevious(this.index);
+				
+				this.buffer.byteArray[setIndex] = element;
+				
+				break;
+			}
+			
+			case PREVIOUS:
+			{
+				int setIndex = this.goNext(this.index);
+				
+				this.buffer.byteArray[setIndex] = element;
+				
+				break;
+			}
+			
+			case NONE:
+			{
+				String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
+				
+				throw new IllegalStateException(errorMessage);
+			}
+		}
 	}
 	
 	@Override
