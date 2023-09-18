@@ -12,7 +12,7 @@ import py.com.semp.lib.utilidades.internal.Messages;
  * 
  * @author Sergio Morel
  */
-public class CircularByteBufferIteratorList implements ListIterator<Byte>
+public class CircularByteBufferListIterator implements ListIterator<Byte>
 {
 	/**
 	 * Value of index when not referring to a position in the buffer.
@@ -38,7 +38,7 @@ public class CircularByteBufferIteratorList implements ListIterator<Byte>
 	 * - buffer to be iterated.
 	 * @author Sergio Morel
 	 */
-	public CircularByteBufferIteratorList(CircularByteBuffer buffer)
+	public CircularByteBufferListIterator(CircularByteBuffer buffer)
 	{
 		super();
 		
@@ -374,7 +374,7 @@ public class CircularByteBufferIteratorList implements ListIterator<Byte>
 		
 		return index;
 	}
-	//TODO hacer el codigo para previous
+	
 	@Override
 	public void remove()
 	{
@@ -407,11 +407,13 @@ public class CircularByteBufferIteratorList implements ListIterator<Byte>
 			
 			case NONE:
 			{
-				String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_BEFORE_REMOVE_ERROR);
+				String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
 				
 				throw new IllegalStateException(errorMessage);
 			}
 		}
+		
+		IterationMovement lastMovement = this.lastMovement;
 		
 		this.lastMovement = IterationMovement.NONE;
 		
@@ -432,38 +434,80 @@ public class CircularByteBufferIteratorList implements ListIterator<Byte>
 		int forwardDistance = Math.abs(dataEnd - removeIndex);
 		int backwardDistance = Math.abs(dataStart - removeIndex);
 		
-		if(forwardDistance <= backwardDistance)
+		if(lastMovement == IterationMovement.NEXT)
 		{
-			int copyFromIndex = this.goNext(removeIndex);
-			int copyToIndex = removeIndex;
-			
-			while(copyFromIndex != EMPTY_INDEX)
+			if(forwardDistance <= backwardDistance)
 			{
-				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+				this.shiftFromEnd(removeIndex);
 				
-				copyToIndex = this.goNext(copyToIndex);
-				copyFromIndex = this.goNext(copyFromIndex);
+				this.goPrevious();
 			}
-			
-			this.buffer.end = this.goPrevious(copyToIndex);
-			
-			this.goPrevious();
+			else
+			{
+				this.shiftFromStart(removeIndex);
+			}
 		}
-		else
+		else if(lastMovement == IterationMovement.PREVIOUS)
 		{
-			int copyFromIndex = this.goPrevious(removeIndex);
-			int copyToIndex = removeIndex;
-			
-			while(copyFromIndex != EMPTY_INDEX)
+			if(forwardDistance <= backwardDistance)
 			{
-				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
-				
-				copyToIndex = this.goPrevious(copyToIndex);
-				copyFromIndex = this.goPrevious(copyFromIndex);
+				shiftFromEnd(removeIndex);
 			}
-			
-			this.buffer.start = this.goNext(copyToIndex);
+			else
+			{
+				shiftFromStart(removeIndex);
+				
+				this.goNext();
+			}
 		}
+	}
+	
+	/**
+	 * Shifts the elements from the start of the buffer towards the removeIndex,
+	 * overwriting the element at the removeIndex in the process.
+	 * 
+	 * @param removeIndex
+	 * - The index of the element to be overwritten by the shifting.
+	 * @author Sergio Morel
+	 */
+	private void shiftFromStart(int removeIndex)
+	{
+		int copyFromIndex = this.goPrevious(removeIndex);
+		int copyToIndex = removeIndex;
+		
+		while(copyFromIndex != EMPTY_INDEX)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyToIndex = this.goPrevious(copyToIndex);
+			copyFromIndex = this.goPrevious(copyFromIndex);
+		}
+		
+		this.buffer.start = this.goNext(copyToIndex);
+	}
+	
+	/**
+	 * Shifts the elements from the end of the buffer towards the removeIndex,
+	 * overwriting the element at the removeIndex in the process.
+	 * 
+	 * @param removeIndex
+	 * - The index of the element to be overwritten by the shifting.
+	 * @author Sergio Morel
+	 */
+	private void shiftFromEnd(int removeIndex)
+	{
+		int copyFromIndex = this.goNext(removeIndex);
+		int copyToIndex = removeIndex;
+		
+		while(copyFromIndex != EMPTY_INDEX)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyToIndex = this.goNext(copyToIndex);
+			copyFromIndex = this.goNext(copyFromIndex);
+		}
+		
+		this.buffer.end = this.goPrevious(copyToIndex);
 	}
 	
 	/**
@@ -801,6 +845,7 @@ public class CircularByteBufferIteratorList implements ListIterator<Byte>
 	@Override
 	public void add(Byte e)
 	{
+		this.lastMovement = IterationMovement.NONE;
 		// TODO Auto-generated method stub
 		
 	}

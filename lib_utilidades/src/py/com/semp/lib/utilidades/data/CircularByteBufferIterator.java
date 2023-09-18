@@ -390,7 +390,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		if(!this.removeEnabled)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_BEFORE_REMOVE_ERROR);
+			String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
 			
 			throw new IllegalStateException(errorMessage);
 		}
