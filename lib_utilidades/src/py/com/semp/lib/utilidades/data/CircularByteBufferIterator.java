@@ -475,7 +475,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		if(!this.inRange(start, end))
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.buffer.size());
+			String errorMessage = MessageUtil.getMessage(Messages.INVALID_INDEX_RANGE_ERROR, start, end, this.buffer.size());
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}

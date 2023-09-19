@@ -321,7 +321,13 @@ public class CircularByteBufferList implements List<Byte>
 		
 		if(start < 0 || start >= dataSize || end < 0 || end >= dataSize || start > end)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.getDataSize());
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.INVALID_INDEX_RANGE_ERROR,
+				start,
+				end,
+				this.getDataSize()
+			);
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
@@ -335,7 +341,13 @@ public class CircularByteBufferList implements List<Byte>
 		
 		if(!this.inRange(startIndex, endIndex))
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.getDataSize());
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.INVALID_INDEX_RANGE_ERROR,
+				start,
+				end,
+				this.getDataSize()
+			);
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
@@ -926,7 +938,11 @@ public class CircularByteBufferList implements List<Byte>
 	 */
 	public List<byte[]> extractAll(String startHeader, String endHeader)
 	{
-		return this.extractAll(startHeader.getBytes(StandardCharsets.UTF_8), endHeader.getBytes(StandardCharsets.UTF_8));
+		return this.extractAll
+		(
+			startHeader.getBytes(StandardCharsets.UTF_8),
+			endHeader.getBytes(StandardCharsets.UTF_8)
+		);
 	}
 	
 	/**
@@ -1078,12 +1094,7 @@ public class CircularByteBufferList implements List<Byte>
 	{
 		int size = this.size();
 		
-		if(index < 0 || index >= size)
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
-			
-			throw new IndexOutOfBoundsException(errorMessage);
-		}
+		this.validateIndex(index, size);
 		
 		CircularByteBufferListIterator iterator = this.iterator();
 		
@@ -1108,12 +1119,7 @@ public class CircularByteBufferList implements List<Byte>
 		
 		int size = this.size();
 		
-		if(index < 0 || index >= size)
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
-			
-			throw new IndexOutOfBoundsException(errorMessage);
-		}
+		this.validateIndex(index, size);
 		
 		CircularByteBufferListIterator iterator = this.iterator();
 		
@@ -1165,12 +1171,7 @@ public class CircularByteBufferList implements List<Byte>
 	{
 		int size = this.size();
 		
-		if(index < 0 || index >= size)
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
-			
-			throw new IndexOutOfBoundsException(errorMessage);
-		}
+		this.validateIndex(index, size);
 		
 		CircularByteBufferListIterator iterator = this.iterator();
 		
@@ -1184,7 +1185,43 @@ public class CircularByteBufferList implements List<Byte>
 	@Override
 	public List<Byte> subList(int fromIndex, int toIndex)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		int size = this.size();
+		
+		this.validateIndex(fromIndex, size);
+		this.validateIndex(toIndex, size);
+		
+		if(fromIndex > toIndex)
+		{
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.INVALID_INDEX_RANGE_ERROR,
+				fromIndex,
+				toIndex,
+				size
+			);
+			
+			throw new IllegalArgumentException(errorMessage);
+		}
+		
+		CircularByteBufferListIterator iterator = this.iterator();
+		
+		int start = iterator.forward(this.start, fromIndex);
+		int end = iterator.forward(this.start, toIndex);
+		
+		Byte[] byteArray = this.extractInByteArray(start, end);
+		
+		List<Byte> list = List.of(byteArray);
+		
+		return list;
+	}
+	
+	private void validateIndex(int index, int size)
+	{
+		if(index < 0 || index >= size)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
 	}
 }

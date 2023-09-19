@@ -308,7 +308,7 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		if(start < 0 || start >= dataSize || end < 0 || end >= dataSize || start > end)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.getDataSize());
+			String errorMessage = MessageUtil.getMessage(Messages.INVALID_INDEX_RANGE_ERROR, start, end, this.getDataSize());
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
@@ -322,7 +322,7 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		if(!this.inRange(startIndex, endIndex))
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CIRCULAR_BUFFER_OUT_OF_BOUNDS, start, end, this.getDataSize());
+			String errorMessage = MessageUtil.getMessage(Messages.INVALID_INDEX_RANGE_ERROR, start, end, this.getDataSize());
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
