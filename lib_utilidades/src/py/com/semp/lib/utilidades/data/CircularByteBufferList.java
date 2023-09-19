@@ -285,6 +285,18 @@ public class CircularByteBufferList implements List<Byte>
 	 * - new array with the data from the circular buffer.
 	 * @author Sergio Morel
 	 */
+	public Byte[] getDataInByteArray()
+	{
+		return extractInByteArray(this.start, this.end);
+	}
+	
+	/**
+	 * Gets a new array with the data from the circular buffer.<br>
+	 * 
+	 * @return
+	 * - new array with the data from the circular buffer.
+	 * @author Sergio Morel
+	 */
 	public Object[] getDataInObjectArray()
 	{
 		return extractInObjectArray(this.start, this.end);
@@ -625,6 +637,45 @@ public class CircularByteBufferList implements List<Byte>
 		int bufferSize = this.getBufferSize();
 		
 		byte[] segment = new byte[dataSize];
+		
+		int j = 0;
+		
+		for(int i = start; j < dataSize; i++)
+		{
+			if(i == bufferSize)
+			{
+				i = 0;
+			}
+			
+			segment[j++] = this.byteArray[i];
+			
+			if(i == end)
+			{
+				break;
+			}
+		}
+		
+		return segment;
+	}
+	
+	/**
+	 * Extracts from the buffer the segment contained between the indexes into a Byte array. The
+	 * segment includes the content of both indexes.
+	 * 
+	 * @param start
+	 * - start index.
+	 * @param end
+	 * - end index.
+	 * @return
+	 * - A Byte array with the extracted segment elements.
+	 * @author Sergio Morel.
+	 */
+	Byte[] extractInByteArray(int start, int end)
+	{
+		int dataSize = this.getDataSize(start, end);
+		int bufferSize = this.getBufferSize();
+		
+		Byte[] segment = new Byte[dataSize];
 		
 		int j = 0;
 		
