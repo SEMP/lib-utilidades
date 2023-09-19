@@ -60,10 +60,22 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 * 
 	 * @return
 	 * - the index for the current position.
+	 * @author Sergio Morel
 	 */
 	public int getIndex()
 	{
 		return index;
+	}
+	
+	/**
+	 * Sets the position of the index;
+	 * 
+	 * @param index
+	 * - New position of the index.
+	 */
+	void setIndex(int index)
+	{
+		this.index = index;
 	}
 	
 	/**
@@ -274,6 +286,11 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 */
 	public int forward(int steps)
 	{
+		if(steps == 0)
+		{
+			return this.index;
+		}
+		
 		if(this.index == EMPTY_INDEX)
 		{
 			this.index = 0;
@@ -307,6 +324,11 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 */
 	public int forward(int index, int steps)
 	{
+		if(steps == 0)
+		{
+			return index;
+		}
+		
 		if(index == EMPTY_INDEX)
 		{
 			index = 0;
@@ -338,6 +360,11 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 */
 	public int rewind(int steps)
 	{
+		if(steps == 0)
+		{
+			return this.index;
+		}
+		
 		if(this.index == EMPTY_INDEX)
 		{
 			this.index = 0;
@@ -370,6 +397,11 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 */
 	public int rewind(int index, int steps)
 	{
+		if(steps == 0)
+		{
+			return index;
+		}
+		
 		if(index == EMPTY_INDEX)
 		{
 			index = 0;

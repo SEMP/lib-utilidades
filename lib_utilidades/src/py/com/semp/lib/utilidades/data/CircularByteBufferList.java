@@ -1102,21 +1102,34 @@ public class CircularByteBufferList implements List<Byte>
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
+	
 	@Override
 	public ListIterator<Byte> listIterator()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return this.iterator();
 	}
 
 	@Override
 	public ListIterator<Byte> listIterator(int index)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		int size = this.size();
+		
+		if(index < 0 || index >= size)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		CircularByteBufferListIterator iterator = this.iterator();
+		
+		int internalIndex = iterator.forward(index);
+		
+		iterator.setIndex(internalIndex);
+		
+		return iterator;
 	}
-
+	
 	@Override
 	public List<Byte> subList(int fromIndex, int toIndex)
 	{
