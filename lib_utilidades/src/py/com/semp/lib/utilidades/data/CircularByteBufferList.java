@@ -1021,14 +1021,26 @@ public class CircularByteBufferList implements List<Byte>
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
 	@Override
 	public Byte get(int index)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		int size = this.size();
+		
+		if(index < 0 || index >= size)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		CircularByteBufferListIterator iterator = this.iterator();
+		
+		int internalIndex = iterator.goNext(index);
+		
+		return this.byteArray[internalIndex];
 	}
-
+	
 	@Override
 	public Byte set(int index, Byte element)
 	{
