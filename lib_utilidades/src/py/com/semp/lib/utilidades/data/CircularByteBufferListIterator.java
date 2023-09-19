@@ -39,6 +39,8 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 */
 	private int lastAddedIndex = EMPTY_INDEX;
 	
+	private boolean firstIteration = true;
+	
 	/**
 	 * Constructor with argument for the {@link CircularByteBuffer}.
 	 * 
@@ -82,14 +84,13 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 * Determines if the current iteration is the first by comparing the index with the buffer's start.
 	 * 
 	 * @return
-	 * - <b>true</b> if the current index matches the buffer's start position,
-	 * indicating the first iteration.<br>
+	 * - <b>true</b> next() or previous() haven't been called previously.<br>
 	 * - <b>false</b> otherwise.
 	 * @author Sergio Morel
 	 */
 	public boolean isFirstIteration()
 	{
-		return this.index == this.buffer.start;
+		return this.firstIteration;
 	}
 	
 	@Override
@@ -117,6 +118,8 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		this.lastMovement = IterationMovement.NEXT;
 		
 		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
 		
 		return data;
 	}
@@ -148,6 +151,8 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		this.lastMovement = IterationMovement.NEXT;
 		
 		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
 		
 		return data;
 	}
@@ -821,12 +826,22 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	@Override
 	public boolean hasPrevious()
 	{
+		if(this.isFirstIteration())
+		{
+			return this.buffer.size() > 0;
+		}
+		
 		return this.previousIndex() != EMPTY_INDEX;
 	}
 	
 	@Override
 	public Byte previous()
 	{
+		if(this.isFirstIteration())
+		{
+			this.index = this.buffer.end;
+		}
+		
 		if(this.index == EMPTY_INDEX)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
@@ -848,12 +863,19 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		this.lastMovement = IterationMovement.PREVIOUS;
 		
 		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
 		
 		return data;
 	}
 	
 	public byte previousByte()
 	{
+		if(this.isFirstIteration())
+		{
+			this.index = this.buffer.end;
+		}
+		
 		if(this.index == EMPTY_INDEX)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
@@ -875,6 +897,8 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		this.lastMovement = IterationMovement.PREVIOUS;
 		
 		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
 		
 		return data;
 	}

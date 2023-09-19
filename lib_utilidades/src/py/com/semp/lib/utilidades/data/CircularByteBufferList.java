@@ -308,9 +308,9 @@ public class CircularByteBufferList implements List<Byte>
 	 * index is included)<br>
 	 * 
 	 * @param start
-	 * - the first index of the range.
+	 * - the first index of the range (inclusive).
 	 * @param end
-	 * - the last index of the range.
+	 * - the last index of the range (inclusive).
 	 * @return
 	 * - new array with the data from the range in the circular buffer.
 	 * @author Sergio Morel
@@ -636,9 +636,9 @@ public class CircularByteBufferList implements List<Byte>
 	 * segment includes the content of both indexes. This does not modify the buffer.
 	 * 
 	 * @param start
-	 * - start index.
+	 * - start index (inclusive).
 	 * @param end
-	 * - end index.
+	 * - end index (inclusive).
 	 * @return
 	 * - the extracted segment.
 	 * @author Sergio Morel.
@@ -1149,15 +1149,51 @@ public class CircularByteBufferList implements List<Byte>
 	@Override
 	public int indexOf(Object o)
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		if(!(o instanceof Byte))
+		{
+			return -1;
+		}
+		
+		CircularByteBufferListIterator iterator = this.iterator();
+		
+		byte compareByte = (Byte)o;
+		
+		while(iterator.hasNext())
+		{
+			byte element = iterator.nextByte();
+			
+			if(element == compareByte)
+			{
+				return iterator.goPrevious();
+			}
+		}
+		
+		return -1;
 	}
 
 	@Override
 	public int lastIndexOf(Object o)
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		if(!(o instanceof Byte))
+		{
+			return -1;
+		}
+		
+		CircularByteBufferListIterator iterator = this.iterator();
+		
+		byte compareByte = (Byte)o;
+		
+		while(iterator.hasPrevious())
+		{
+			byte element = iterator.previousByte();
+			
+			if(element == compareByte)
+			{
+				return iterator.goNext();
+			}
+		}
+		
+		return -1;
 	}
 	
 	@Override
@@ -1165,7 +1201,7 @@ public class CircularByteBufferList implements List<Byte>
 	{
 		return this.iterator();
 	}
-
+	
 	@Override
 	public ListIterator<Byte> listIterator(int index)
 	{
@@ -1182,6 +1218,35 @@ public class CircularByteBufferList implements List<Byte>
 		return iterator;
 	}
 	
+	/**
+	 * Returns a view of the portion of this list between the specified {@code fromIndex}, inclusive,
+	 * and {@code toIndex}, exclusive. This method deviates from the typical Java {@code List} sublist
+	 * behavior in an important way: it returns a <em>deep copy</em> of the sublist, rather than a view on 
+	 * the original list.
+	 * 
+	 * <p>Therefore, any modifications made to the returned sublist won't affect this original list, 
+	 * and vice-versa. This deviation is intentional to avoid complexities associated with maintaining
+	 * a sublist view on a circular buffer.</p>
+	 * 
+	 * <p>Examples:</p>
+	 * <ul>
+	 *     <li>If you modify the returned sublist using {@code add}, {@code remove}, or any other modification
+	 *     operations, the original {@code CircularByteBufferList} remains unchanged.</li>
+	 *     <li>Clearing the returned sublist using {@code clear()} will empty the sublist, but the 
+	 *     original {@code CircularByteBufferList} remains unaffected.</li>
+	 * </ul>
+	 *
+	 * @param fromIndex
+	 * - low endpoint (inclusive) of the subList
+	 * @param toIndex
+	 * - high endpoint (exclusive) of the subList
+	 * @return
+	 * - a deep copy of the specified range within this list
+	 * @throws IndexOutOfBoundsException
+	 * if the {@code fromIndex} or {@code toIndex} are out of range.
+	 * @throws IllegalArgumentException
+	 * if {@code fromIndex} is greater than {@code toIndex}
+	 */
 	@Override
 	public List<Byte> subList(int fromIndex, int toIndex)
 	{
@@ -1208,11 +1273,11 @@ public class CircularByteBufferList implements List<Byte>
 		int start = iterator.forward(this.start, fromIndex);
 		int end = iterator.forward(this.start, toIndex);
 		
-		Byte[] byteArray = this.extractInByteArray(start, end);
+		end = iterator.goPrevious(end);
 		
-		List<Byte> list = List.of(byteArray);
+		byte[] extraction = this.extract(start, end);
 		
-		return list;
+		return new CircularByteBufferList(extraction);
 	}
 	
 	private void validateIndex(int index, int size)
