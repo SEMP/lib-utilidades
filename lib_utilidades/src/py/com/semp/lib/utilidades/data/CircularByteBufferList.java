@@ -15,7 +15,7 @@ import py.com.semp.lib.utilidades.internal.Messages;
 
 /**
  * Circular buffer, when the buffer is full, the oldest data is
- * overwritten.
+ * overwritten. This implementation does not allow null values.
  * 
  * <p>
  * Note: This implementation is not thread-safe by design to favor performance.
@@ -1044,10 +1044,37 @@ public class CircularByteBufferList implements List<Byte>
 	@Override
 	public Byte set(int index, Byte element)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		if(element == null)
+		{
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.NULL_VALUES_NOT_ALLOWED_ERROR,
+				this.getClass().getSimpleName()
+			);
+			
+			throw new NullPointerException(errorMessage);
+		}
+		
+		int size = this.size();
+		
+		if(index < 0 || index >= size)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		CircularByteBufferListIterator iterator = this.iterator();
+		
+		int internalIndex = iterator.goNext(index);
+		
+		byte previousValue = this.byteArray[internalIndex];
+		
+		this.byteArray[internalIndex] = element;
+		
+		return previousValue;
 	}
-
+	
 	@Override
 	public void add(int index, Byte element)
 	{
