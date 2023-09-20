@@ -135,9 +135,9 @@ public class CircularByteBufferTest
 	    
 	    assertFalse(buffer.contains(null));
 	    assertFalse(buffer.remove(null));
-	    assertTrue(buffer.remove((byte)2));
+	    assertTrue(buffer.remove((Object)(byte)2));
 	    assertFalse(buffer.contains((byte)2));
-	    assertFalse(buffer.remove((byte)5));
+	    assertFalse(buffer.remove((Object)(byte)5));
 	    
 	    assertEquals(Byte.valueOf((byte)0), buffer.removeFirst());
 	    assertFalse(buffer.contains((byte)0));
@@ -151,7 +151,7 @@ public class CircularByteBufferTest
 	    buffer.add((byte)6);
 	    assertArrayEquals(new byte[]{1, 3, 5, 6}, buffer.getData());
 
-	    assertTrue(buffer.remove((byte)3));
+	    assertTrue(buffer.remove((Object)(byte)3));
 	    assertFalse(buffer.contains((byte)3));
 	    assertArrayEquals(new byte[]{1, 5, 6}, buffer.getData());
 
@@ -275,6 +275,24 @@ public class CircularByteBufferTest
 		assertFalse(buffer.inRange(2, 1));
 		assertFalse(buffer.inRange(3, 2));
 	}
+	
+	@Test
+	public void testIndexOf()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
+		{
+			10, 9, 2, 3, 4, 10, 6, 7, 8, 9, 10
+		});
+		
+		assertEquals(0, buffer.indexOf((byte)10));
+		assertEquals(1, buffer.indexOf((byte)9));
+		assertEquals(2, buffer.indexOf((byte)2));
+		assertEquals(6, buffer.lastIndexOf((byte)6));
+		assertEquals(9, buffer.lastIndexOf((byte)9));
+		assertEquals(10, buffer.lastIndexOf((byte)10));
+	}
+	
+	//************************************ Parameterized Test ************************************//
 	
 	@ParameterizedTest
 	@MethodSource("readExtractAll1HData")

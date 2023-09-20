@@ -1,7 +1,6 @@
 package py.com.semp.lib.utilidades.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ListIterator;
@@ -9,9 +8,9 @@ import java.util.ListIterator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class CircularByteBufferListIteratorTest
+public class CircularByteBufferIteratorTest
 {
-	private CircularByteBufferList list;
+	private CircularByteBuffer list;
 	private ListIterator<Byte> iterator;
 	
 	@BeforeEach
@@ -19,7 +18,7 @@ public class CircularByteBufferListIteratorTest
 	{
 		byte[] originalArray = new byte[]{0, 1, 2, 3, 4};
 		
-		this.list = new CircularByteBufferList(originalArray);
+		this.list = new CircularByteBuffer(originalArray);
 		this.iterator = this.list.listIterator();
 	}
 	
@@ -41,11 +40,18 @@ public class CircularByteBufferListIteratorTest
 	}
 	
 	@Test
+	public void testPreviousNext()
+	{
+		assertEquals((byte)4, iterator.previous());
+		assertEquals((byte)0, iterator.next());
+	}
+	
+	@Test
 	public void testPreviousByte()
 	{
 		iterator.next();
 		iterator.next();
-		assertEquals((byte)1, ((CircularByteBufferListIterator)iterator).previousByte());
+		assertEquals((byte)1, ((CircularByteBufferIterator)iterator).previousByte());
 	}
 	
 	@Test

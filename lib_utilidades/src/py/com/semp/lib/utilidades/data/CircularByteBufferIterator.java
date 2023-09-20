@@ -1,8 +1,9 @@
 package py.com.semp.lib.utilidades.data;
 
-import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
+import py.com.semp.lib.utilidades.enumerations.IterationMovement;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 
@@ -11,12 +12,12 @@ import py.com.semp.lib.utilidades.internal.Messages;
  * 
  * @author Sergio Morel
  */
-public class CircularByteBufferIterator implements Iterator<Byte>
+public class CircularByteBufferIterator implements ListIterator<Byte>
 {
 	/**
 	 * Value of index when not referring to a position in the buffer.
 	 */
-	private static final int EMPTY_INDEX = CircularByteBuffer.EMPTY_INDEX;
+	private static final int BUFFER_BOUNDARY = CircularByteBuffer.BUFFER_BOUNDARY;
 	
 	/**
 	 * Buffer to be iterated.
@@ -28,7 +29,17 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 */
 	private int index;
 	
-	private boolean removeEnabled;
+	/**
+	 * Indicates what was the previous iteration movement.
+	 */
+	private IterationMovement lastMovement;
+	
+//	/**
+//	 * Indicates the index of the last added element using add(Byte).
+//	 */
+//	private int lastAddedIndex = EMPTY_INDEX;
+	
+	private boolean firstIteration = true;
 	
 	/**
 	 * Constructor with argument for the {@link CircularByteBuffer}.
@@ -43,7 +54,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		this.buffer = buffer;
 		this.index = buffer.start;
-		this.removeEnabled = false;
+		this.lastMovement = IterationMovement.NONE;
 	}
 	
 	/**
@@ -51,6 +62,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 * 
 	 * @return
 	 * - the index for the current position.
+	 * @author Sergio Morel
 	 */
 	public int getIndex()
 	{
@@ -58,29 +70,39 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	}
 	
 	/**
+	 * Sets the position of the index;
+	 * 
+	 * @param index
+	 * - New position of the index.
+	 */
+	void setIndex(int index)
+	{
+		this.index = index;
+	}
+	
+	/**
 	 * Determines if the current iteration is the first by comparing the index with the buffer's start.
 	 * 
 	 * @return
-	 * - <b>true</b> if the current index matches the buffer's start position,
-	 * indicating the first iteration.<br>
+	 * - <b>true</b> next() or previous() haven't been called previously.<br>
 	 * - <b>false</b> otherwise.
 	 * @author Sergio Morel
 	 */
 	public boolean isFirstIteration()
 	{
-		return this.index == this.buffer.start;
+		return this.firstIteration;
 	}
 	
 	@Override
 	public boolean hasNext()
 	{
-		return index != EMPTY_INDEX;
+		return index != BUFFER_BOUNDARY;
 	}
 	
 	@Override
 	public Byte next()
 	{
-		if(this.index == EMPTY_INDEX)
+		if(this.index == BUFFER_BOUNDARY)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
 			
@@ -93,7 +115,11 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		this.goNext();
 		
-		this.removeEnabled = true;
+		this.lastMovement = IterationMovement.NEXT;
+		
+//		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
 		
 		return data;
 	}
@@ -109,7 +135,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 */
 	public byte nextByte()
 	{
-		if(this.index == EMPTY_INDEX)
+		if(this.index == BUFFER_BOUNDARY)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
 			
@@ -122,7 +148,11 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		
 		this.goNext();
 		
-		this.removeEnabled = true;
+		this.lastMovement = IterationMovement.NEXT;
+		
+//		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
 		
 		return data;
 	}
@@ -140,10 +170,10 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	{
 		if(this.index == this.buffer.end)
 		{
-			return this.index = EMPTY_INDEX;
+			return this.index = BUFFER_BOUNDARY;
 		}
 		
-		if(this.index == EMPTY_INDEX)
+		if(this.index == BUFFER_BOUNDARY)
 		{
 			return this.index = this.buffer.start;
 		}
@@ -170,10 +200,10 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	{
 		if(index == this.buffer.end)
 		{
-			return EMPTY_INDEX;
+			return BUFFER_BOUNDARY;
 		}
 		
-		if(index == EMPTY_INDEX)
+		if(index == BUFFER_BOUNDARY)
 		{
 			return this.buffer.start;
 		}
@@ -196,10 +226,10 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	{
 		if(this.index == this.buffer.start)
 		{
-			return this.index = EMPTY_INDEX;
+			return this.index = BUFFER_BOUNDARY;
 		}
 		
-		if(this.index == EMPTY_INDEX)
+		if(this.index == BUFFER_BOUNDARY)
 		{
 			return this.index = this.buffer.end;
 		}
@@ -230,10 +260,10 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	{
 		if(index == this.buffer.start)
 		{
-			return EMPTY_INDEX;
+			return BUFFER_BOUNDARY;
 		}
 		
-		if(index == EMPTY_INDEX)
+		if(index == BUFFER_BOUNDARY)
 		{
 			return this.buffer.end;
 		}
@@ -261,7 +291,12 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 */
 	public int forward(int steps)
 	{
-		if(this.index == EMPTY_INDEX)
+		if(steps == 0)
+		{
+			return this.index;
+		}
+		
+		if(this.index == BUFFER_BOUNDARY)
 		{
 			this.index = 0;
 		}
@@ -294,7 +329,12 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 */
 	public int forward(int index, int steps)
 	{
-		if(index == EMPTY_INDEX)
+		if(steps == 0)
+		{
+			return index;
+		}
+		
+		if(index == BUFFER_BOUNDARY)
 		{
 			index = 0;
 		}
@@ -325,7 +365,12 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 */
 	public int rewind(int steps)
 	{
-		if(this.index == EMPTY_INDEX)
+		if(steps == 0)
+		{
+			return this.index;
+		}
+		
+		if(this.index == BUFFER_BOUNDARY)
 		{
 			this.index = 0;
 		}
@@ -357,7 +402,12 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	 */
 	public int rewind(int index, int steps)
 	{
-		if(index == EMPTY_INDEX)
+		if(steps == 0)
+		{
+			return index;
+		}
+		
+		if(index == BUFFER_BOUNDARY)
 		{
 			index = 0;
 		}
@@ -379,23 +429,42 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 	{
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
-		int removeIndex = this.goPrevious(this.index);
+		int removeIndex = this.index;
 		
-		if(dataStart == EMPTY_INDEX)
+		if(dataStart == BUFFER_BOUNDARY)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
 			
 			throw new NoSuchElementException(errorMessage);
 		}
 		
-		if(!this.removeEnabled)
+		switch(this.lastMovement)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
+			case NEXT:
+			{
+				removeIndex = this.goPrevious(removeIndex);
+				
+				break;
+			}
 			
-			throw new IllegalStateException(errorMessage);
+			case PREVIOUS:
+			{
+				removeIndex = this.goNext(removeIndex);
+				
+				break;
+			}
+			
+			case NONE:
+			{
+				String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
+				
+				throw new IllegalStateException(errorMessage);
+			}
 		}
 		
-		this.removeEnabled = false;
+		IterationMovement lastMovement = this.lastMovement;
+		
+		this.lastMovement = IterationMovement.NONE;
 		
 		if(removeIndex == dataStart)
 		{
@@ -414,38 +483,80 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		int forwardDistance = Math.abs(dataEnd - removeIndex);
 		int backwardDistance = Math.abs(dataStart - removeIndex);
 		
-		if(forwardDistance <= backwardDistance)
+		if(lastMovement == IterationMovement.NEXT)
 		{
-			int copyFromIndex = this.goNext(removeIndex);
-			int copyToIndex = removeIndex;
-			
-			while(copyFromIndex != EMPTY_INDEX)
+			if(forwardDistance <= backwardDistance)
 			{
-				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+				this.shiftFromEnd(removeIndex);
 				
-				copyToIndex = this.goNext(copyToIndex);
-				copyFromIndex = this.goNext(copyFromIndex);
+				this.goPrevious();
 			}
-			
-			this.buffer.end = this.goPrevious(copyToIndex);
-			
-			this.goPrevious();
+			else
+			{
+				this.shiftFromStart(removeIndex);
+			}
 		}
-		else
+		else if(lastMovement == IterationMovement.PREVIOUS)
 		{
-			int copyFromIndex = this.goPrevious(removeIndex);
-			int copyToIndex = removeIndex;
-			
-			while(copyFromIndex != EMPTY_INDEX)
+			if(forwardDistance <= backwardDistance)
 			{
-				this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
-				
-				copyToIndex = this.goPrevious(copyToIndex);
-				copyFromIndex = this.goPrevious(copyFromIndex);
+				shiftFromEnd(removeIndex);
 			}
-			
-			this.buffer.start = this.goNext(copyToIndex);
+			else
+			{
+				shiftFromStart(removeIndex);
+				
+				this.goNext();
+			}
 		}
+	}
+	
+	/**
+	 * Shifts the elements from the start of the buffer towards the removeIndex,
+	 * overwriting the element at the removeIndex in the process.
+	 * 
+	 * @param removeIndex
+	 * - The index of the element to be overwritten by the shifting.
+	 * @author Sergio Morel
+	 */
+	private void shiftFromStart(int removeIndex)
+	{
+		int copyFromIndex = this.goPrevious(removeIndex);
+		int copyToIndex = removeIndex;
+		
+		while(copyFromIndex != BUFFER_BOUNDARY)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyToIndex = this.goPrevious(copyToIndex);
+			copyFromIndex = this.goPrevious(copyFromIndex);
+		}
+		
+		this.buffer.start = this.goNext(copyToIndex);
+	}
+	
+	/**
+	 * Shifts the elements from the end of the buffer towards the removeIndex,
+	 * overwriting the element at the removeIndex in the process.
+	 * 
+	 * @param removeIndex
+	 * - The index of the element to be overwritten by the shifting.
+	 * @author Sergio Morel
+	 */
+	private void shiftFromEnd(int removeIndex)
+	{
+		int copyFromIndex = this.goNext(removeIndex);
+		int copyToIndex = removeIndex;
+		
+		while(copyFromIndex != BUFFER_BOUNDARY)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyToIndex = this.goNext(copyToIndex);
+			copyFromIndex = this.goNext(copyFromIndex);
+		}
+		
+		this.buffer.end = this.goPrevious(copyToIndex);
 	}
 	
 	/**
@@ -466,7 +577,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
 		
-		if(dataStart == EMPTY_INDEX)
+		if(dataStart == BUFFER_BOUNDARY)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
 			
@@ -484,9 +595,9 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		{
 			this.buffer.start = this.goNext(end);
 			
-			if(this.buffer.start == EMPTY_INDEX)
+			if(this.buffer.start == BUFFER_BOUNDARY)
 			{
-				this.buffer.end = EMPTY_INDEX;
+				this.buffer.end = BUFFER_BOUNDARY;
 			}
 			
 			return;
@@ -496,9 +607,9 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		{
 			this.buffer.end = this.goPrevious(start);
 			
-			if(this.buffer.end == EMPTY_INDEX)
+			if(this.buffer.end == BUFFER_BOUNDARY)
 			{
-				this.buffer.start = EMPTY_INDEX;
+				this.buffer.start = BUFFER_BOUNDARY;
 			}
 			
 			return;
@@ -507,7 +618,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		int copyFromIndex = this.goNext(end);
 		int copyToIndex = start;
 		
-		while(copyFromIndex != EMPTY_INDEX)
+		while(copyFromIndex != BUFFER_BOUNDARY)
 		{
 			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
 			
@@ -539,7 +650,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		int dataEnd = this.buffer.end;
 		byte[] byteArray = this.buffer.byteArray;
 		
-		if(dataStart == EMPTY_INDEX)
+		if(dataStart == BUFFER_BOUNDARY)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
 			
@@ -589,7 +700,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		int dataEnd = this.buffer.end;
 		byte[] byteArray = this.buffer.byteArray;
 		
-		if(dataStart == EMPTY_INDEX)
+		if(dataStart == BUFFER_BOUNDARY)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
 			
@@ -683,7 +794,7 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		int index = this.index;
 		int i = pattern.length - 1;
 		
-		while(i >= 0 && index != EMPTY_INDEX)
+		while(i >= 0 && index != BUFFER_BOUNDARY)
 		{
 			if(byteArray[index] != pattern[i])
 			{
@@ -710,5 +821,152 @@ public class CircularByteBufferIterator implements Iterator<Byte>
 		sb.append(this.index);
 		
 		return sb.toString();
+	}
+	
+	@Override
+	public boolean hasPrevious()
+	{
+		if(this.isFirstIteration())
+		{
+			return this.buffer.size() > 0;
+		}
+		
+		return this.previousIndex() != BUFFER_BOUNDARY;
+	}
+	
+	@Override
+	public Byte previous()
+	{
+		if(this.index == BUFFER_BOUNDARY)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+//		if(this.lastAddedIndex != EMPTY_INDEX)
+//		{
+//			this.index = this.lastAddedIndex;
+//		}
+//		else if(this.isFirstIteration())
+//		{
+//			this.index = this.buffer.end;
+//		}
+		
+		if(this.lastMovement != IterationMovement.PREVIOUS)
+		{
+			this.goPrevious();
+		}
+		
+		byte[] byteArray = this.buffer.byteArray;
+		
+		byte data = byteArray[this.index];
+		
+		this.goPrevious();
+		
+		this.lastMovement = IterationMovement.PREVIOUS;
+		
+//		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
+		
+		return data;
+	}
+	
+	public byte previousByte()
+	{
+		if(this.index == BUFFER_BOUNDARY)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+//		if(this.lastAddedIndex != EMPTY_INDEX)
+//		{
+//			this.index = this.lastAddedIndex;
+//		}
+//		else if(this.isFirstIteration())
+//		{
+//			this.index = this.buffer.end;
+//		}
+		
+		if(this.lastMovement != IterationMovement.PREVIOUS)
+		{
+			this.goPrevious();
+		}
+		
+		byte[] byteArray = this.buffer.byteArray;
+		
+		byte data = byteArray[this.index];
+		
+		this.goPrevious();
+		
+		this.lastMovement = IterationMovement.PREVIOUS;
+		
+//		this.lastAddedIndex = EMPTY_INDEX;
+		
+		this.firstIteration = false;
+		
+		return data;
+	}
+	
+	@Override
+	public int nextIndex()
+	{
+		int nextIndex = this.goNext(this.index);
+		
+	    return (nextIndex == BUFFER_BOUNDARY) ? this.buffer.size() : nextIndex;
+	}
+	
+	@Override
+	public int previousIndex()
+	{
+		return this.goPrevious(this.index);
+	}
+	
+	@Override
+	public void set(Byte element)
+	{
+		switch(this.lastMovement)
+		{
+			case NEXT:
+			{
+				int setIndex = this.goPrevious(this.index);
+				
+				this.buffer.byteArray[setIndex] = element;
+				
+				break;
+			}
+			
+			case PREVIOUS:
+			{
+				int setIndex = this.goNext(this.index);
+				
+				this.buffer.byteArray[setIndex] = element;
+				
+				break;
+			}
+			
+			case NONE:
+			{
+				String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
+				
+				throw new IllegalStateException(errorMessage);
+			}
+		}
+	}
+	
+	@Override
+	public void add(Byte e)
+	{
+		// TODO Auto-generated method stub
+		
+//		if(this.lastAddedIndex == EMPTY_INDEX)
+//		{
+//			//update lastAddedIndex.
+//		}
+		
+		this.lastMovement = IterationMovement.NONE;
 	}
 }

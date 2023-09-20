@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -14,7 +15,7 @@ import py.com.semp.lib.utilidades.internal.Messages;
 
 /**
  * Circular buffer, when the buffer is full, the oldest data is
- * overwritten.
+ * overwritten. This implementation does not allow null values.
  * 
  * <p>
  * Note: This implementation is not thread-safe by design to favor performance.
@@ -24,12 +25,12 @@ import py.com.semp.lib.utilidades.internal.Messages;
  * 
  * @author Sergio Morel
  */
-public class CircularByteBuffer implements Collection<Byte>
+public class CircularByteBuffer implements List<Byte>
 {
 	/**
 	 * Value of index when not referring to a position in the buffer.
 	 */
-	static final int EMPTY_INDEX = -1;
+	static final int BUFFER_BOUNDARY = -1;
 	
 	/**
 	 * Index for the first element of the buffer.
@@ -245,7 +246,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	{
 		int size = this.getBufferSize();
 		
-		if(this.start == EMPTY_INDEX)
+		if(this.start == BUFFER_BOUNDARY)
 		{
 			this.start = 0;
 			this.end = 0;
@@ -284,6 +285,18 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * - new array with the data from the circular buffer.
 	 * @author Sergio Morel
 	 */
+	public Byte[] getDataInByteArray()
+	{
+		return extractInByteArray(this.start, this.end);
+	}
+	
+	/**
+	 * Gets a new array with the data from the circular buffer.<br>
+	 * 
+	 * @return
+	 * - new array with the data from the circular buffer.
+	 * @author Sergio Morel
+	 */
 	public Object[] getDataInObjectArray()
 	{
 		return extractInObjectArray(this.start, this.end);
@@ -295,9 +308,9 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * index is included)<br>
 	 * 
 	 * @param start
-	 * - the first index of the range.
+	 * - the first index of the range (inclusive).
 	 * @param end
-	 * - the last index of the range.
+	 * - the last index of the range (inclusive).
 	 * @return
 	 * - new array with the data from the range in the circular buffer.
 	 * @author Sergio Morel
@@ -308,7 +321,13 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		if(start < 0 || start >= dataSize || end < 0 || end >= dataSize || start > end)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.INVALID_INDEX_RANGE_ERROR, start, end, this.getDataSize());
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.INVALID_INDEX_RANGE_ERROR,
+				start,
+				end,
+				this.getDataSize()
+			);
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
@@ -322,7 +341,13 @@ public class CircularByteBuffer implements Collection<Byte>
 		
 		if(!this.inRange(startIndex, endIndex))
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.INVALID_INDEX_RANGE_ERROR, start, end, this.getDataSize());
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.INVALID_INDEX_RANGE_ERROR,
+				start,
+				end,
+				this.getDataSize()
+			);
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
@@ -415,8 +440,8 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public void clear()
 	{
-		this.start = EMPTY_INDEX;
-		this.end = EMPTY_INDEX;
+		this.start = BUFFER_BOUNDARY;
+		this.end = BUFFER_BOUNDARY;
 	}
 	
 	/**
@@ -430,7 +455,7 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public boolean isEmpty()
 	{
-		return start == EMPTY_INDEX;
+		return start == BUFFER_BOUNDARY;
 	}
 	
 	@Override
@@ -611,9 +636,9 @@ public class CircularByteBuffer implements Collection<Byte>
 	 * segment includes the content of both indexes. This does not modify the buffer.
 	 * 
 	 * @param start
-	 * - start index.
+	 * - start index (inclusive).
 	 * @param end
-	 * - end index.
+	 * - end index (inclusive).
 	 * @return
 	 * - the extracted segment.
 	 * @author Sergio Morel.
@@ -624,6 +649,45 @@ public class CircularByteBuffer implements Collection<Byte>
 		int bufferSize = this.getBufferSize();
 		
 		byte[] segment = new byte[dataSize];
+		
+		int j = 0;
+		
+		for(int i = start; j < dataSize; i++)
+		{
+			if(i == bufferSize)
+			{
+				i = 0;
+			}
+			
+			segment[j++] = this.byteArray[i];
+			
+			if(i == end)
+			{
+				break;
+			}
+		}
+		
+		return segment;
+	}
+	
+	/**
+	 * Extracts from the buffer the segment contained between the indexes into a Byte array. The
+	 * segment includes the content of both indexes.
+	 * 
+	 * @param start
+	 * - start index.
+	 * @param end
+	 * - end index.
+	 * @return
+	 * - A Byte array with the extracted segment elements.
+	 * @author Sergio Morel.
+	 */
+	Byte[] extractInByteArray(int start, int end)
+	{
+		int dataSize = this.getDataSize(start, end);
+		int bufferSize = this.getBufferSize();
+		
+		Byte[] segment = new Byte[dataSize];
 		
 		int j = 0;
 		
@@ -874,7 +938,11 @@ public class CircularByteBuffer implements Collection<Byte>
 	 */
 	public List<byte[]> extractAll(String startHeader, String endHeader)
 	{
-		return this.extractAll(startHeader.getBytes(StandardCharsets.UTF_8), endHeader.getBytes(StandardCharsets.UTF_8));
+		return this.extractAll
+		(
+			startHeader.getBytes(StandardCharsets.UTF_8),
+			endHeader.getBytes(StandardCharsets.UTF_8)
+		);
 	}
 	
 	/**
@@ -1012,5 +1080,213 @@ public class CircularByteBuffer implements Collection<Byte>
 		sb.append("]");
 		
 		return sb.toString();
+	}
+
+	@Override
+	public boolean addAll(int index, Collection<? extends Byte> c)
+	{
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	@Override
+	public Byte get(int index)
+	{
+		int size = this.size();
+		
+		this.validateIndex(index, size);
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		int internalIndex = iterator.forward(this.start, index);
+		
+		return this.byteArray[internalIndex];
+	}
+	
+	@Override
+	public Byte set(int index, Byte element)
+	{
+		if(element == null)
+		{
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.NULL_VALUES_NOT_ALLOWED_ERROR,
+				this.getClass().getSimpleName()
+			);
+			
+			throw new NullPointerException(errorMessage);
+		}
+		
+		int size = this.size();
+		
+		this.validateIndex(index, size);
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		int internalIndex = iterator.goNext(index);
+		
+		byte previousValue = this.byteArray[internalIndex];
+		
+		this.byteArray[internalIndex] = element;
+		
+		return previousValue;
+	}
+	
+	@Override
+	public void add(int index, Byte element)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Byte remove(int index)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int indexOf(Object o)
+	{
+		if(!(o instanceof Byte))
+		{
+			return -1;
+		}
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		byte compareByte = (Byte)o;
+		
+		while(iterator.hasNext())
+		{
+			byte element = iterator.nextByte();
+			
+			if(element == compareByte)
+			{
+				return iterator.goPrevious();
+			}
+		}
+		
+		return -1;
+	}
+
+	@Override
+	public int lastIndexOf(Object o)
+	{
+		if(!(o instanceof Byte))
+		{
+			return -1;
+		}
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		byte compareByte = (Byte)o;
+		
+		while(iterator.hasPrevious())
+		{
+			byte element = iterator.previousByte();
+			
+			if(element == compareByte)
+			{
+				return iterator.goNext();
+			}
+		}
+		
+		return -1;
+	}
+	
+	@Override
+	public ListIterator<Byte> listIterator()
+	{
+		return this.iterator();
+	}
+	
+	@Override
+	public ListIterator<Byte> listIterator(int index)
+	{
+		int size = this.size();
+		
+		this.validateIndex(index, size);
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		int internalIndex = iterator.forward(index);
+		
+		iterator.setIndex(internalIndex);
+		
+		return iterator;
+	}
+	
+	/**
+	 * Returns a view of the portion of this list between the specified {@code fromIndex}, inclusive,
+	 * and {@code toIndex}, exclusive. This method deviates from the typical Java {@code List} sublist
+	 * behavior in an important way: it returns a <em>deep copy</em> of the sublist, rather than a view on 
+	 * the original list.
+	 * 
+	 * <p>Therefore, any modifications made to the returned sublist won't affect this original list, 
+	 * and vice-versa. This deviation is intentional to avoid complexities associated with maintaining
+	 * a sublist view on a circular buffer.</p>
+	 * 
+	 * <p>Examples:</p>
+	 * <ul>
+	 *     <li>If you modify the returned sublist using {@code add}, {@code remove}, or any other modification
+	 *     operations, the original {@code CircularByteBufferList} remains unchanged.</li>
+	 *     <li>Clearing the returned sublist using {@code clear()} will empty the sublist, but the 
+	 *     original {@code CircularByteBufferList} remains unaffected.</li>
+	 * </ul>
+	 *
+	 * @param fromIndex
+	 * - low endpoint (inclusive) of the subList
+	 * @param toIndex
+	 * - high endpoint (exclusive) of the subList
+	 * @return
+	 * - a deep copy of the specified range within this list
+	 * @throws IndexOutOfBoundsException
+	 * if the {@code fromIndex} or {@code toIndex} are out of range.
+	 * @throws IllegalArgumentException
+	 * if {@code fromIndex} is greater than {@code toIndex}
+	 */
+	@Override
+	public List<Byte> subList(int fromIndex, int toIndex)
+	{
+		int size = this.size();
+		
+		this.validateIndex(fromIndex, size);
+		this.validateIndex(toIndex, size);
+		
+		if(fromIndex > toIndex)
+		{
+			String errorMessage = MessageUtil.getMessage
+			(
+				Messages.INVALID_INDEX_RANGE_ERROR,
+				fromIndex,
+				toIndex,
+				size
+			);
+			
+			throw new IllegalArgumentException(errorMessage);
+		}
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		int start = iterator.forward(this.start, fromIndex);
+		int end = iterator.forward(this.start, toIndex);
+		
+		end = iterator.goPrevious(end);
+		
+		byte[] extraction = this.extract(start, end);
+		
+		return new CircularByteBuffer(extraction);
+	}
+	
+	private void validateIndex(int index, int size)
+	{
+		if(index < 0 || index >= size)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, size);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
 	}
 }
