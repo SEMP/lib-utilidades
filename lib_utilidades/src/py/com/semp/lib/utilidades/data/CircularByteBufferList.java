@@ -1098,7 +1098,7 @@ public class CircularByteBufferList implements List<Byte>
 		
 		CircularByteBufferListIterator iterator = this.iterator();
 		
-		int internalIndex = iterator.goNext(index);
+		int internalIndex = iterator.forward(this.start, index);
 		
 		return this.byteArray[internalIndex];
 	}

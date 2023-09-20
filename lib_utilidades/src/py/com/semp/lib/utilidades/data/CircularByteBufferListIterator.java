@@ -34,10 +34,10 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	 */
 	private IterationMovement lastMovement;
 	
-	/**
-	 * Indicates the index of the last added element using add(Byte).
-	 */
-	private int lastAddedIndex = EMPTY_INDEX;
+//	/**
+//	 * Indicates the index of the last added element using add(Byte).
+//	 */
+//	private int lastAddedIndex = EMPTY_INDEX;
 	
 	private boolean firstIteration = true;
 	
@@ -117,7 +117,7 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		
 		this.lastMovement = IterationMovement.NEXT;
 		
-		this.lastAddedIndex = EMPTY_INDEX;
+//		this.lastAddedIndex = EMPTY_INDEX;
 		
 		this.firstIteration = false;
 		
@@ -150,7 +150,7 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		
 		this.lastMovement = IterationMovement.NEXT;
 		
-		this.lastAddedIndex = EMPTY_INDEX;
+//		this.lastAddedIndex = EMPTY_INDEX;
 		
 		this.firstIteration = false;
 		
@@ -837,11 +837,6 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	@Override
 	public Byte previous()
 	{
-		if(this.isFirstIteration())
-		{
-			this.index = this.buffer.end;
-		}
-		
 		if(this.index == EMPTY_INDEX)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
@@ -849,9 +844,18 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 			throw new NoSuchElementException(errorMessage);
 		}
 		
-		if(this.lastAddedIndex != EMPTY_INDEX)
+//		if(this.lastAddedIndex != EMPTY_INDEX)
+//		{
+//			this.index = this.lastAddedIndex;
+//		}
+//		else if(this.isFirstIteration())
+//		{
+//			this.index = this.buffer.end;
+//		}
+		
+		if(this.lastMovement != IterationMovement.PREVIOUS)
 		{
-			this.index = this.lastAddedIndex;
+			this.goPrevious();
 		}
 		
 		byte[] byteArray = this.buffer.byteArray;
@@ -862,7 +866,7 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		
 		this.lastMovement = IterationMovement.PREVIOUS;
 		
-		this.lastAddedIndex = EMPTY_INDEX;
+//		this.lastAddedIndex = EMPTY_INDEX;
 		
 		this.firstIteration = false;
 		
@@ -871,11 +875,6 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	
 	public byte previousByte()
 	{
-		if(this.isFirstIteration())
-		{
-			this.index = this.buffer.end;
-		}
-		
 		if(this.index == EMPTY_INDEX)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.BUFFER_EMPTY_ERROR);
@@ -883,9 +882,18 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 			throw new NoSuchElementException(errorMessage);
 		}
 		
-		if(this.lastAddedIndex != EMPTY_INDEX)
+//		if(this.lastAddedIndex != EMPTY_INDEX)
+//		{
+//			this.index = this.lastAddedIndex;
+//		}
+//		else if(this.isFirstIteration())
+//		{
+//			this.index = this.buffer.end;
+//		}
+		
+		if(this.lastMovement != IterationMovement.PREVIOUS)
 		{
-			this.index = this.lastAddedIndex;
+			this.goPrevious();
 		}
 		
 		byte[] byteArray = this.buffer.byteArray;
@@ -896,7 +904,7 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 		
 		this.lastMovement = IterationMovement.PREVIOUS;
 		
-		this.lastAddedIndex = EMPTY_INDEX;
+//		this.lastAddedIndex = EMPTY_INDEX;
 		
 		this.firstIteration = false;
 		
@@ -954,10 +962,10 @@ public class CircularByteBufferListIterator implements ListIterator<Byte>
 	{
 		// TODO Auto-generated method stub
 		
-		if(this.lastAddedIndex == EMPTY_INDEX)
-		{
-			//TODO update lastAddedIndex.
-		}
+//		if(this.lastAddedIndex == EMPTY_INDEX)
+//		{
+//			//update lastAddedIndex.
+//		}
 		
 		this.lastMovement = IterationMovement.NONE;
 	}
