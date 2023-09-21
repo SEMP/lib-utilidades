@@ -455,7 +455,7 @@ public class CircularByteBuffer implements List<Byte>
 	 */
 	public boolean isEmpty()
 	{
-		return start == BUFFER_BOUNDARY;
+		return this.start == BUFFER_BOUNDARY;
 	}
 	
 	@Override
