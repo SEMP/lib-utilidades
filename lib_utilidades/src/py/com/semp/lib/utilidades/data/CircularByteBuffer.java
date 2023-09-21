@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -1164,7 +1163,7 @@ public class CircularByteBuffer implements List<Byte>
 			
 			if(element == compareByte)
 			{
-				return iterator.goPrevious();
+				return iterator.getIndex();
 			}
 		}
 		
@@ -1189,7 +1188,7 @@ public class CircularByteBuffer implements List<Byte>
 			
 			if(element == compareByte)
 			{
-				return iterator.goNext();
+				return iterator.getIndex();
 			}
 		}
 		
@@ -1197,13 +1196,13 @@ public class CircularByteBuffer implements List<Byte>
 	}
 	
 	@Override
-	public ListIterator<Byte> listIterator()
+	public CircularByteBufferIterator listIterator()
 	{
 		return this.iterator();
 	}
 	
 	@Override
-	public ListIterator<Byte> listIterator(int index)
+	public CircularByteBufferIterator listIterator(int index)
 	{
 		int size = this.size();
 		

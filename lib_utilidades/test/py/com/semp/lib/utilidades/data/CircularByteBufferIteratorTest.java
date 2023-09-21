@@ -1,9 +1,11 @@
 package py.com.semp.lib.utilidades.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +13,7 @@ import org.junit.jupiter.api.Test;
 public class CircularByteBufferIteratorTest
 {
 	private CircularByteBuffer list;
-	private ListIterator<Byte> iterator;
+	private CircularByteBufferIterator iterator;
 	
 	@BeforeEach
 	public void setUp()
@@ -19,7 +21,55 @@ public class CircularByteBufferIteratorTest
 		byte[] originalArray = new byte[]{0, 1, 2, 3, 4};
 		
 		this.list = new CircularByteBuffer(originalArray);
-		this.iterator = this.list.listIterator();
+		this.iterator = this.list.iterator();
+	}
+	
+	@Test
+	public void testForward()
+	{
+		int index = iterator.getIndex();
+		
+		assertEquals(4, this.iterator.forward(index, -6));
+		assertEquals(0, this.iterator.forward(index, -5));
+		assertEquals(1, this.iterator.forward(index, -4));
+		assertEquals(2, this.iterator.forward(index, -3));
+		assertEquals(3, this.iterator.forward(index, -2));
+		assertEquals(4, this.iterator.forward(index, -1));
+		assertEquals(-1, this.iterator.forward(index, 0));
+		assertEquals(0, this.iterator.forward(index, 1));
+		assertEquals(1, this.iterator.forward(index, 2));
+		assertEquals(2, this.iterator.forward(index, 3));
+		assertEquals(3, this.iterator.forward(index, 4));
+		assertEquals(4, this.iterator.forward(index, 5));
+		assertEquals(0, this.iterator.forward(index, 6));
+		
+		this.list.clear();
+		
+		assertEquals(-1, this.iterator.forward(index, 6));
+	}
+	
+	@Test
+	public void testRewind()
+	{
+		int index = iterator.getIndex();
+		
+		assertEquals(0, this.iterator.rewind(index, -6));
+		assertEquals(4, this.iterator.rewind(index, -5));
+		assertEquals(3, this.iterator.rewind(index, -4));
+		assertEquals(2, this.iterator.rewind(index, -3));
+		assertEquals(1, this.iterator.rewind(index, -2));
+		assertEquals(0, this.iterator.rewind(index, -1));
+		assertEquals(-1, this.iterator.rewind(index, 0));
+		assertEquals(4, this.iterator.rewind(index, 1));
+		assertEquals(3, this.iterator.rewind(index, 2));
+		assertEquals(2, this.iterator.rewind(index, 3));
+		assertEquals(1, this.iterator.rewind(index, 4));
+		assertEquals(0, this.iterator.rewind(index, 5));
+		assertEquals(4, this.iterator.rewind(index, 6));
+		
+		this.list.clear();
+		
+		assertEquals(-1, this.iterator.rewind(index, 6));
 	}
 	
 	@Test
@@ -88,7 +138,7 @@ public class CircularByteBufferIteratorTest
 	{
 		assertTrue(this.iterator.hasPrevious());
 		iterator.next();
-		assertTrue(this.iterator.hasPrevious());
+		assertFalse(this.iterator.hasPrevious());
 	}
 	
 	@Test
@@ -104,7 +154,7 @@ public class CircularByteBufferIteratorTest
 	public void testPreviousNext()
 	{
 		assertEquals((byte)4, iterator.previous());
-		assertEquals((byte)0, iterator.next());
+		assertEquals((byte)4, iterator.next());
 	}
 	
 	@Test
@@ -126,9 +176,9 @@ public class CircularByteBufferIteratorTest
 	@Test
 	public void testPreviousIndex()
 	{
-		assertEquals(-1, iterator.previousIndex());
+		assertEquals(list.size() - 1, iterator.previousIndex());
 		iterator.next();
-		assertEquals(0, iterator.previousIndex());
+		assertEquals(-1, iterator.previousIndex());
 	}
 	
 	@Test

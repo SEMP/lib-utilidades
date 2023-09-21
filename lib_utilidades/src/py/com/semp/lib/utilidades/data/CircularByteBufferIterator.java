@@ -51,7 +51,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		super();
 		
 		this.buffer = buffer;
-		this.index = this.buffer.start;
+		this.index = BUFFER_BOUNDARY;
 		this.lastMovement = IterationMovement.NONE;
 	}
 	
@@ -73,7 +73,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * @param index
 	 * - New position of the index.
 	 */
-	void setIndex(int index)
+	protected void setIndex(int index)
 	{
 		this.index = index;
 	}
@@ -106,7 +106,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public Byte next()
 	{
-		this.goNext();
+		if(this.lastMovement != IterationMovement.PREVIOUS)
+		{
+			this.goNext();
+		}
 		
 		if(this.index == BUFFER_BOUNDARY)
 		{
@@ -133,7 +136,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 */
 	public byte nextByte()
 	{
-		this.goNext();
+		if(this.lastMovement != IterationMovement.PREVIOUS)
+		{
+			this.goNext();
+		}
 		
 		if(this.index == BUFFER_BOUNDARY)
 		{
@@ -150,9 +156,20 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	@Override
+	public int nextIndex()
+	{
+		int nextIndex = this.goNext(this.index);
+		
+	    return (nextIndex == BUFFER_BOUNDARY) ? this.buffer.size() : nextIndex;
+	}
+
+	@Override
 	public Byte previous()
 	{
-		this.goPrevious();
+		if(this.lastMovement != IterationMovement.NEXT)
+		{
+			this.goPrevious();
+		}
 		
 		if(this.index == BUFFER_BOUNDARY)
 		{
@@ -179,7 +196,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 */
 	public byte previousByte()
 	{
-		this.goPrevious();
+		if(this.lastMovement != IterationMovement.NEXT)
+		{
+			this.goPrevious();
+		}
 		
 		if(this.index == BUFFER_BOUNDARY)
 		{
@@ -195,246 +215,14 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		return this.buffer.byteArray[this.index];
 	}
 	
-	/**
-	 * Updates the current index to point to the next position in the circular buffer.<br>
-	 * - If the end of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
-	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer start.
-	 * 
-	 * @return
-	 * - The updated index after the operation.
-	 * @author Sergio Morel
-	 */
-	public int goNext()
-	{
-		return this.index = this.goNext(this.index);
-	}
-	
-	/**
-	 * Moves to the next position in the circular buffer from a given index.
-	 * It doesn't change the iterator's index value.<br>
-	 * - If the end of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
-	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer start.
-	 * 
-	 * @param index
-	 * - The index from which to move to the next position.
-	 * @return
-	 * - The index after the operation.
-	 *   @author Sergio Morel
-	 */
-	public int goNext(int index)
-	{
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
-		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
-		
-		if(dataSize < 1 || index == dataEnd)
-		{
-			return index = BUFFER_BOUNDARY;
-		}
-		
-		if(index == BUFFER_BOUNDARY)
-		{
-			return index = dataStart;
-		}
-		
-		index = (index + 1) % bufferSize;
-		
-		if(index < 0)
-		{
-			index += bufferSize;
-		}
-		
-		return index;
-	}
-	
-	/**
-	 * Moves the iterator to the previous position in the circular buffer.<br>
-	 * - If the start of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
-	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer end.
-	 * 
-	 * @return
-	 * - The updated index after the operation.
-	 * @author Sergio Morel
-	 */
-	public int goPrevious()
-	{
-		return this.index = this.goPrevious(this.index);
-	}
-	
-	/**
-	 * Moves the iterator to the previous position in the circular buffer.<br>
-	 * It doesn't change the iterator's index value.<br>
-	 * - If the start of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
-	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer end.
-	 * 
-	 * @param index
-	 * - The index from which to move to the previous position.
-	 * @return
-	 * - The index after the operation.
-	 *   @author Sergio Morel
-	 */
-	public int goPrevious(int index)
-	{
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
-		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
-		
-		if(dataSize < 1 || index == dataStart)
-		{
-			return index = BUFFER_BOUNDARY;
-		}
-		
-		if(index == BUFFER_BOUNDARY)
-		{
-			return index = dataEnd;
-		}
-		
-		index = (index - 1) % bufferSize;
-		
-		if(index < 0)
-		{
-			index += bufferSize;
-		}
-		
-		return index;
-	}
-	
-	/**
-	 * Advances the iterator's index position by the given number of steps in the buffer.
-	 * The method handles cases where the index goes out of bounds by wrapping it around.
-	 * After leaving BUFFER_BOUNDARY, this method won't step into BUFFER_BOUNDARY again,
-	 * unless the circular buffer is empty.
-	 * 
-	 * @param steps
-	 * - The number of positions to advance. It can be negative to move backward.
-	 * @return
-	 * - The updated index position after advancing the steps.
-	 * @author Sergio Morel
-	 */
-	public int forward(int steps)
-	{
-		return this.index = this.forward(this.index, steps);
-	}
-	
-	/**
-	 * Advances a given index position by the specified number of steps in the buffer without
-	 * affecting the iterator's current index. The method handles cases where the index goes
-	 * out of bounds by wrapping it around.
-	 * After leaving BUFFER_BOUNDARY, this method won't step into BUFFER_BOUNDARY again,
-	 * unless the circular buffer is empty.
-	 * 
-	 * @param index
-	 * - The current index position to advance from.
-	 * @param steps
-	 * - The number of positions to advance. It can be negative to move backward.
-	 * @return
-	 * - The updated index position after advancing.
-	 * @author Sergio Morel
-	 */
-	public int forward(int index, int steps)
-	{
-		if(steps == 0)
-		{
-			return index;
-		}
-		
-		int dataStart = this.buffer.start;
-		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
-		
-		if(dataSize < 1)
-		{
-			return BUFFER_BOUNDARY;
-		}
-		
-		if(index == BUFFER_BOUNDARY && steps < 0)
-		{
-			steps++;
-		}
-		
-		steps = steps % dataSize;
-		
-		int relativeIndex = (index - dataStart + bufferSize + steps) % dataSize;
-		
-		if(relativeIndex < 0)
-		{
-			relativeIndex += dataSize;
-		}
-		
-		index = (dataStart + relativeIndex) % bufferSize;
-		
-		return index;
-	}
-	
-	/**
-	 * Rewinds the internal index of the iterator by a specified number of steps.
-	 * If the number of steps is larger than the buffer size, the rewinding will wrap
-	 * around the circular buffer. After leaving BUFFER_BOUNDARY, this method won't step
-	 * into BUFFER_BOUNDARY again, unless the circular buffer is empty.
-	 * 
-	 * @param steps
-	 * - The number of steps to rewind the iterator.
-	 * @return
-	 * - The updated index after the rewind operation.
-	 * @author Sergio Morel
-	 */
-	public int rewind(int steps)
-	{
-		return this.index = this.rewind(this.index, steps);
-	}
-	
-	/**
-	 * Rewinds a specified index by a specified number of steps.
-	 * 
-	 * @param index
-	 * - The index from which to start the rewind operation.
-	 * @param steps
-	 * - The number of steps to rewind from the given index.
-	 * @return The updated index after the rewind operation.<br>
-	 * - If the provided index is set to EMPTY_INDEX, it gets initialized to 0 before the rewind operation.<br>
-	 * - After the rewind operation, if the updated index becomes negative (indicating a move past the start
-	 * of the buffer), the index will wrap around to the end of the buffer, unless the circular buffer is empty.
-	 * @author Sergio Morel
-	 */
-	public int rewind(int index, int steps)
-	{
-		if(steps == 0)
-		{
-			return index;
-		}
-		
-		int dataStart = this.buffer.start;
-		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
-		
-		if(dataSize < 1)
-		{
-			return BUFFER_BOUNDARY;
-		}
-		
-		if(index == BUFFER_BOUNDARY && steps > 0)
-		{
-			steps--;
-		}
-		
-		steps = steps % dataSize;
-		
-		int relativeIndex = (index - dataStart +  bufferSize - steps) % dataSize;
-		
-		if(relativeIndex < 0)
-		{
-			relativeIndex += dataSize;
-		}
-		
-		index = (dataStart + relativeIndex) % bufferSize;
-		
-		return index;
-	}
-	
 	@Override
-	public void remove()
+	public int previousIndex()
+	{
+		return this.goPrevious(this.index);
+	}
+
+	@Override
+	public void remove() //TODO revisar
 	{
 		if(this.lastMovement == IterationMovement.NONE)
 		{
@@ -501,6 +289,248 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 				this.goNext();
 			}
 		}
+	}
+
+	/**
+	 * Updates the current index to point to the next position in the circular buffer.<br>
+	 * - If the end of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
+	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer start.
+	 * 
+	 * @return
+	 * - The updated index after the operation.
+	 * @author Sergio Morel
+	 */
+	protected int goNext()
+	{
+		return this.index = this.goNext(this.index);
+	}
+	
+	/**
+	 * Moves to the next position in the circular buffer from a given index.
+	 * It doesn't change the iterator's index value.<br>
+	 * - If the end of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
+	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer start.
+	 * 
+	 * @param index
+	 * - The index from which to move to the next position.
+	 * @return
+	 * - The index after the operation.
+	 *   @author Sergio Morel
+	 */
+	protected int goNext(int index)
+	{
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		int dataSize = this.buffer.getDataSize();
+		int bufferSize = this.buffer.getBufferSize();
+		
+		if(dataSize < 1 || index == dataEnd)
+		{
+			return index = BUFFER_BOUNDARY;
+		}
+		
+		if(index == BUFFER_BOUNDARY)
+		{
+			return index = dataStart;
+		}
+		
+		index = (index + 1) % bufferSize;
+		
+		if(index < 0)
+		{
+			index += bufferSize;
+		}
+		
+		return index;
+	}
+	
+	/**
+	 * Moves the iterator to the previous position in the circular buffer.<br>
+	 * - If the start of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
+	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer end.
+	 * 
+	 * @return
+	 * - The updated index after the operation.
+	 * @author Sergio Morel
+	 */
+	protected int goPrevious()
+	{
+		return this.index = this.goPrevious(this.index);
+	}
+	
+	/**
+	 * Moves the iterator to the previous position in the circular buffer.<br>
+	 * It doesn't change the iterator's index value.<br>
+	 * - If the start of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
+	 * - If the index is at BUFFER_BOUNDARY, it moves to the circular buffer end.
+	 * 
+	 * @param index
+	 * - The index from which to move to the previous position.
+	 * @return
+	 * - The index after the operation.
+	 *   @author Sergio Morel
+	 */
+	protected int goPrevious(int index)
+	{
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		int dataSize = this.buffer.getDataSize();
+		int bufferSize = this.buffer.getBufferSize();
+		
+		if(dataSize < 1 || index == dataStart)
+		{
+			return index = BUFFER_BOUNDARY;
+		}
+		
+		if(index == BUFFER_BOUNDARY)
+		{
+			return index = dataEnd;
+		}
+		
+		index = (index - 1) % bufferSize;
+		
+		if(index < 0)
+		{
+			index += bufferSize;
+		}
+		
+		return index;
+	}
+	
+	/**
+	 * Advances the iterator's index position by the given number of steps in the circular buffer.
+	 * The method handles cases where the index goes out of bounds by wrapping it around.
+	 * After leaving BUFFER_BOUNDARY, this method won't step into BUFFER_BOUNDARY again,
+	 * unless the circular buffer is empty.
+	 * 
+	 * @param steps
+	 * - The number of positions to advance. It can be negative to move backward.
+	 * @return
+	 * - The updated index position after advancing the steps.
+	 * @author Sergio Morel
+	 */
+	protected int forward(int steps)
+	{
+		return this.index = this.forward(this.index, steps);
+	}
+	
+	/**
+	 * Advances a given index position by the specified number of steps in the circular buffer without
+	 * affecting the iterator's current index. The method handles cases where the index goes
+	 * out of bounds by wrapping it around.
+	 * After leaving BUFFER_BOUNDARY, this method won't step into BUFFER_BOUNDARY again,
+	 * unless the circular buffer is empty.
+	 * 
+	 * @param index
+	 * - The current index position to advance from.
+	 * @param steps
+	 * - The number of positions to advance. It can be negative to move backward.
+	 * @return
+	 * - The updated index position after advancing.
+	 * @author Sergio Morel
+	 */
+	protected int forward(int index, int steps)
+	{
+		if(steps == 0)
+		{
+			return index;
+		}
+		
+		int dataStart = this.buffer.start;
+		int dataSize = this.buffer.getDataSize();
+		int bufferSize = this.buffer.getBufferSize();
+		
+		if(dataSize < 1)
+		{
+			return BUFFER_BOUNDARY;
+		}
+		
+		if(index == BUFFER_BOUNDARY && steps < 0)
+		{
+			steps++;
+		}
+		
+		steps = steps % dataSize;
+		
+		int relativeIndex = (index - dataStart + bufferSize + steps) % dataSize;
+		
+		if(relativeIndex < 0)
+		{
+			relativeIndex += dataSize;
+		}
+		
+		index = (dataStart + relativeIndex) % bufferSize;
+		
+		return index;
+	}
+	
+	/**
+	 * Rewinds the internal index of the iterator by a specified number of steps.
+	 * If the number of steps is larger than the circular buffer size, the rewinding will wrap
+	 * around the circular buffer. After leaving BUFFER_BOUNDARY, this method won't step
+	 * into BUFFER_BOUNDARY again, unless the circular buffer is empty.
+	 * 
+	 * @param steps
+	 * - The number of steps to rewind the iterator.
+	 * The value can be negative to move forward.
+	 * @return
+	 * - The updated index after the rewind operation.
+	 * @author Sergio Morel
+	 */
+	protected int rewind(int steps)
+	{
+		return this.index = this.rewind(this.index, steps);
+	}
+	
+	/**
+	 * Rewinds a given index position by the specified number of steps in the circular buffer without
+	 * affecting the iterator's current index.
+	 * If the number of steps is larger than the circular buffer size, the rewinding will wrap
+	 * around the circular buffer. After leaving BUFFER_BOUNDARY, this method won't step
+	 * into BUFFER_BOUNDARY again, unless the circular buffer is empty.
+	 * 
+	 * @param index
+	 * - The index from which to start the rewind operation.
+	 * @param steps
+	 * - The number of steps to rewind the iterator.
+	 * The value can be negative to move forward.
+	 * @return
+	 * - The updated index after the rewind operation.
+	 * @author Sergio Morel
+	 */
+	protected int rewind(int index, int steps)
+	{
+		if(steps == 0)
+		{
+			return index;
+		}
+		
+		int dataStart = this.buffer.start;
+		int dataSize = this.buffer.getDataSize();
+		int bufferSize = this.buffer.getBufferSize();
+		
+		if(dataSize < 1)
+		{
+			return BUFFER_BOUNDARY;
+		}
+		
+		if(index == BUFFER_BOUNDARY && steps > 0)
+		{
+			steps--;
+		}
+		
+		steps = steps % dataSize;
+		
+		int relativeIndex = (index - dataStart +  bufferSize - steps) % dataSize;
+		
+		if(relativeIndex < 0)
+		{
+			relativeIndex += dataSize;
+		}
+		
+		index = (dataStart + relativeIndex) % bufferSize;
+		
+		return index;
 	}
 	
 	/**
@@ -721,7 +751,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
-	 * Checks if the given range, from start to end, falls within the buffer's range.
+	 * Checks if the given range, from start to end, falls within the circular buffer's range.
 	 * <p>
 	 * This method is designed to handle cases where the buffer is circular, 
 	 * meaning that data might wrap around from the end back to the start of the buffer.
@@ -737,7 +767,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * - <b>false</b> otherwise.
 	 * @author Sergio Morel
 	 */
-	public boolean inRange(int start, int end)
+	protected boolean inRange(int start, int end)
 	{
 		// True if the buffer doesn't wrap around
 		boolean bufferIsLinear = this.buffer.end >= this.buffer.start;
@@ -813,20 +843,6 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		sb.append(this.index);
 		
 		return sb.toString();
-	}
-	
-	@Override
-	public int nextIndex()
-	{
-		int nextIndex = this.goNext(this.index);
-		
-	    return (nextIndex == BUFFER_BOUNDARY) ? this.buffer.size() : nextIndex;
-	}
-	
-	@Override
-	public int previousIndex()
-	{
-		return this.goPrevious(this.index);
 	}
 	
 	@Override
