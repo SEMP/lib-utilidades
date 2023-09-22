@@ -160,9 +160,9 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	{
 		int nextIndex = this.goNext(this.index);
 		
-	    return (nextIndex == BUFFER_BOUNDARY) ? this.buffer.size() : nextIndex;
+		return (nextIndex == BUFFER_BOUNDARY) ? this.buffer.size() : nextIndex;
 	}
-
+	
 	@Override
 	public Byte previous()
 	{
@@ -220,9 +220,9 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	{
 		return this.goPrevious(this.index);
 	}
-
+	
 	@Override
-	public void remove() //TODO revisar
+	public void remove()
 	{
 		if(this.lastMovement == IterationMovement.NONE)
 		{
@@ -290,7 +290,236 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			}
 		}
 	}
-
+	
+	/**
+	 * Removes the elements in the circular buffer within the specified range (inclusive of start and end).
+	 * If the buffer is empty or the range is out of bounds, an exception is thrown.
+	 * 
+	 * @param from
+	 * - The starting index of the range to be removed (inclusive).
+	 * @param to
+	 * - The ending index of the range to be removed (exclusive).
+	 * @throws NoSuchElementException
+	 * if the buffer is empty.
+	 * @throws IndexOutOfBoundsException
+	 * if the specified range is out of the buffer bounds.
+	 */
+	public void remove(int from, int to)
+	{
+		if(this.buffer.isEmpty())
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.NO_DATA_AVAILABLE_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		if(from == to)
+		{
+			return;
+		}
+		
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		int dataSize = this.buffer.getDataSize();
+		
+		if(from < 0 || from >= dataSize || to < 0 || to > dataSize || to < from)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INVALID_INDEX_RANGE_ERROR, from, to, dataSize);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		int internalFrom = this.forward(dataStart, from);
+		int internalTo = this.forward(dataStart, to - 1);
+		
+		if(internalFrom == dataStart)
+		{
+			this.buffer.start = this.goNext(internalFrom);
+			
+			if(this.buffer.start == BUFFER_BOUNDARY)
+			{
+				this.buffer.end = BUFFER_BOUNDARY;
+			}
+			
+			return;
+		}
+		
+		if(internalTo == dataEnd)
+		{
+			this.buffer.end = this.goPrevious(internalTo);
+			
+			if(this.buffer.end == BUFFER_BOUNDARY)
+			{
+				this.buffer.start = BUFFER_BOUNDARY;
+			}
+			
+			return;
+		}
+		
+		int forwardDistance = Math.abs(dataEnd - (to - 1));
+		int backwardDistance = Math.abs(dataStart - from);
+		
+		if(forwardDistance <= backwardDistance)
+		{
+			this.shiftFromEnd(internalFrom, internalTo);
+		}
+		else
+		{
+			this.shiftFromStart(internalFrom, internalTo);
+		}
+	}
+	
+	/**
+	 * Removes the first element from the buffer.
+	 * <p>
+	 * Note:<br>
+	 * If the internal iterator index is at the start of the buffer (the position of the
+	 * element being removed), this method will also update the iterator's index to the next
+	 * position after the removal.
+	 * </p>
+	 * @return
+	 * - The first byte data from the buffer.
+	 * 
+	 * @throws NoSuchElementException
+	 * If the buffer is empty.
+	 * @author Sergio Morel
+	 */
+	public byte removeFirst()
+	{
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		byte[] byteArray = this.buffer.byteArray;
+		
+		if(this.buffer.isEmpty())
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.NO_DATA_AVAILABLE_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		byte data = byteArray[dataStart];
+		
+		if(dataStart == dataEnd)
+		{
+			this.buffer.clear();
+		}
+		else
+		{
+			if(this.index == dataStart)
+			{
+				this.buffer.start = this.goNext();
+			}
+			else
+			{
+				this.buffer.start = this.goNext(dataStart);
+			}
+		}
+		
+		return data;
+	}
+	
+	/**
+	 * Removes the last element from the buffer.
+	 * <p>
+	 * Note:<br>
+	 * If the internal iterator index is at the end of the buffer (the position of
+	 * the element being removed), this method will also update the iterator's index
+	 * to the previous position after the removal.
+	 * </p>
+	 * 
+	 * @return
+	 * - The last byte data from the buffer.
+	 * 
+	 * @throws NoSuchElementException
+	 * If the buffer is empty.
+	 * @author Sergio Morel
+	 */
+	public byte removeLast()
+	{
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		byte[] byteArray = this.buffer.byteArray;
+		
+		if(dataStart == BUFFER_BOUNDARY)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.NO_DATA_AVAILABLE_ERROR);
+			
+			throw new NoSuchElementException(errorMessage);
+		}
+		
+		byte data = byteArray[dataEnd];
+		
+		if(dataStart == dataEnd)
+		{
+			this.buffer.clear();
+		}
+		else
+		{
+			if(this.index == dataEnd)
+			{
+				this.buffer.end = this.goPrevious();
+			}
+			else
+			{
+				this.buffer.end = this.goPrevious(dataEnd);
+			}
+		}
+		
+		return data;
+	}
+	
+	/**
+	 * Checks if the given pattern exists immediately preceding the current index in the buffer.
+	 * <p>
+	 * This method looks backward from the current index to determine if the pattern is present.
+	 * The search is done in reverse order, starting from the end of the pattern towards its beginning,
+	 * and it stops as soon as a mismatch is found or the pattern is fully matched.
+	 * </p>
+	 *
+	 * @param pattern The byte array pattern to search for within the buffer.
+	 * 
+	 * @return
+	 * - <b>true</b> if the entire pattern is found immediately preceding the current index.<br>
+	 * - <b>false</b> otherwise or if the pattern is not fully matched.
+	 */
+	public boolean patternFound(byte[] pattern)
+	{
+		byte[] byteArray = this.buffer.byteArray;
+		int index = this.index;
+		int i = pattern.length - 1;
+		
+		while(i >= 0 && index != BUFFER_BOUNDARY)
+		{
+			if(byteArray[index] != pattern[i])
+			{
+				return false;
+			}
+			
+			index = this.goPrevious(index);
+			i--;
+		}
+		
+		if(i < 0)
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public void set(Byte element)
+	{
+		if(this.lastMovement == IterationMovement.NONE)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
+			
+			throw new IllegalStateException(errorMessage);
+		}
+		
+		this.buffer.byteArray[this.index] = element;
+	}
+	
 	/**
 	 * Updates the current index to point to the next position in the circular buffer.<br>
 	 * - If the end of the circular buffer is reached, the index is set as BUFFER_BOUNDARY.<br>
@@ -521,7 +750,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		steps = steps % dataSize;
 		
-		int relativeIndex = (index - dataStart +  bufferSize - steps) % dataSize;
+		int relativeIndex = (index - dataStart + bufferSize - steps) % dataSize;
 		
 		if(relativeIndex < 0)
 		{
@@ -534,7 +763,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
-	 * Shifts the elements from the start of the buffer towards the removeIndex,
+	 * Shifts the elements from the start of the circular buffer towards the removeIndex,
 	 * overwriting the element at the removeIndex in the process.
 	 * 
 	 * @param removeIndex
@@ -558,7 +787,33 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
-	 * Shifts the elements from the end of the buffer towards the removeIndex,
+	 * Shifts the elements from the start of the circular buffer to occupy
+	 * the space corresponding to the range to be removed.
+	 * 
+	 * @param removeFrom
+	 * - The start of the range that will be removed (inclusive).
+	 * @param removeTo
+	 * - The end of the range that will be removed (inclusive).
+	 * @author Sergio Morel
+	 */
+	private void shiftFromStart(int removeFrom, int removeTo)
+	{
+		int copyFromIndex = this.goPrevious(removeFrom);
+		int copyToIndex = removeTo;
+		
+		while(copyFromIndex != BUFFER_BOUNDARY)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyToIndex = this.goPrevious(copyToIndex);
+			copyFromIndex = this.goPrevious(copyFromIndex);
+		}
+		
+		this.buffer.start = this.goNext(copyToIndex);
+	}
+	
+	/**
+	 * Shifts the elements from the end of the circular buffer towards the removeIndex,
 	 * overwriting the element at the removeIndex in the process.
 	 * 
 	 * @param removeIndex
@@ -582,63 +837,19 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
-	 * Removes the elements in the buffer within the specified range (inclusive of start and end).
-	 * If the buffer is empty or the range is out of bounds, an exception is thrown.
+	 * Shifts the elements from the end of the circular buffer to occupy
+	 * the space corresponding to the range to be removed.
 	 * 
-	 * @param start
-	 * - The starting index of the range to be removed.
-	 * @param end
-	 * - The ending index of the range to be removed.
-	 * @throws NoSuchElementException
-	 * if the buffer is empty.
-	 * @throws IndexOutOfBoundsException
-	 * if the specified range is out of the buffer bounds.
+	 * @param removeFrom
+	 * - The start of the range that will be removed (inclusive).
+	 * @param removeTo
+	 * - The end of the range that will be removed (inclusive).
+	 * @author Sergio Morel
 	 */
-	public void remove(int start, int end)
+	private void shiftFromEnd(int removeFrom, int removeTo)
 	{
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
-		
-		if(this.buffer.isEmpty())
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.NO_DATA_AVAILABLE_ERROR);
-			
-			throw new NoSuchElementException(errorMessage);
-		}
-		
-		if(!this.inRange(start, end))
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.INVALID_INDEX_RANGE_ERROR, start, end, this.buffer.size());
-			
-			throw new IndexOutOfBoundsException(errorMessage);
-		}
-		
-		if(start == dataStart)
-		{
-			this.buffer.start = this.goNext(end);
-			
-			if(this.buffer.start == BUFFER_BOUNDARY)
-			{
-				this.buffer.end = BUFFER_BOUNDARY;
-			}
-			
-			return;
-		}
-		
-		if(end == dataEnd)
-		{
-			this.buffer.end = this.goPrevious(start);
-			
-			if(this.buffer.end == BUFFER_BOUNDARY)
-			{
-				this.buffer.start = BUFFER_BOUNDARY;
-			}
-			
-			return;
-		}
-		
-		int copyFromIndex = this.goNext(end);
-		int copyToIndex = start;
+		int copyFromIndex = this.goNext(removeTo);
+		int copyToIndex = removeFrom;
 		
 		while(copyFromIndex != BUFFER_BOUNDARY)
 		{
@@ -649,105 +860,6 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		
 		this.buffer.end = this.goPrevious(copyToIndex);
-	}
-	
-	/**
-	 * Removes the first element from the buffer.
-	 * <p>
-	 * Note:<br>
-	 * If the internal iterator index is at the start of the buffer (the position of the
-	 * element being removed), this method will also update the iterator's index to the next
-	 * position after the removal.
-	 * </p>
-	 * @return
-	 * - The first byte data from the buffer.
-	 * 
-	 * @throws NoSuchElementException
-	 * If the buffer is empty.
-	 * @author Sergio Morel
-	 */
-	public byte removeFirst()
-	{
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
-		byte[] byteArray = this.buffer.byteArray;
-		
-		if(this.buffer.isEmpty())
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.NO_DATA_AVAILABLE_ERROR);
-			
-			throw new NoSuchElementException(errorMessage);
-		}
-		
-		byte data = byteArray[dataStart];
-		
-		if(dataStart == dataEnd)
-		{
-			this.buffer.clear();
-		}
-		else
-		{
-			if(this.index == dataStart)
-			{
-				this.buffer.start = this.goNext();
-			}
-			else
-			{
-				this.buffer.start = this.goNext(dataStart);
-			}
-		}
-		
-		return data;
-	}
-	
-	/**
-	 * Removes the last element from the buffer.
-	 * <p>
-	 * Note:<br>
-	 * If the internal iterator index is at the end of the buffer (the position of
-	 * the element being removed), this method will also update the iterator's index
-	 * to the previous position after the removal.
-	 * </p>
-	 * 
-	 * @return
-	 * - The last byte data from the buffer.
-	 * 
-	 * @throws NoSuchElementException
-	 * If the buffer is empty.
-	 * @author Sergio Morel
-	 */
-	public byte removeLast()
-	{
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
-		byte[] byteArray = this.buffer.byteArray;
-		
-		if(dataStart == BUFFER_BOUNDARY)
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.NO_DATA_AVAILABLE_ERROR);
-			
-			throw new NoSuchElementException(errorMessage);
-		}
-		
-		byte data = byteArray[dataEnd];
-		
-		if(dataStart == dataEnd)
-		{
-			this.buffer.clear();
-		}
-		else
-		{
-			if(this.index == dataEnd)
-			{
-				this.buffer.end = this.goPrevious();
-			}
-			else
-			{
-				this.buffer.end = this.goPrevious(dataEnd);
-			}
-		}
-		
-		return data;
 	}
 	
 	/**
@@ -795,46 +907,6 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		return (startIsAfterBufferStart && endIsAfterBufferStart) || (startIsBeforeBufferEnd && endIsBeforeBufferEnd);
 	}
 	
-	/**
-	 * Checks if the given pattern exists immediately preceding the current index in the buffer.
-	 * <p>
-	 * This method looks backward from the current index to determine if the pattern is present.
-	 * The search is done in reverse order, starting from the end of the pattern towards its beginning,
-	 * and it stops as soon as a mismatch is found or the pattern is fully matched.
-	 * </p>
-	 *
-	 * @param pattern The byte array pattern to search for within the buffer.
-	 * 
-	 * @return
-	 * - <b>true</b> if the entire pattern is found immediately preceding the current index.<br>
-	 * - <b>false</b> otherwise or if the pattern is not fully matched.
-	 */
-	public boolean patternFound(byte[] pattern)
-	{
-		byte[] byteArray = this.buffer.byteArray;
-		
-		int index = this.index;
-		int i = pattern.length - 1;
-		
-		while(i >= 0 && index != BUFFER_BOUNDARY)
-		{
-			if(byteArray[index] != pattern[i])
-			{
-				return false;
-			}
-			
-			index = this.goPrevious(index);
-			i--;
-		}
-		
-		if(i < 0)
-		{
-			return true;
-		}
-		
-		return false;
-	}
-	
 	@Override
 	public String toString()
 	{
@@ -846,46 +918,14 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	@Override
-	public void set(Byte element)
-	{
-		switch(this.lastMovement)
-		{
-			case NEXT:
-			{
-				int setIndex = this.goPrevious(this.index);
-				
-				this.buffer.byteArray[setIndex] = element;
-				
-				break;
-			}
-			
-			case PREVIOUS:
-			{
-				int setIndex = this.goNext(this.index);
-				
-				this.buffer.byteArray[setIndex] = element;
-				
-				break;
-			}
-			
-			case NONE:
-			{
-				String errorMessage = MessageUtil.getMessage(Messages.CALL_NEXT_OR_PREVIOUS_BEFORE_ERROR);
-				
-				throw new IllegalStateException(errorMessage);
-			}
-		}
-	}
-	
-	@Override
 	public void add(Byte e)
 	{
 		// TODO Auto-generated method stub
 		
-//		if(this.lastAddedIndex == EMPTY_INDEX)
-//		{
-//			//update lastAddedIndex.
-//		}
+		//		if(this.lastAddedIndex == EMPTY_INDEX)
+		//		{
+		//			//update lastAddedIndex.
+		//		}
 		
 		this.lastMovement = IterationMovement.NONE;
 	}

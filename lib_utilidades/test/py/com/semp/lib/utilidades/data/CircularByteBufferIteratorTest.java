@@ -2,10 +2,7 @@ package py.com.semp.lib.utilidades.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,6 +121,7 @@ public class CircularByteBufferIteratorTest
 		for(Object[] data : positiveCases)
 		{
 			assertEquals(data[0], iterator.forward(1, (Integer)data[1]));
+			assertEquals(data[0], iterator.rewind(1, -(Integer)data[1]));
 		}
 		
 		for(Object[] data : negativeCases)
@@ -194,6 +192,6 @@ public class CircularByteBufferIteratorTest
 	{
 		iterator.add((byte)88);
 		assertEquals(Byte.valueOf((byte)88), list.get(0));
-		assertEquals(6, list.size()); // Assuming your CircularByteBufferList provides a size() method
+		assertEquals(6, list.size());
 	}
 }
