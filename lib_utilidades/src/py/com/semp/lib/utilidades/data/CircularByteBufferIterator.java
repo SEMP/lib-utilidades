@@ -918,8 +918,31 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	@Override
-	public void add(Byte e)
+	public void add(Byte element)
 	{
+		int dataSize = this.buffer.getDataSize();
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		
+		if(dataSize < 1)
+		{
+			this.buffer.start = 0;
+			this.buffer.end = 0;
+			this.buffer.byteArray[0] = element;
+			
+			return;
+		}
+		
+		if(this.index == BUFFER_BOUNDARY)
+		{
+			this.addFirst(element);
+			
+			return;
+		}
+		
+		int insertIndex = this.goPrevious(this.index);
+		
+		
 		// TODO Auto-generated method stub
 		
 		//		if(this.lastAddedIndex == EMPTY_INDEX)
@@ -928,5 +951,17 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		//		}
 		
 		this.lastMovement = IterationMovement.NONE;
+	}
+	
+	private int addFirst(byte element)
+	{
+		// TODO Auto-generated method stub
+		return this.buffer.start;
+	}
+	
+	private int addLast(byte element)
+	{
+		// TODO Auto-generated method stub
+		return this.buffer.end;
 	}
 }
