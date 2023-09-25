@@ -783,7 +783,7 @@ public class CircularByteBuffer implements List<Byte>
 			// End header found
 			if(iterator.patternFound(endHeader))
 			{
-				int index = iterator.getIndex();
+				int index = iterator.getInternalIndex();
 				
 				byte[] message = this.extract(this.start, index);
 				
@@ -836,7 +836,7 @@ public class CircularByteBuffer implements List<Byte>
 			// End header found
 			if(iterator.patternFound(endHeader))
 			{
-				int index = iterator.getIndex();
+				int index = iterator.getInternalIndex();
 				
 				byte[] segment = this.extract(this.start, index);
 				
@@ -891,7 +891,7 @@ public class CircularByteBuffer implements List<Byte>
 			// Start header found
 			if(iterator.patternFound(startHeader))
 			{
-				int index = iterator.getIndex();
+				int index = iterator.getInternalIndex();
 				
 				this.start = iterator.rewind(index, startHeader.length - 1);
 				
@@ -901,7 +901,7 @@ public class CircularByteBuffer implements List<Byte>
 			// End header found
 			if(iterator.patternFound(endHeader))
 			{
-				int index = iterator.getIndex();
+				int index = iterator.getInternalIndex();
 				
 				if(betweenHeaders)
 				{
@@ -969,7 +969,7 @@ public class CircularByteBuffer implements List<Byte>
 			// Start header found
 			if(iterator.patternFound(startHeader))
 			{
-				int index = iterator.getIndex();
+				int index = iterator.getInternalIndex();
 				
 				this.start = iterator.rewind(index, startHeader.length - 1);
 				
@@ -979,7 +979,7 @@ public class CircularByteBuffer implements List<Byte>
 			// End header found
 			if(iterator.patternFound(endHeader))
 			{
-				int index = iterator.getIndex();
+				int index = iterator.getInternalIndex();
 				
 				if(betweenHeaders)
 				{
@@ -1163,7 +1163,7 @@ public class CircularByteBuffer implements List<Byte>
 			
 			if(element == compareByte)
 			{
-				return iterator.getIndex();
+				return iterator.getInternalIndex();
 			}
 		}
 		
@@ -1188,7 +1188,7 @@ public class CircularByteBuffer implements List<Byte>
 			
 			if(element == compareByte)
 			{
-				return iterator.getIndex();
+				return iterator.getInternalIndex();
 			}
 		}
 		
@@ -1212,7 +1212,7 @@ public class CircularByteBuffer implements List<Byte>
 		
 		int internalIndex = iterator.forward(index);
 		
-		iterator.setIndex(internalIndex);
+		iterator.setInternalIndex(internalIndex);
 		
 		return iterator;
 	}

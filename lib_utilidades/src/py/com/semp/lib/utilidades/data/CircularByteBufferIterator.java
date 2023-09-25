@@ -56,13 +56,14 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
-	 * Returns the index for the current position.
+	 * Returns the internal index for the current position. This is the
+	 * internal index used for the underlying byte array.
 	 * 
 	 * @return
-	 * - the index for the current position.
+	 * - the internal index for the current position.
 	 * @author Sergio Morel
 	 */
-	public int getIndex()
+	public int getInternalIndex()
 	{
 		return index;
 	}
@@ -73,9 +74,46 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * @param index
 	 * - New position of the index.
 	 */
-	protected void setIndex(int index)
+	protected void setInternalIndex(int index)
 	{
 		this.index = index;
+	}
+	
+	/**
+	 * Obtains the index in the point of view of the circular buffer.
+	 * 
+	 * @return
+	 * - the current index.
+	 * @author Sergio Morel
+	 */
+	public int getIndex()
+	{
+		return this.getIndex(this.index);
+	}
+	
+	/**
+	 * Translates the internal index into the index in the point of view
+	 * of the circular buffer.
+	 * 
+	 * @param internalIndex
+	 * - The internal index that would be mapped into the point of view
+	 * of the circular buffer.
+	 * 
+	 * @return
+	 * - the translated index.
+	 * @author Sergio Morel
+	 */
+	public int getIndex(int internalIndex)
+	{
+		if(internalIndex == BUFFER_BOUNDARY)
+		{
+			return BUFFER_BOUNDARY;
+		}
+		
+		int bufferSize = this.buffer.getBufferSize();
+		int dataStart = this.buffer.start;
+		
+		return (internalIndex - dataStart + bufferSize) % bufferSize;
 	}
 	
 	/**
@@ -158,7 +196,8 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public int nextIndex()
 	{
-		int nextIndex = this.goNext(this.index);
+		int internalIndex = this.goNext(this.index);
+		int nextIndex = this.getIndex(internalIndex);
 		
 		return (nextIndex == BUFFER_BOUNDARY) ? this.buffer.size() : nextIndex;
 	}
@@ -218,7 +257,9 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public int previousIndex()
 	{
-		return this.goPrevious(this.index);
+		int internalIndex = this.goPrevious(this.index);
+		
+		return this.getIndex(internalIndex);
 	}
 	
 	@Override
@@ -674,21 +715,33 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return BUFFER_BOUNDARY;
 		}
 		
-		if(index == BUFFER_BOUNDARY && steps < 0)
+		if(index == BUFFER_BOUNDARY)
 		{
-			steps++;
+			index = dataStart;
+			
+			if(steps > 0)
+			{
+				steps--;
+			}
 		}
 		
 		steps = steps % dataSize;
 		
-		int relativeIndex = (index - dataStart + bufferSize + steps) % dataSize;
+		int relativeIndex = index - dataStart;
 		
 		if(relativeIndex < 0)
 		{
-			relativeIndex += dataSize;
+			relativeIndex += bufferSize;
 		}
 		
-		index = (dataStart + relativeIndex) % bufferSize;
+		int finalRelativeIndex = (relativeIndex + steps) % dataSize;
+		
+		if(finalRelativeIndex < 0)
+		{
+			finalRelativeIndex += dataSize;
+		}
+		
+		index = (dataStart + finalRelativeIndex) % bufferSize;
 		
 		return index;
 	}
@@ -735,6 +788,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		
 		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
 		int dataSize = this.buffer.getDataSize();
 		int bufferSize = this.buffer.getBufferSize();
 		
@@ -743,21 +797,33 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return BUFFER_BOUNDARY;
 		}
 		
-		if(index == BUFFER_BOUNDARY && steps > 0)
+		if(index == BUFFER_BOUNDARY)
 		{
-			steps--;
+			index = dataEnd;
+			
+			if(steps > 0)
+			{
+				steps--;
+			}
 		}
 		
 		steps = steps % dataSize;
 		
-		int relativeIndex = (index - dataStart + bufferSize - steps) % dataSize;
+		int relativeIndex = index - dataStart;
 		
 		if(relativeIndex < 0)
 		{
-			relativeIndex += dataSize;
+			relativeIndex += bufferSize;
 		}
 		
-		index = (dataStart + relativeIndex) % bufferSize;
+		int finalRelativeIndex = (relativeIndex - steps) % dataSize;
+		
+		if(finalRelativeIndex < 0)
+		{
+			finalRelativeIndex += dataSize;
+		}
+		
+		index = (dataStart + finalRelativeIndex) % bufferSize;
 		
 		return index;
 	}
@@ -924,6 +990,8 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
 		
+		this.lastMovement = IterationMovement.NONE;
+		
 		if(dataSize < 1)
 		{
 			this.buffer.start = 0;
@@ -935,24 +1003,60 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(this.index == BUFFER_BOUNDARY)
 		{
+			this.addLast(element);
+			
+			return;
+		}
+		
+		int insertPoint = this.goPrevious(this.index);
+		
+		if(dataStart <= dataEnd)
+		{
+			if((dataEnd + 1) < dataSize)
+			{
+				this.shiftToEnd(this.index);
+				this.buffer.byteArray[this.index] = element;
+				this.goNext();
+				
+				return;
+			}
+			
+			if(dataStart > 0)
+			{
+				this.shiftToStart(insertPoint);
+				this.buffer.byteArray[insertPoint] = element;
+				
+				return;
+			}
+			
+			if(insertPoint > 0)
+			{
+				this.shiftToStart(insertPoint);
+			}
+		}
+		
+		if(this.index == BUFFER_BOUNDARY)
+		{
 			this.addFirst(element);
 			
 			return;
 		}
 		
 		int insertIndex = this.goPrevious(this.index);
-		
-		
-		// TODO Auto-generated method stub
-		
-		//		if(this.lastAddedIndex == EMPTY_INDEX)
-		//		{
-		//			//update lastAddedIndex.
-		//		}
-		
-		this.lastMovement = IterationMovement.NONE;
 	}
 	
+	private void shiftToStart(int index)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void shiftToEnd(int index)
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
 	private int addFirst(byte element)
 	{
 		// TODO Auto-generated method stub
