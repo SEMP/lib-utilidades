@@ -30,6 +30,11 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	private int index;
 	
 	/**
+	 * Index to keep track of the new elements added to the buffer.
+	 */
+	private int newElementsIndex;
+	
+	/**
 	 * Indicates what was the previous iteration movement.
 	 */
 	private IterationMovement lastMovement;
@@ -52,6 +57,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		this.buffer = buffer;
 		this.index = BUFFER_BOUNDARY;
+		this.newElementsIndex = BUFFER_BOUNDARY;
 		this.lastMovement = IterationMovement.NONE;
 	}
 	
@@ -986,9 +992,15 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public void add(Byte element)
 	{
+		int bufferSize = this.buffer.getBufferSize();
 		int dataSize = this.buffer.getDataSize();
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
+		
+		if(this.lastMovement != IterationMovement.NONE)
+		{
+			this.newElementsIndex = this.index;
+		}
 		
 		this.lastMovement = IterationMovement.NONE;
 		
@@ -1012,7 +1024,8 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(dataStart <= dataEnd)
 		{
-			if((dataEnd + 1) < dataSize)
+			//Space available to the end
+			if((dataEnd + 1) < bufferSize)
 			{
 				this.shiftToEnd(this.index);
 				this.buffer.byteArray[this.index] = element;
@@ -1021,32 +1034,63 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 				return;
 			}
 			
-			if(dataStart > 0)
+			//Space available to the start, or
+			//Overwrite older data to the left.
+			if(dataStart > 0 || this.newElementsIndex > dataStart)
 			{
 				this.shiftToStart(insertPoint);
 				this.buffer.byteArray[insertPoint] = element;
+				this.newElementsIndex = this.goPrevious(this.newElementsIndex);
 				
 				return;
 			}
 			
-			if(insertPoint > 0)
+			//Overwrite elements to the end.
+			if(this.index <= dataEnd)
 			{
-				this.shiftToStart(insertPoint);
+				this.buffer.byteArray[this.index] = element;
+				this.goNext();
+				
+				return;
 			}
 		}
-		
-		if(this.index == BUFFER_BOUNDARY)
+		else
 		{
-			this.addFirst(element);
+			//Space available between headers or replace older data
+			if(insertPoint != dataStart)
+			{
+				this.shiftToStart(insertPoint);
+				this.buffer.byteArray[insertPoint] = element;
+				this.newElementsIndex = this.goPrevious(this.newElementsIndex);
+				
+				return;
+			}
 			
-			return;
+			//Overwrite elements to the end.
+			if(insertPoint != dataEnd)
+			{
+				this.buffer.byteArray[insertPoint] = element;
+				this.goNext();
+				
+				return;
+			}
+			
+			//
+			if(this.index == BUFFER_BOUNDARY)
+			{
+				this.goNext();
+				
+				this.addLast(element);
+				
+				return;
+			}
 		}
-		
-		int insertIndex = this.goPrevious(this.index);
 	}
 	
 	private void shiftToStart(int index)
 	{
+		//empujar los elementos hasta que no haya espacio
+		//a partir de ahi, sacrificar los primeros elementos para hacer espacio.
 		// TODO Auto-generated method stub
 		
 	}
