@@ -1077,18 +1077,100 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 	}
 	
+	/**
+	 * Shifts elements towards the start of the buffer, beginning from the given index.
+	 * 
+	 * If there's an empty slot before the start index, it will be updated to create space.
+	 * In the case where there's no space at the beginning, the first element in the buffer will be overwritten.
+	 * 
+	 * Note: After this operation, the element at the provided 'index' will be duplicated in its previous slot.
+	 * It's expected that the caller replaces the element at 'index' after the shift.
+	 * 
+	 * @param index
+	 * - The starting point for the shift. After the shift, this position will have a duplicate of its value in the previous slot.
+	 * @author Sergio Morel
+	 */
 	private void shiftToStart(int index)
 	{
-		//empujar los elementos hasta que no haya espacio
-		//a partir de ahi, sacrificar los primeros elementos para hacer espacio.
-		// TODO Auto-generated method stub
+		if(this.buffer.start <= this.buffer.end)
+		{
+			int bufferSize = this.buffer.getBufferSize();
+			
+			if(this.buffer.start > 0)
+			{
+				this.buffer.start = this.goPrevious(this.buffer.start);
+			}
+			else if(this.buffer.end < bufferSize - 1)
+			{
+				this.buffer.start = bufferSize - 1;
+			}
+		}
+		else
+		{
+			if(this.goPrevious(this.buffer.start) != this.buffer.end)
+			{
+				this.buffer.start = this.goPrevious(this.buffer.start);
+			}
+		}
 		
+		int copyFromIndex = index;
+		int copyToIndex = this.goPrevious(index);
+		
+		while(copyToIndex != BUFFER_BOUNDARY)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyFromIndex = this.goPrevious(copyFromIndex);
+			copyToIndex = this.goPrevious(copyToIndex);
+		}
 	}
 	
+	/**
+	 * Shifts elements towards the end of the buffer, beginning from the given index.
+	 * 
+	 * If there's an empty slot after the end index, it will be updated to create space.
+	 * In the case where there's no space at the end, the last element in the buffer will be overwritten.
+	 * 
+	 * Note: After this operation, the element at the provided 'index' will be duplicated in its previous slot.
+	 * It's expected that the caller replaces the element at 'index' after the shift.
+	 * 
+	 * @param index
+	 * - The starting point for the shift. After the shift, this position will have a duplicate of its value in the previous slot.
+	 * @author Sergio Morel
+	 */
 	private void shiftToEnd(int index)
 	{
-		// TODO Auto-generated method stub
+		if(this.buffer.start <= this.buffer.end)
+		{
+			int bufferSize = this.buffer.getBufferSize();
+			
+			if(this.buffer.end < bufferSize - 1)
+			{
+				this.buffer.end = this.goPrevious(this.buffer.end);
+			}
+			else if(this.buffer.start > 0)
+			{
+				this.buffer.end = 0;
+			}
+		}
+		else
+		{
+			if(this.goNext(this.buffer.end) != this.buffer.start)
+			{
+				this.buffer.end = this.goNext(this.buffer.end);
+			}
+		}
 		
+		int copyFromIndex = index;
+		int copyToIndex = this.goNext(index);
+		
+		while(copyToIndex != BUFFER_BOUNDARY)
+		{
+			this.buffer.byteArray[copyToIndex] = this.buffer.byteArray[copyFromIndex];
+			
+			copyFromIndex = this.goNext(copyFromIndex);
+			copyToIndex = this.goNext(copyToIndex);
+		}
 	}
 
 	private int addFirst(byte element)
