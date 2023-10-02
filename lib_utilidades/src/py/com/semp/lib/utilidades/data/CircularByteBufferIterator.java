@@ -1057,7 +1057,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		else
 		{
 			//Space available between headers or replace older data
-			if(insertPoint != dataStart)
+			if(this.newElementsIndex != dataStart)
 			{
 				this.shiftToStart(insertPoint);
 				this.buffer.byteArray[insertPoint] = element;
@@ -1067,20 +1067,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			}
 			
 			//Overwrite elements to the end.
-			if(insertPoint != dataEnd)
+			if(this.index != BUFFER_BOUNDARY)
 			{
 				this.buffer.byteArray[insertPoint] = element;
 				this.goNext();
-				
-				return;
-			}
-			
-			//
-			if(this.index == BUFFER_BOUNDARY)
-			{
-				this.goNext();
-				
-				this.addLast(element);
 				
 				return;
 			}
