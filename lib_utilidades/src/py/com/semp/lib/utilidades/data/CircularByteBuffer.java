@@ -243,7 +243,7 @@ public class CircularByteBuffer implements List<Byte>
 	 */
 	public boolean add(byte data)
 	{
-		int size = this.getBufferSize();
+		int bufferSize = this.getBufferSize();
 		
 		if(this.start == BUFFER_BOUNDARY)
 		{
@@ -252,11 +252,11 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		else
 		{
-			this.end = (this.end + 1) % size;
+			this.end = (this.end + 1) % bufferSize;
 			
 			if(this.start == this.end)
 			{
-				this.start = (this.start + 1) % size;
+				this.start = (this.start + 1) % bufferSize;
 			}
 		}
 		
