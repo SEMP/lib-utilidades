@@ -131,6 +131,21 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		return (internalIndex - dataStart + bufferSize) % bufferSize;
 	}
 	
+	public void goTo(int index)
+	{
+		int dataSize = this.buffer.getDataSize();
+		
+		if(index < 0 || index >= dataSize)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, dataSize);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		this.index = this.forward(BUFFER_BOUNDARY, index);
+		this.lastAction = IterationAction.NEXT;
+	}
+	
 	/**
 	 * Determines if the current iteration is the first by comparing the index with the buffer's start.
 	 * 

@@ -544,4 +544,76 @@ public class CircularByteBufferIteratorTest
 		iterator.add((byte)0x0A);
 		assertThrows(IllegalStateException.class, () -> iterator.remove());
 	}
+	
+	@Test
+	public void testGoTo()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		
+		CircularByteBufferIterator iterator = buffer.iterator();
+		
+		// 1. Test positioning at the start
+		iterator.goTo(0);
+		assertEquals(0, iterator.nextByte());
+		
+		// 2. Test positioning in the middle
+		iterator.goTo(5);
+		assertEquals(5, iterator.nextByte());
+		
+		// 3. Test positioning at the end
+		iterator.goTo(9);
+		assertEquals(9, iterator.nextByte());
+		
+		// 4. Ensure you can't position out of bounds - this assumes you throw an IndexOutOfBoundsException in such cases
+		assertThrows(IndexOutOfBoundsException.class, () -> iterator.goTo(10));
+		
+		// 5. Test going backwards
+		iterator.goTo(3);
+		assertEquals(3, iterator.nextByte());
+		
+		// 6. Test positioning at an index after some iterations
+		iterator.nextByte(); // Moving the iterator forward to make sure goTo resets its position properly
+		iterator.goTo(7);
+		assertEquals(7, iterator.nextByte());
+	}
+	
+	@Test
+	public void testGoToWithOtherOperations()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		
+		CircularByteBufferIterator iterator = buffer.iterator();
+		
+		// 1. Test positioning at the start and use previous()
+		iterator.goTo(1);
+		assertEquals(0, iterator.previousByte());
+		
+		// 2. Test positioning in the middle, and add 
+		iterator.goTo(4);
+		assertEquals(4, iterator.nextByte());
+		iterator.add((byte)0xA);
+		assertEquals("[01, 02, 03, 04, 0A, 05, 06, 07, 08, 09]", buffer.toString());
+		
+		// 3. Test positioning at the end, add and use previous()
+		iterator.goTo(9);
+		iterator.add((byte)0x0B);
+		assertEquals(0x0B, iterator.previousByte());
+		
+		// 4. Test positioning in the middle after removing elements
+		iterator.goTo(5);
+		iterator.remove();
+		assertEquals("[02, 03, 04, 0A, 06, 07, 08, 0B, 09]", buffer.toString());
+		iterator.goTo(5);
+		assertEquals(7, iterator.nextByte());
+		
+		// 5. Ensure you can't position out of bounds
+		assertThrows(IndexOutOfBoundsException.class, () -> iterator.goTo(11));
+		
+		// 6. Test positioning at an index after some iterations and operations
+		iterator.nextByte(); // Moving the iterator forward
+		iterator.goTo(3);
+		assertEquals(0x0A, iterator.nextByte());
+	}
 }
