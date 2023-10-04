@@ -8,14 +8,14 @@ package py.com.semp.lib.utilidades.enumerations;
 public enum IterationAction
 {
 	/**
-	 * Indicates that the previous action was a movement was backward.
-	 */
-	PREVIOUS,
-	
-	/**
 	 * Indicates that no action has occurred, or the state has been reset post-operation.
 	 */
 	NONE,
+	
+	/**
+	 * Indicates that the previous action was a movement was backward.
+	 */
+	PREVIOUS,
 	
 	/**
 	 * Indicates that the previous action was a movement was forward.

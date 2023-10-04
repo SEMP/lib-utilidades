@@ -211,7 +211,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public Byte previous()
 	{
-		if(this.lastAction != IterationAction.NEXT && this.lastAction != IterationAction.ADD)
+		if(this.lastAction != IterationAction.NEXT && this.lastAction != IterationAction.ADD && this.lastAction != IterationAction.REMOVE)
 		{
 			this.goPrevious();
 		}
@@ -241,7 +241,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 */
 	public byte previousByte()
 	{
-		if(this.lastAction != IterationAction.NEXT && this.lastAction != IterationAction.ADD)
+		if(this.lastAction != IterationAction.NEXT && this.lastAction != IterationAction.ADD && this.lastAction != IterationAction.REMOVE)
 		{
 			this.goPrevious();
 		}
@@ -289,8 +289,6 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			throw new NoSuchElementException(errorMessage);
 		}
 		
-		IterationAction lastAction = this.lastAction;
-		
 		this.lastAction = IterationAction.REMOVE;
 		
 		if(removeIndex == dataStart)
@@ -310,31 +308,15 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		int forwardDistance = Math.abs(dataEnd - removeIndex);
 		int backwardDistance = Math.abs(dataStart - removeIndex);
 		
-		if(lastAction == IterationAction.NEXT)
+		if(forwardDistance <= backwardDistance)
 		{
-			if(forwardDistance <= backwardDistance)
-			{
-				this.shiftFromEnd(removeIndex);
-				
-				this.goPrevious();
-			}
-			else
-			{
-				this.shiftFromStart(removeIndex);
-			}
+			this.shiftFromEnd(removeIndex);
+			
+			this.goPrevious();
 		}
-		else if(lastAction == IterationAction.PREVIOUS)
+		else
 		{
-			if(forwardDistance <= backwardDistance)
-			{
-				shiftFromEnd(removeIndex);
-			}
-			else
-			{
-				shiftFromStart(removeIndex);
-				
-				this.goNext();
-			}
+			this.shiftFromStart(removeIndex);
 		}
 	}
 	
@@ -565,6 +547,157 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		
 		this.buffer.byteArray[this.index] = element;
+	}
+	
+	@Override
+	public void add(Byte element)
+	{
+		int bufferSize = this.buffer.getBufferSize();
+		int dataSize = this.buffer.getDataSize();
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		
+		if(this.lastAction != IterationAction.ADD)
+		{
+			this.newElementsIndex = this.goNext(this.index);
+		}
+		
+		this.lastAction = IterationAction.ADD;
+		
+		if(dataSize < 1)
+		{
+			this.buffer.start = 0;
+			this.buffer.end = 0;
+			this.buffer.byteArray[0] = element;
+			this.index = BUFFER_BOUNDARY;
+			
+			return;
+		}
+		
+		if(this.index == BUFFER_BOUNDARY)
+		{
+			this.addLast(element);
+			
+			return;
+		}
+		
+		if(this.index == dataEnd)
+		{
+			this.index = this.addLast(element);
+			
+			return;
+		}
+		
+		int insertPoint = index;
+		
+		if(dataStart <= dataEnd)
+		{
+			//Space available to the end
+			if((dataEnd + 1) < bufferSize)
+			{
+				this.goNext();
+				this.shiftToEnd(this.index);
+				this.buffer.byteArray[this.index] = element;
+				
+				return;
+			}
+		}
+		
+		//Space available to the start of the buffer or replace older data
+		if(this.newElementsIndex != dataStart)
+		{
+			this.shiftToStart(insertPoint);
+			this.buffer.byteArray[insertPoint] = element;
+			this.newElementsIndex = this.goPrevious(this.newElementsIndex);
+			
+			return;
+		}
+		
+		//Overwrite elements to the end.
+		if(this.index != dataEnd)
+		{
+			this.goNext();
+			this.buffer.byteArray[this.index] = element;
+			
+			return;
+		}
+	}
+	
+	/**
+	 * Adds an element at the start of the circular buffer.
+	 * If the buffer is full, the first element will be overwritten.
+	 * @param element
+	 * - Element to insert into the circular buffer.
+	 * @return
+	 * - The index where the new element was inserted.
+	 * @author Sergio Morel
+	 */
+	protected int addFirst(byte element)
+	{
+		int insertIndex = 0;
+		
+		if(this.buffer.isEmpty())
+		{
+			this.buffer.start = 0;
+			this.buffer.end = 0;
+			this.buffer.byteArray[insertIndex] = element;
+			
+			return insertIndex;
+		}
+		
+		int bufferSize = this.buffer.getBufferSize();
+		
+		insertIndex = (this.buffer.start - 1) % bufferSize;
+		
+		if(insertIndex < 0)
+		{
+			insertIndex += bufferSize;
+		}
+		
+		if(insertIndex == this.buffer.end)
+		{
+			insertIndex = this.buffer.start;
+		}
+		
+		this.buffer.byteArray[insertIndex] = element;
+		
+		return this.buffer.start = insertIndex;
+	}
+	
+	/**
+	 * Adds an element at the end of the circular buffer.
+	 * If the buffer is full, the first element will be overwritten.
+	 * @param element
+	 * - Element to insert into the circular buffer.
+	 * @return
+	 * - The index where the new element was inserted.
+	 * @author Sergio Morel
+	 */
+	protected int addLast(byte element)
+	{
+		int insertIndex = 0;
+		
+		if(this.buffer.isEmpty())
+		{
+			this.buffer.start = 0;
+			this.buffer.end = 0;
+			this.buffer.byteArray[insertIndex] = element;
+			
+			return insertIndex;
+		}
+		
+		int bufferSize = this.buffer.getBufferSize();
+		
+		insertIndex = (this.buffer.end + 1) % bufferSize;
+		
+		if(insertIndex == this.buffer.start)
+		{
+			this.buffer.start = this.forward(this.buffer.start, 1);
+		}
+		
+		this.buffer.byteArray[insertIndex] = element;
+		
+		return this.buffer.end = insertIndex;
 	}
 	
 	/**
@@ -835,6 +968,51 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
+	 * Checks if the given range, from start to end, falls within the circular buffer's range.
+	 * <p>
+	 * This method is designed to handle cases where the buffer is circular, 
+	 * meaning that data might wrap around from the end back to the start of the buffer.
+	 * </p>
+	 * 
+	 * @param start
+	 * - The starting index of the range to check.
+	 * @param end
+	 * - The ending index of the range to check.
+	 * 
+	 * @return
+	 * - <b>true</b> if the entire range from start to end is within the buffer's range.<br>
+	 * - <b>false</b> otherwise.
+	 * @author Sergio Morel
+	 */
+	protected boolean inRange(int start, int end)
+	{
+		// True if the buffer doesn't wrap around
+		boolean bufferIsLinear = this.buffer.end >= this.buffer.start;
+		// True if the provided range doesn't wrap around
+		boolean rangeIsLinear = end >= start;
+		boolean startIsAfterBufferStart = start >= this.buffer.start;
+		boolean endIsBeforeBufferEnd = this.buffer.end >= end;
+		
+		// If both the buffer's data and the provided range are either linear or both wrap around
+		if(bufferIsLinear == rangeIsLinear)
+		{
+			return startIsAfterBufferStart && endIsBeforeBufferEnd;
+		}
+		
+		// If the provided range wraps around
+		if(!rangeIsLinear)
+		{
+			return false;
+		}
+		
+		// If only the buffer's data wraps around, but the range is linear
+		boolean endIsAfterBufferStart = end >= this.buffer.start;
+		boolean startIsBeforeBufferEnd = this.buffer.end >= start;
+		
+		return (startIsAfterBufferStart && endIsAfterBufferStart) || (startIsBeforeBufferEnd && endIsBeforeBufferEnd);
+	}
+	
+	/**
 	 * Shifts the elements from the start of the circular buffer towards the removeIndex,
 	 * overwriting the element at the removeIndex in the process.
 	 * 
@@ -935,135 +1113,6 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
-	 * Checks if the given range, from start to end, falls within the circular buffer's range.
-	 * <p>
-	 * This method is designed to handle cases where the buffer is circular, 
-	 * meaning that data might wrap around from the end back to the start of the buffer.
-	 * </p>
-	 * 
-	 * @param start
-	 * - The starting index of the range to check.
-	 * @param end
-	 * - The ending index of the range to check.
-	 * 
-	 * @return
-	 * - <b>true</b> if the entire range from start to end is within the buffer's range.<br>
-	 * - <b>false</b> otherwise.
-	 * @author Sergio Morel
-	 */
-	protected boolean inRange(int start, int end)
-	{
-		// True if the buffer doesn't wrap around
-		boolean bufferIsLinear = this.buffer.end >= this.buffer.start;
-		// True if the provided range doesn't wrap around
-		boolean rangeIsLinear = end >= start;
-		boolean startIsAfterBufferStart = start >= this.buffer.start;
-		boolean endIsBeforeBufferEnd = this.buffer.end >= end;
-		
-		// If both the buffer's data and the provided range are either linear or both wrap around
-		if(bufferIsLinear == rangeIsLinear)
-		{
-			return startIsAfterBufferStart && endIsBeforeBufferEnd;
-		}
-		
-		// If the provided range wraps around
-		if(!rangeIsLinear)
-		{
-			return false;
-		}
-		
-		// If only the buffer's data wraps around, but the range is linear
-		boolean endIsAfterBufferStart = end >= this.buffer.start;
-		boolean startIsBeforeBufferEnd = this.buffer.end >= start;
-		
-		return (startIsAfterBufferStart && endIsAfterBufferStart) || (startIsBeforeBufferEnd && endIsBeforeBufferEnd);
-	}
-	
-	@Override
-	public String toString()
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(this.index);
-		
-		return sb.toString();
-	}
-	
-	@Override
-	public void add(Byte element)
-	{
-		int bufferSize = this.buffer.getBufferSize();
-		int dataSize = this.buffer.getDataSize();
-		int dataStart = this.buffer.start;
-		int dataEnd = this.buffer.end;
-		
-		if(this.lastAction != IterationAction.ADD)
-		{
-			this.newElementsIndex = this.goNext(this.index);
-		}
-		
-		this.lastAction = IterationAction.ADD;
-		
-		if(dataSize < 1)
-		{
-			this.buffer.start = 0;
-			this.buffer.end = 0;
-			this.buffer.byteArray[0] = element;
-			this.index = BUFFER_BOUNDARY;
-			
-			return;
-		}
-		
-		if(this.index == BUFFER_BOUNDARY)
-		{
-			this.addLast(element);
-			
-			return;
-		}
-		
-		if(this.index == dataEnd)
-		{
-			this.index = this.addLast(element);
-			
-			return;
-		}
-		
-		int insertPoint = index;
-		
-		if(dataStart <= dataEnd)
-		{
-			//Space available to the end
-			if((dataEnd + 1) < bufferSize)
-			{
-				this.goNext();
-				this.shiftToEnd(this.index);
-				this.buffer.byteArray[this.index] = element;
-				
-				return;
-			}
-		}
-		
-		//Space available to the start of the buffer or replace older data
-		if(this.newElementsIndex != dataStart)
-		{
-			this.shiftToStart(insertPoint);
-			this.buffer.byteArray[insertPoint] = element;
-			this.newElementsIndex = this.goPrevious(this.newElementsIndex);
-			
-			return;
-		}
-		
-		//Overwrite elements to the end.
-		if(this.index != dataEnd)
-		{
-			this.goNext();
-			this.buffer.byteArray[this.index] = element;
-			
-			return;
-		}
-	}
-	
-	/**
 	 * Shifts elements towards the start of the buffer, beginning from the given index.
 	 * 
 	 * If there's an empty slot before the start index, it will be updated to create space.
@@ -1159,80 +1208,13 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 	}
 	
-	/**
-	 * Adds an element at the start of the circular buffer.
-	 * If the buffer is full, the first element will be overwritten.
-	 * @param element
-	 * - Element to insert into the circular buffer.
-	 * @return
-	 * - The index where the new element was inserted.
-	 * @author Sergio Morel
-	 */
-	protected int addFirst(byte element)
+	@Override
+	public String toString()
 	{
-		int insertIndex = 0;
+		StringBuilder sb = new StringBuilder();
 		
-		if(this.buffer.isEmpty())
-		{
-			this.buffer.start = 0;
-			this.buffer.end = 0;
-			this.buffer.byteArray[insertIndex] = element;
-			
-			return insertIndex;
-		}
+		sb.append(this.index);
 		
-		int bufferSize = this.buffer.getBufferSize();
-		
-		insertIndex = (this.buffer.start - 1) % bufferSize;
-		
-		if(insertIndex < 0)
-		{
-			insertIndex += bufferSize;
-		}
-		
-		if(insertIndex == this.buffer.end)
-		{
-			insertIndex = this.buffer.start;
-		}
-		
-		this.buffer.byteArray[insertIndex] = element;
-		
-		return this.buffer.start = insertIndex;
-	}
-	
-	/**
-	 * Adds an element at the end of the circular buffer.
-	 * If the buffer is full, the first element will be overwritten.
-	 * @param element
-	 * - Element to insert into the circular buffer.
-	 * @return
-	 * - The index where the new element was inserted.
-	 * @author Sergio Morel
-	 */
-	protected int addLast(byte element)
-	{
-		int insertIndex = 0;
-		
-		if(this.buffer.isEmpty())
-		{
-			this.buffer.start = 0;
-			this.buffer.end = 0;
-			this.buffer.byteArray[insertIndex] = element;
-			
-			return insertIndex;
-		}
-		
-		int bufferSize = this.buffer.getBufferSize();
-		
-		insertIndex = (this.buffer.end + 1) % bufferSize;
-		
-		if(insertIndex == this.buffer.start)
-		{
-			this.buffer.start = this.forward(this.buffer.start, 1);
-		}
-		
-		this.buffer.byteArray[insertIndex] = element;
-		
-		return this.buffer.end = insertIndex;
+		return sb.toString();
 	}
 }
