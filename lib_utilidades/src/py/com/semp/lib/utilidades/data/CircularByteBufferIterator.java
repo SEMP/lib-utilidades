@@ -458,14 +458,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		else
 		{
-			if(this.index == dataStart)
-			{
-				this.buffer.start = this.goNext();
-			}
-			else
-			{
-				this.buffer.start = this.goNext(dataStart);
-			}
+			this.buffer.start = this.goNext(dataStart);
 		}
 		
 		return data;

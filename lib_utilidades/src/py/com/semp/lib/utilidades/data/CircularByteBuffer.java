@@ -591,7 +591,16 @@ public class CircularByteBuffer implements List<Byte>
 	{
 		if(collection == null)
 		{
-			return false;
+			StringBuilder methodName = new StringBuilder();
+			
+			methodName.append("boolean ");
+			methodName.append(this.getClass().getSimpleName());
+			methodName.append("::");
+			methodName.append("retainAll(Collection<?>)");
+			
+			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
+			
+			throw new NullPointerException(errorMessage);
 		}
 		
 		boolean wasModified = false;
@@ -1107,11 +1116,14 @@ public class CircularByteBuffer implements List<Byte>
 	{
 		if(element == null)
 		{
-			String errorMessage = MessageUtil.getMessage
-			(
-				Messages.NULL_VALUES_NOT_ALLOWED_ERROR,
-				this.getClass().getSimpleName()
-			);
+			StringBuilder methodName = new StringBuilder();
+			
+			methodName.append("Byte ");
+			methodName.append(this.getClass().getSimpleName());
+			methodName.append("::");
+			methodName.append("set(int, Byte)");
+			
+			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
 			
 			throw new NullPointerException(errorMessage);
 		}

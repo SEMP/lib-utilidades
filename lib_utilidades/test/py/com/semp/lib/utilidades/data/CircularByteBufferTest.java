@@ -166,21 +166,8 @@ public class CircularByteBufferTest
 	    assertThrows(NoSuchElementException.class, buffer::removeFirst);
 	    assertThrows(NoSuchElementException.class, buffer::removeLast);
 
-	    assertThrows(NoSuchElementException.class, iterator::remove);
+	    assertThrows(IllegalStateException.class, iterator::remove);
 	}
-	
-//	@Test
-//	public void testRemoveAll()
-//	{
-//		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4});
-//		
-//		assertFalse(buffer.removeAll(null));
-//		assertFalse(buffer.removeAll(new ArrayList<>()));
-//		assertTrue(buffer.removeAll(Arrays.asList((byte)2, (byte)3)));
-//		assertFalse(buffer.contains((byte)2));
-//		assertFalse(buffer.contains((byte)3));
-//		assertEquals(3, buffer.size());
-//	}
 	
 	@Test
 	public void testRemoveAll()
@@ -209,7 +196,7 @@ public class CircularByteBufferTest
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4});
 		
-		assertFalse(buffer.retainAll(null));
+		assertThrows(NullPointerException.class, () -> buffer.retainAll(null));
 		assertTrue(buffer.retainAll(Arrays.asList((byte)2, (byte)3)));
 		assertTrue(buffer.contains((byte)2));
 		assertTrue(buffer.contains((byte)3));
