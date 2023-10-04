@@ -1150,8 +1150,43 @@ public class CircularByteBuffer implements List<Byte>
 	@Override
 	public void add(int index, Byte element)
 	{
-		// TODO Auto-generated method stub
+		if(element == null)
+		{
+			StringBuilder methodName = new StringBuilder();
+			
+			methodName.append("Byte ");
+			methodName.append(this.getClass().getSimpleName());
+			methodName.append("::");
+			methodName.append("set(int, Byte)");
+			
+			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
+			
+			throw new NullPointerException(errorMessage);
+		}
 		
+		int size = this.size();
+		
+		this.validateIndex(index, size + 1);
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		if(index == 0)
+		{
+			iterator.addFirst(element);
+			
+			return;
+		}
+		
+		if(index == size)
+		{
+			iterator.addLast(element);
+			
+			return;
+		}
+		
+		iterator.forward(index);
+		
+		iterator.add(element);
 	}
 
 	@Override

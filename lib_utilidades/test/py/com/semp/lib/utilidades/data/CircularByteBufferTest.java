@@ -308,6 +308,40 @@ public class CircularByteBufferTest
 		assertThrows(NullPointerException.class, () -> buffer.set(3, null));
 	}
 	
+	@Test
+	public void testAddAtIndex()
+	{
+	    CircularByteBuffer buffer = new CircularByteBuffer(10);
+	    buffer.add(new byte[]{0, 1, 2, 3, 4});
+
+	    // 1. Add an element at the start.
+	    buffer.add(0, (byte)10);
+	    assertEquals("[0A, 00, 01, 02, 03, 04]", buffer.toString());
+
+	    // 2. Add an element in the middle.
+	    buffer.add(3, (byte)11);
+	    assertEquals("[0A, 00, 01, 0B, 02, 03, 04]", buffer.toString());
+
+	    // 3. Add an element at the end.
+	    buffer.add(7, (byte)12);
+	    assertEquals("[0A, 00, 01, 0B, 02, 03, 04, 0C]", buffer.toString());
+
+	    // 4. Add elements until the buffer becomes full.
+	    buffer.add(new byte[]{5, 6});
+	    assertEquals("[0A, 00, 01, 0B, 02, 03, 04, 0C, 05, 06]", buffer.toString());
+
+	    // 5. Adding an element when the buffer is full should replace the oldest element.
+	    buffer.add(10, (byte)13);
+	    assertEquals("[00, 01, 0B, 02, 03, 04, 0C, 05, 06, 0D]", buffer.toString());
+
+	    // 6. Ensure exceptions are thrown for out-of-bounds indices.
+	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.add(-1, (byte)14));
+	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.add(12, (byte)14));
+
+	    // 7. Test adding a null value.
+	    assertThrows(NullPointerException.class, () -> buffer.add(3, null));
+	}
+	
 	//************************************ Parameterized Test ************************************//
 	
 	@ParameterizedTest
