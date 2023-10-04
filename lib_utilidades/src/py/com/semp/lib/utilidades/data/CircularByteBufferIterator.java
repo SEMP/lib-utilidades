@@ -95,10 +95,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	}
 	
 	/**
-	 * Obtains the index in the point of view of the circular buffer.
+	 * Translates the current internal index into the index in the point of view of the circular buffer.
 	 * 
 	 * @return
-	 * - the current index.
+	 * - the translated current index.
 	 * @author Sergio Morel
 	 */
 	public int getIndex()

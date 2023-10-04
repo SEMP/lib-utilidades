@@ -789,6 +789,8 @@ public class CircularByteBuffer implements List<Byte>
 		
 		while(iterator.hasNext())
 		{
+			iterator.goNext();
+			
 			// End header found
 			if(iterator.patternFound(endHeader))
 			{
@@ -802,8 +804,6 @@ public class CircularByteBuffer implements List<Byte>
 				
 				break;
 			}
-			
-			iterator.goNext();
 		}
 		
 		return extraction;
@@ -842,6 +842,8 @@ public class CircularByteBuffer implements List<Byte>
 		
 		while(iterator.hasNext())
 		{
+			iterator.goNext();
+			
 			// End header found
 			if(iterator.patternFound(endHeader))
 			{
@@ -852,9 +854,9 @@ public class CircularByteBuffer implements List<Byte>
 				extraction.add(segment);
 				
 				this.start = iterator.goNext(index);
+				
+				iterator.reset();
 			}
-			
-			iterator.goNext();
 		}
 		
 		return extraction;
@@ -897,6 +899,8 @@ public class CircularByteBuffer implements List<Byte>
 		
 		while(iterator.hasNext())
 		{
+			iterator.goNext();
+			
 			// Start header found
 			if(iterator.patternFound(startHeader))
 			{
@@ -925,8 +929,6 @@ public class CircularByteBuffer implements List<Byte>
 				
 				betweenHeaders = false;
 			}
-			
-			iterator.goNext();
 		}
 		
 		return new byte[]{};
@@ -975,12 +977,14 @@ public class CircularByteBuffer implements List<Byte>
 		
 		while(iterator.hasNext())
 		{
+			iterator.goNext();
+			
 			// Start header found
 			if(iterator.patternFound(startHeader))
 			{
-				int index = iterator.getInternalIndex();
+				int internalIndex = iterator.getInternalIndex();
 				
-				this.start = iterator.rewind(index, startHeader.length - 1);
+				this.start = iterator.rewind(internalIndex, startHeader.length - 1);
 				
 				betweenHeaders = true;
 			}
@@ -988,21 +992,21 @@ public class CircularByteBuffer implements List<Byte>
 			// End header found
 			if(iterator.patternFound(endHeader))
 			{
-				int index = iterator.getInternalIndex();
+				int internalIndex = iterator.getInternalIndex();
 				
 				if(betweenHeaders)
 				{
-					byte[] segment = this.extract(this.start, index);
+					byte[] segment = this.extract(this.start, internalIndex);
 					
 					extraction.add(segment);
 				}
 				
-				this.start = iterator.goNext(index);
+				this.start = iterator.goNext(internalIndex);
+				
+				iterator.reset();
 				
 				betweenHeaders = false;
 			}
-			
-			iterator.goNext();
 		}
 		
 		return extraction;
