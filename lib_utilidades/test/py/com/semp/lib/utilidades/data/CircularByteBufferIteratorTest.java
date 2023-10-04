@@ -522,11 +522,25 @@ public class CircularByteBufferIteratorTest
 		
 		// 3. Ensure calling remove() multiple times throws an exception
 		assertThrows(IllegalStateException.class, () -> iterator.remove());
-
-		// Move to another position
+		
+		// Move to another position and check for correct positioning
 		assertEquals(3, iterator.previousByte());
 		
-		// 4. Test that calling remove() after add() throws an exception
+		// 4. Remove the first element in the buffer
+		iterator.reset();
+		iterator.nextByte();
+		iterator.remove();
+		assertEquals("[01, 02, 03, 06, 07, 08, 09]", buffer.toString());
+		
+		// 5. Remove the last element in the buffer
+		while(iterator.hasNext())
+		{
+			iterator.nextByte();
+		}
+		iterator.remove();
+		assertEquals("[01, 02, 03, 06, 07, 08]", buffer.toString());
+		
+		// 6. Test that calling remove() after add() throws an exception
 		iterator.add((byte)0x0A);
 		assertThrows(IllegalStateException.class, () -> iterator.remove());
 	}

@@ -42,7 +42,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	/**
 	 * Indicates if no iteration has been made yet.
 	 */
-	private boolean firstIteration = true;
+	private boolean firstIteration;
 	
 	/**
 	 * Constructor with argument for the {@link CircularByteBuffer}.
@@ -56,9 +56,18 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		super();
 		
 		this.buffer = buffer;
+		this.reset();
+	}
+	
+	/**
+	 * Resets the iterator to the starting position.
+	 */
+	public void reset()
+	{
 		this.index = BUFFER_BOUNDARY;
 		this.newElementsIndex = BUFFER_BOUNDARY;
 		this.lastAction = IterationAction.NONE;
+		this.firstIteration = true;
 	}
 	
 	/**
