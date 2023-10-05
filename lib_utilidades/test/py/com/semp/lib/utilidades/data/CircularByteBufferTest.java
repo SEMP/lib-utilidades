@@ -342,6 +342,49 @@ public class CircularByteBufferTest
 	    assertThrows(NullPointerException.class, () -> buffer.add(3, null));
 	}
 	
+	@Test
+	public void testRemoveAtIndex()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		
+		// 1. Remove the element at the start.
+		Byte removedValue = buffer.remove(0);
+		assertEquals((byte)0, removedValue.byteValue());
+		assertEquals("[01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		
+		// 2. Remove an element in the middle.
+		removedValue = buffer.remove(4);
+		assertEquals((byte)5, removedValue.byteValue());
+		assertEquals("[01, 02, 03, 04, 06, 07, 08, 09]", buffer.toString());
+		
+		// 3. Remove an element at the end.
+		removedValue = buffer.remove(7);
+		assertEquals((byte)9, removedValue.byteValue());
+		assertEquals("[01, 02, 03, 04, 06, 07, 08]", buffer.toString());
+		
+		// 4. Repeatedly remove the last element until the buffer is empty.
+		while(buffer.size() > 0)
+		{
+			int lastIdx = buffer.size() - 1;
+			buffer.remove(lastIdx);
+		}
+		assertTrue(buffer.isEmpty());
+		
+		// 5. Ensure exceptions are thrown for out-of-bounds indices.
+		assertThrows(IndexOutOfBoundsException.class, () -> buffer.remove(-1));
+		assertThrows(IndexOutOfBoundsException.class, () -> buffer.remove(0));
+		
+		// 6. Add some elements back and test again.
+		buffer.add(new byte[]
+		{
+				10, 11, 12
+		});
+		removedValue = buffer.remove(1);
+		assertEquals((byte)11, removedValue.byteValue());
+		assertEquals("[0A, 0C]", buffer.toString());
+	}
+	
 	//************************************ Parameterized Test ************************************//
 	
 	@ParameterizedTest

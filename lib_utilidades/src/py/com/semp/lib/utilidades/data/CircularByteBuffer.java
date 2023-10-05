@@ -1192,8 +1192,37 @@ public class CircularByteBuffer implements List<Byte>
 	@Override
 	public Byte remove(int index)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		int size = this.size();
+		
+		this.validateIndex(index, size);
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		if(index == 0)
+		{
+			Byte removed = this.byteArray[this.start];
+			
+			iterator.removeFirst();
+			
+			return removed;
+		}
+		
+		if(index == size - 1)
+		{
+			Byte removed = this.byteArray[this.end];
+			
+			iterator.removeLast();
+			
+			return removed;
+		}
+		
+		iterator.goTo(index + 1);
+		
+		Byte removed = this.byteArray[iterator.getInternalIndex()];
+		
+		iterator.remove();
+		
+		return removed;
 	}
 
 	@Override
