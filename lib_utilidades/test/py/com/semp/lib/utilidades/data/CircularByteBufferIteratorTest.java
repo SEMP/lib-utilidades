@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.NoSuchElementException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -210,39 +212,77 @@ public class CircularByteBufferIteratorTest
 	public void testHasPrevious()
 	{
 		assertTrue(this.iterator.hasPrevious());
-		iterator.next();
+		Byte value = iterator.next();
+		assertTrue(this.iterator.hasPrevious());
+		assertEquals(value, this.iterator.previous());
 		assertFalse(this.iterator.hasPrevious());
+		assertThrows(NoSuchElementException.class, () -> this.iterator.previous());
 	}
 	
 	@Test
-	public void testPrevious()
+	public void testHasNext()
 	{
-		this.iterator.next();
-		this.iterator.next();
-		assertEquals(Byte.valueOf((byte)7), iterator.previous());
-		assertEquals(Byte.valueOf((byte)6), iterator.previous());
+		assertTrue(this.iterator.hasNext());
+		Byte value = iterator.previous();
+		assertTrue(this.iterator.hasNext());
+		assertEquals(value, this.iterator.next());
+		assertFalse(this.iterator.hasNext());
+		assertThrows(NoSuchElementException.class, () -> this.iterator.next());
 	}
 	
 	@Test
-	public void testPreviousNext()
+	public void testIterateFullBufferForwards()
 	{
-		assertEquals((byte)3, iterator.previous());
-		assertEquals((byte)3, iterator.next());
+		while(this.iterator.hasNext())
+		{
+			this.iterator.next();
+		}
+		// Ensure that after iterating through, hasNext() returns false.
+		assertFalse(this.iterator.hasNext());
+		assertThrows(NoSuchElementException.class, () -> this.iterator.next());
+		
+		this.iterator.reset();
+
+		while(this.iterator.hasNext())
+		{
+			this.iterator.nextByte();
+		}
+		// Ensure that after iterating through, hasNext() returns false.
+		assertFalse(this.iterator.hasNext());
+		assertThrows(NoSuchElementException.class, () -> this.iterator.nextByte());
 	}
 	
 	@Test
-	public void testPreviousByte()
+	public void testIterateFullBufferBackwards()
 	{
-		iterator.next();
-		iterator.next();
-		assertEquals((byte)7, ((CircularByteBufferIterator)iterator).previousByte());
+		while(this.iterator.hasPrevious())
+		{
+			this.iterator.previous();
+		}
+		
+		// Ensure that after iterating backwards through, hasPrevious() returns false.
+		assertFalse(this.iterator.hasPrevious());
+		assertThrows(NoSuchElementException.class, () -> this.iterator.previous());
+		
+		this.iterator.reset();
+		
+		while(this.iterator.hasPrevious())
+		{
+			this.iterator.previousByte();
+		}
+		
+		// Ensure that after iterating backwards through, hasPrevious() returns false.
+		assertFalse(this.iterator.hasPrevious());
+		assertThrows(NoSuchElementException.class, () -> this.iterator.previousByte());
 	}
 	
 	@Test
 	public void testNextIndex()
 	{
+		assertEquals(CircularByteBuffer.BUFFER_BOUNDARY, iterator.getIndex());
 		assertEquals(0, iterator.nextIndex());
 		iterator.next();
+		assertEquals(0, iterator.getIndex());
 		assertEquals(1, iterator.nextIndex());
 	}
 	

@@ -162,13 +162,23 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public boolean hasNext()
 	{
-		return this.goNext(this.index) != BUFFER_BOUNDARY;
+		if(this.lastAction != IterationAction.PREVIOUS)
+		{
+			return this.goNext(this.index) != BUFFER_BOUNDARY;
+		}
+		
+		return true;
 	}
 	
 	@Override
 	public boolean hasPrevious()
 	{
-		return this.goPrevious(this.index) != BUFFER_BOUNDARY;
+		if(this.lastAction != IterationAction.NEXT)
+		{
+			return this.goPrevious(this.index) != BUFFER_BOUNDARY;
+		}
+		
+		return true;
 	}
 	
 	@Override
