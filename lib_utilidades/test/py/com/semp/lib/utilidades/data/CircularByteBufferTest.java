@@ -376,13 +376,49 @@ public class CircularByteBufferTest
 		assertThrows(IndexOutOfBoundsException.class, () -> buffer.remove(0));
 		
 		// 6. Add some elements back and test again.
-		buffer.add(new byte[]
-		{
-				10, 11, 12
-		});
+		buffer.add(new byte[]{10, 11, 12});
 		removedValue = buffer.remove(1);
 		assertEquals((byte)11, removedValue.byteValue());
 		assertEquals("[0A, 0C]", buffer.toString());
+	}
+	
+	@Test
+	public void testAddAllAtIndex()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		buffer.add(new byte[]{0, 1, 2, 3, 4});
+		
+		// 1. Add a collection at the start.
+		boolean changed = buffer.addAll(0, Arrays.asList((byte)10, (byte)11));
+		assertTrue(changed);
+		assertEquals("[0A, 0B, 00, 01, 02, 03, 04]", buffer.toString());
+		
+		// 2. Add a collection in the middle.
+		changed = buffer.addAll(3, Arrays.asList((byte)12, (byte)13));
+		assertTrue(changed);
+		assertEquals("[0A, 0B, 00, 0C, 0D, 01, 02, 03, 04]", buffer.toString());
+		
+		// 3. Add a collection at the end.
+		changed = buffer.addAll(9, Arrays.asList((byte)14, (byte)15));
+		assertTrue(changed);
+		assertEquals("[0B, 00, 0C, 0D, 01, 02, 03, 04, 0E, 0F]", buffer.toString()); // One element is overwritten due to full capacity.
+		
+		// 4. Add a collection that causes more elements to be overwritten.
+		changed = buffer.addAll(5, Arrays.asList((byte)16, (byte)17, (byte)18, (byte)19));
+		assertTrue(changed);
+		assertEquals("[01, 10, 11, 12, 13, 02, 03, 04, 0E, 0F]", buffer.toString()); // Some previous elements are overwritten.
+		
+		// 5. Ensure exceptions are thrown for out-of-bounds indices.
+		assertThrows(IndexOutOfBoundsException.class, () -> buffer.addAll(-1, Arrays.asList((byte)20)));
+		assertThrows(IndexOutOfBoundsException.class, () -> buffer.addAll(10, Arrays.asList((byte)20)));
+		
+		// 6. Test adding an empty collection (should return false and not modify the buffer).
+		changed = buffer.addAll(3, new ArrayList<Byte>());
+		assertFalse(changed);
+		assertEquals("[01, 10, 11, 12, 13, 02, 03, 04, 0E, 0F]", buffer.toString());
+		
+		// 7. Test adding a null collection.
+		assertThrows(NullPointerException.class, () -> buffer.addAll(3, null));
 	}
 	
 	//************************************ Parameterized Test ************************************//

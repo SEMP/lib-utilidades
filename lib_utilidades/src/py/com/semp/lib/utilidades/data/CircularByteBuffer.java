@@ -1,6 +1,7 @@
 package py.com.semp.lib.utilidades.data;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -1093,12 +1094,64 @@ public class CircularByteBuffer implements List<Byte>
 		
 		return sb.toString();
 	}
-
+	
 	@Override
-	public boolean addAll(int index, Collection<? extends Byte> c)
+	public boolean addAll(int index, Collection<? extends Byte> collection)
 	{
-		// TODO Auto-generated method stub
-		return false;
+		int bufferSize = this.getBufferSize();
+		
+		if(index >= bufferSize)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, bufferSize);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		boolean changed = false;
+		
+		int size = this.size();
+		
+		if(collection.size() > 0)
+		{
+			changed = true;
+		}
+		
+		if(index == 0)
+		{
+			List<Byte> list = new ArrayList<>(collection);
+			
+			CircularByteBufferIterator iterator = this.iterator();
+			
+			for(int i = list.size() - 1; i >= 0; i--)
+			{
+				Byte value = list.get(i);
+				
+				iterator.addFirst(value);
+			}
+			
+			return changed;
+		}
+		
+		if(index == size)
+		{
+			CircularByteBufferIterator iterator = this.iterator();
+			
+			for(Byte element : collection)
+			{
+				iterator.addLast(element);
+			}
+			
+			return changed;
+		}
+		
+		CircularByteBufferIterator iterator = this.listIterator(index);
+		
+		for(Byte element : collection)
+		{
+			iterator.add(element);
+		}
+		
+		return changed;
 	}
 	
 	@Override
@@ -1290,9 +1343,7 @@ public class CircularByteBuffer implements List<Byte>
 		
 		CircularByteBufferIterator iterator = this.iterator();
 		
-		int internalIndex = iterator.forward(index);
-		
-		iterator.setInternalIndex(internalIndex);
+		iterator.goTo(index);
 		
 		return iterator;
 	}
