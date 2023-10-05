@@ -421,6 +421,44 @@ public class CircularByteBufferTest
 		assertThrows(NullPointerException.class, () -> buffer.addAll(3, null));
 	}
 	
+	@Test
+	public void testSubList()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		
+		// 1. Get a sublist from the start.
+		List<Byte> sub = buffer.subList(0, 5);
+		assertEquals(Arrays.asList((byte)0, (byte)1, (byte)2, (byte)3, (byte)4), sub);
+		
+		// 2. Get a sublist from the middle.
+		sub = buffer.subList(3, 7);
+		assertEquals(Arrays.asList((byte)3, (byte)4, (byte)5, (byte)6), sub);
+		
+		// 3. Modify the sublist and ensure the original buffer is unchanged.
+		sub.add((byte)10);
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		
+		// 4. Modify the original buffer and ensure the sublist is unchanged.
+		buffer.add(0, (byte)11);
+		assertEquals(Arrays.asList((byte)4, (byte)5, (byte)6, (byte)10), sub); // No change.
+		
+		// 5. Get a sublist from the end.
+		sub = buffer.subList(8, 10);
+		assertEquals(Arrays.asList((byte)8, (byte)9), sub);
+		
+		// 6. Ensure exceptions are thrown for out-of-bounds indices.
+		assertThrows(IndexOutOfBoundsException.class, () -> buffer.subList(-1, 5));
+		assertThrows(IndexOutOfBoundsException.class, () -> buffer.subList(3, 11));
+		
+		// 7. Ensure exception is thrown if fromIndex is greater than toIndex.
+		assertThrows(IllegalArgumentException.class, () -> buffer.subList(7, 3));
+		
+		// 8. Clear the sublist and ensure the original buffer is unchanged.
+		sub.clear();
+		assertEquals("[0B, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+	}
+	
 	//************************************ Parameterized Test ************************************//
 	
 	@ParameterizedTest

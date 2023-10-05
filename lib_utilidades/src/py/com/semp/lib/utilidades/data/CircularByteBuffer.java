@@ -1383,7 +1383,7 @@ public class CircularByteBuffer implements List<Byte>
 		int size = this.size();
 		
 		this.validateIndex(fromIndex, size);
-		this.validateIndex(toIndex, size);
+		this.validateIndex(toIndex, size + 1);
 		
 		if(fromIndex > toIndex)
 		{
