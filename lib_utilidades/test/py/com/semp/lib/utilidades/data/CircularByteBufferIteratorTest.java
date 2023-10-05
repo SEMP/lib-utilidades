@@ -283,6 +283,7 @@ public class CircularByteBufferIteratorTest
 		assertEquals(0, iterator.nextIndex());
 		iterator.next();
 		assertEquals(0, iterator.getIndex());
+		assertEquals("0", iterator.toString());
 		assertEquals(1, iterator.nextIndex());
 	}
 	
