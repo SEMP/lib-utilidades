@@ -397,7 +397,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(internalFrom == dataStart)
 		{
-			this.buffer.start = this.goNext(internalFrom);
+			this.buffer.start = this.goNext(internalTo);
 			
 			if(this.buffer.start == BUFFER_BOUNDARY)
 			{
@@ -409,7 +409,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(internalTo == dataEnd)
 		{
-			this.buffer.end = this.goPrevious(internalTo);
+			this.buffer.end = this.goPrevious(internalFrom);
 			
 			if(this.buffer.end == BUFFER_BOUNDARY)
 			{

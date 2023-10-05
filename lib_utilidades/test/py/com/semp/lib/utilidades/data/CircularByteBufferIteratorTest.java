@@ -583,6 +583,12 @@ public class CircularByteBufferIteratorTest
 		// 6. Test that calling remove() after add() throws an exception
 		iterator.add((byte)0x0A);
 		assertThrows(IllegalStateException.class, () -> iterator.remove());
+		
+		// 7. Test removing from illegal index.
+		iterator.reset();
+		iterator.next();
+		iterator.setInternalIndex(CircularByteBuffer.BUFFER_BOUNDARY);
+		assertThrows(NoSuchElementException.class, () -> iterator.remove());
 	}
 	
 	@Test
@@ -655,5 +661,41 @@ public class CircularByteBufferIteratorTest
 		iterator.nextByte(); // Moving the iterator forward
 		iterator.goTo(3);
 		assertEquals(0x0A, iterator.nextByte());
+	}
+	
+	@Test
+	public void testIteratorRemoveRange()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		CircularByteBufferIterator iterator = buffer.iterator();
+		
+		// Scenario 1: Removing from an empty buffer
+		buffer.clear();
+		assertThrows(NoSuchElementException.class, () -> iterator.remove(0, 2));
+		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		
+		// Scenario 2: Remove a range starting from the beginning of the buffer
+		iterator.remove(0, 3);
+		assertEquals("[03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		
+		// Scenario 3: Remove a range from the middle of the buffer
+		iterator.remove(2, 5);
+		assertEquals("[03, 04, 08, 09]", buffer.toString());
+		
+		// Scenario 4: Remove a range from the end of the buffer
+		iterator.remove(2, 4);
+		assertEquals("[03, 04]", buffer.toString());
+		
+		// Scenario 5: Remove a range out of bounds
+		assertThrows(IndexOutOfBoundsException.class, () -> iterator.remove(-1, 3));
+		assertThrows(IndexOutOfBoundsException.class, () -> iterator.remove(1, 5));
+		
+		// Scenario 6: Removing with "from" greater than "to"
+		assertThrows(IndexOutOfBoundsException.class, () -> iterator.remove(3, 1));
+		
+		// Scenario 7: Removing from and to the same index (effectively, no removal)
+		iterator.remove(1, 1);
+		assertEquals("[03, 04]", buffer.toString());
 	}
 }
