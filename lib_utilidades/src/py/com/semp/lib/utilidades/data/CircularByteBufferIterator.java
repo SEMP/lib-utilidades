@@ -573,6 +573,20 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			throw new IllegalStateException(errorMessage);
 		}
 		
+		if(element == null)
+		{
+			StringBuilder methodName = new StringBuilder();
+			
+			methodName.append("Byte ");
+			methodName.append(this.getClass().getSimpleName());
+			methodName.append("::");
+			methodName.append("set(int, Byte)");
+			
+			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
+			
+			throw new NullPointerException(errorMessage);
+		}
+		
 		this.buffer.byteArray[this.index] = element;
 	}
 	
@@ -1013,6 +1027,12 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 */
 	protected boolean inRange(int start, int end)
 	{
+		int bufferSize = this.buffer.getBufferSize();
+		
+		if(start < 0 || start >= bufferSize || end < 0 || end >= bufferSize)
+		{
+			return false;
+		}
 		// True if the buffer doesn't wrap around
 		boolean bufferIsLinear = this.buffer.end >= this.buffer.start;
 		// True if the provided range doesn't wrap around

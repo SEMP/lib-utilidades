@@ -296,11 +296,138 @@ public class CircularByteBufferIteratorTest
 	}
 	
 	@Test
+	public void testAddFirstLast()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		
+		CircularByteBufferIterator iterator = buffer.iterator();
+		
+		iterator.addFirst((byte)0);
+		assertEquals("[00]", buffer.toString());
+		
+		buffer.clear();
+		iterator.reset();
+		
+		iterator.addLast((byte)0);
+		assertEquals("[00]", buffer.toString());
+		
+		buffer.clear();
+		iterator.reset();
+		
+		iterator.addFirst((byte)4);
+		iterator.addFirst((byte)3);
+		iterator.addLast((byte)5);
+		iterator.addLast((byte)6);
+		iterator.addFirst((byte)2);
+		iterator.addLast((byte)7);
+		iterator.addFirst((byte)1);
+		iterator.addLast((byte)8);
+		iterator.addFirst((byte)0);
+		iterator.addLast((byte)9);
+		
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		
+		iterator.addFirst((byte)10);
+		assertEquals("[0A, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		
+		iterator.addLast((byte)11);
+		assertEquals("[01, 02, 03, 04, 05, 06, 07, 08, 09, 0B]", buffer.toString());
+	}
+	
+	@Test
+	public void testInRange()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		buffer.start = 2;
+		buffer.end = 7;
+		
+		CircularByteBufferIterator iterator = buffer.iterator();
+		
+		// 1. Buffer and range are both linear.
+		assertTrue(iterator.inRange(2, 7));
+		assertFalse(iterator.inRange(7, 2));
+		assertTrue(iterator.inRange(3, 7));
+		assertFalse(iterator.inRange(7, 3));
+		assertTrue(iterator.inRange(2, 6));
+		assertFalse(iterator.inRange(6, 2));
+		assertTrue(iterator.inRange(3, 6));
+		assertFalse(iterator.inRange(6, 3));
+		assertFalse(iterator.inRange(8, 9));
+		assertFalse(iterator.inRange(9, 8));
+		assertFalse(iterator.inRange(0, 1));
+		assertFalse(iterator.inRange(1, 0));
+		assertFalse(iterator.inRange(1, 7));
+		assertFalse(iterator.inRange(7, 1));
+		assertFalse(iterator.inRange(2, 8));
+		assertFalse(iterator.inRange(8, 2));
+		assertFalse(iterator.inRange(1, 8));
+		assertFalse(iterator.inRange(8, 1));
+		assertFalse(iterator.inRange(1, 6));
+		assertFalse(iterator.inRange(6, 1));
+		assertFalse(iterator.inRange(3, 8));
+		assertFalse(iterator.inRange(8, 3));
+		
+		// Check for out-of-bounds
+		assertFalse(iterator.inRange(-1, 7));
+		assertFalse(iterator.inRange(7, -1));
+	    assertFalse(iterator.inRange(2, 10));
+	    assertFalse(iterator.inRange(10, 2));
+	    assertFalse(iterator.inRange(-1, 10));
+	    assertFalse(iterator.inRange(10, -1));
+	    assertFalse(iterator.inRange(-1, 2));
+	    assertFalse(iterator.inRange(2, -1));
+	    assertFalse(iterator.inRange(7, 10));
+	    assertFalse(iterator.inRange(10, 7));
+		
+		// Simulating a buffer that wraps around.
+		// After this, the buffer will have data wrapped around like [7, 8, 9, 0, 1, 2]
+		buffer.start = 7;
+		buffer.end = 2;
+		
+		assertFalse(iterator.inRange(2, 7));
+		assertTrue(iterator.inRange(7, 2));
+		assertFalse(iterator.inRange(3, 7));
+		assertFalse(iterator.inRange(7, 3));
+		assertFalse(iterator.inRange(2, 6));
+		assertFalse(iterator.inRange(6, 2));
+		assertFalse(iterator.inRange(3, 6));
+		assertFalse(iterator.inRange(6, 3));
+		assertTrue(iterator.inRange(8, 9));
+		assertFalse(iterator.inRange(9, 8));
+		assertTrue(iterator.inRange(0, 1));
+		assertFalse(iterator.inRange(1, 0));
+		assertFalse(iterator.inRange(1, 7));
+		assertTrue(iterator.inRange(7, 1));
+		assertFalse(iterator.inRange(2, 8));
+		assertTrue(iterator.inRange(8, 2));
+		assertFalse(iterator.inRange(1, 8));
+		assertTrue(iterator.inRange(8, 1));
+		assertFalse(iterator.inRange(1, 6));
+		assertFalse(iterator.inRange(6, 1));
+		assertFalse(iterator.inRange(3, 8));
+		assertFalse(iterator.inRange(8, 3));
+		
+		// Check for out-of-bounds
+		assertFalse(iterator.inRange(-1, 7));
+		assertFalse(iterator.inRange(7, -1));
+	    assertFalse(iterator.inRange(2, 10));
+	    assertFalse(iterator.inRange(10, 2));
+	    assertFalse(iterator.inRange(-1, 10));
+	    assertFalse(iterator.inRange(10, -1));
+	    assertFalse(iterator.inRange(-1, 2));
+	    assertFalse(iterator.inRange(2, -1));
+	    assertFalse(iterator.inRange(7, 10));
+	    assertFalse(iterator.inRange(10, 7));
+	}
+	
+	@Test
 	public void testSet()
 	{
+		assertThrows(IllegalStateException.class, () -> iterator.set((byte)9));
 		iterator.next();
 		iterator.set((byte)99);
 		assertEquals(Byte.valueOf((byte)99), list.get(0));
+		assertThrows(NullPointerException.class, () -> iterator.set(null));
 	}
 	
 	@Test
@@ -698,5 +825,9 @@ public class CircularByteBufferIteratorTest
 		// Scenario 7: Removing from and to the same index (effectively, no removal)
 		iterator.remove(1, 1);
 		assertEquals("[03, 04]", buffer.toString());
+		
+		// Scenario 8: Removing all the remaining data.
+		iterator.remove(0, 2);
+		assertEquals("[]", buffer.toString());
 	}
 }
