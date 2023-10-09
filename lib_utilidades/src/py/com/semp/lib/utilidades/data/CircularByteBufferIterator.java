@@ -339,8 +339,8 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return;
 		}
 		
-		int forwardDistance = Math.abs(dataEnd - removeIndex);
-		int backwardDistance = Math.abs(dataStart - removeIndex);
+		int forwardDistance = this.forwardDistance(removeIndex);
+		int backwardDistance = this.backwardDistance(removeIndex);
 		
 		if(forwardDistance <= backwardDistance)
 		{
@@ -352,6 +352,32 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		{
 			this.shiftFromStart(removeIndex);
 		}
+	}
+	
+	private int backwardDistance(int index)
+	{
+		int dataStart = this.buffer.start;
+		int distance = index - dataStart;
+		
+		if(distance < 0)
+		{
+			distance += this.buffer.getBufferSize();
+		}
+		
+		return distance;
+	}
+	
+	private int forwardDistance(int index)
+	{
+		int dataEnd = this.buffer.end;
+		int distance = dataEnd - index;
+		
+		if(distance < 0)
+		{
+			distance += this.buffer.getBufferSize();
+		}
+		
+		return distance;
 	}
 	
 	/**
@@ -419,8 +445,8 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return;
 		}
 		
-		int forwardDistance = Math.abs(dataEnd - (to - 1));
-		int backwardDistance = Math.abs(dataStart - from);
+		int forwardDistance = this.forwardDistance(to - 1);
+		int backwardDistance = this.backwardDistance(from);
 		
 		if(forwardDistance <= backwardDistance)
 		{
@@ -593,7 +619,6 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public void add(Byte element)
 	{
-		int bufferSize = this.buffer.getBufferSize();
 		int dataSize = this.buffer.getDataSize();
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
@@ -631,20 +656,28 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		int insertPoint = index;
 		
-		if(dataStart <= dataEnd)
+		int forwardDistance = this.forwardDistance(insertPoint);
+		int backwardDistance = this.backwardDistance(insertPoint);
+		
+		if(this.spaceAvailable())
 		{
-			//Space available to the end
-			if((dataEnd + 1) < bufferSize)
+			if(forwardDistance <= backwardDistance)
 			{
 				this.goNext();
 				this.shiftToEnd(this.index);
 				this.buffer.byteArray[this.index] = element;
-				
-				return;
 			}
+			else
+			{
+				this.shiftToStart(this.index);
+				this.buffer.byteArray[this.index] = element;
+				this.newElementsIndex = this.goPrevious(this.newElementsIndex);
+			}
+			
+			return;
 		}
 		
-		//Space available to the start of the buffer or replace older data
+		//replace older data
 		if(this.newElementsIndex != dataStart)
 		{
 			this.shiftToStart(insertPoint);
@@ -662,6 +695,17 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			
 			return;
 		}
+	}
+
+	private boolean spaceAvailable()
+	{
+		int dataStart = this.buffer.start;
+		int dataEnd = this.buffer.end;
+		int bufferSize = this.buffer.getBufferSize();
+		
+		return
+		(dataStart <= dataEnd && dataEnd - dataStart < bufferSize - 1) ||
+		(dataStart > dataEnd && dataStart - 1 > dataEnd);
 	}
 	
 	/**

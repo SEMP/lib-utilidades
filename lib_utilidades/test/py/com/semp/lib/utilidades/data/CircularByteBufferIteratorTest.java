@@ -474,6 +474,7 @@ public class CircularByteBufferIteratorTest
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
 		assertEquals("[]", buffer.toString());
+		assertEquals("[00, 00, 00, 00, 00, 00, 00, 00, 00, 00]", buffer.stateToString());
 		
 		iterator.add((byte)0);
 		iterator.add((byte)1);
@@ -482,6 +483,7 @@ public class CircularByteBufferIteratorTest
 		iterator.add((byte)4);
 		
 		assertEquals("[00, 01, 02, 03, 04]", buffer.toString());
+		assertEquals("[(00), 01, 02, 03, {04}, 00, 00, 00, 00, 00]", buffer.stateToString());
 		
 		while(iterator.hasNext())
 		{
@@ -495,9 +497,11 @@ public class CircularByteBufferIteratorTest
 		
 		iterator.add((byte)0x0A);
 		assertEquals("[00, 01, 0A, 02, 03, 04]", buffer.toString());
+		assertEquals("[01, 0A, 02, 03, {04}, 00, 00, 00, 00, (00)]", buffer.stateToString());
 		
 		iterator.add((byte)0x0B);
 		assertEquals("[00, 01, 0A, 0B, 02, 03, 04]", buffer.toString());
+		assertEquals("[0A, 0B, 02, 03, {04}, 00, 00, 00, (00), 01]", buffer.stateToString());
 		
 		iterator.add((byte)0x0C);
 		assertEquals("[00, 01, 0A, 0B, 0C, 02, 03, 04]", buffer.toString());
