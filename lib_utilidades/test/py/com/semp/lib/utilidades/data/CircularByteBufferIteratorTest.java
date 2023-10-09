@@ -18,6 +18,11 @@ public class CircularByteBufferIteratorTest
 	@BeforeEach
 	public void setUp()
 	{
+		this.initializeBuffer();
+	}
+
+	private void initializeBuffer()
+	{
 		this.list = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8});
 		
 		list.start = 6;
@@ -304,34 +309,65 @@ public class CircularByteBufferIteratorTest
 		
 		iterator.addFirst((byte)0);
 		assertEquals("[00]", buffer.toString());
+		assertEquals("[{(00)}, 00, 00, 00, 00, 00, 00, 00, 00, 00]", buffer.stateToString());
 		
 		buffer.clear();
 		iterator.reset();
 		
 		iterator.addLast((byte)0);
 		assertEquals("[00]", buffer.toString());
+		assertEquals("[{(00)}, 00, 00, 00, 00, 00, 00, 00, 00, 00]", buffer.stateToString());
 		
 		buffer.clear();
 		iterator.reset();
 		
 		iterator.addFirst((byte)4);
-		iterator.addFirst((byte)3);
-		iterator.addLast((byte)5);
-		iterator.addLast((byte)6);
-		iterator.addFirst((byte)2);
-		iterator.addLast((byte)7);
-		iterator.addFirst((byte)1);
-		iterator.addLast((byte)8);
-		iterator.addFirst((byte)0);
-		iterator.addLast((byte)9);
+		assertEquals("[04]", buffer.toString());
+		assertEquals("[{(04)}, 00, 00, 00, 00, 00, 00, 00, 00, 00]", buffer.stateToString());
 		
+		iterator.addFirst((byte)3);
+		assertEquals("[03, 04]", buffer.toString());
+		assertEquals("[{04}, 00, 00, 00, 00, 00, 00, 00, 00, (03)]", buffer.stateToString());
+		
+		iterator.addLast((byte)5);
+		assertEquals("[03, 04, 05]", buffer.toString());
+		assertEquals("[04, {05}, 00, 00, 00, 00, 00, 00, 00, (03)]", buffer.stateToString());
+		
+		iterator.addLast((byte)6);
+		assertEquals("[03, 04, 05, 06]", buffer.toString());
+		assertEquals("[04, 05, {06}, 00, 00, 00, 00, 00, 00, (03)]", buffer.stateToString());
+		
+		iterator.addFirst((byte)2);
+		assertEquals("[02, 03, 04, 05, 06]", buffer.toString());
+		assertEquals("[04, 05, {06}, 00, 00, 00, 00, 00, (02), 03]", buffer.stateToString());
+		
+		iterator.addLast((byte)7);
+		assertEquals("[02, 03, 04, 05, 06, 07]", buffer.toString());
+		assertEquals("[04, 05, 06, {07}, 00, 00, 00, 00, (02), 03]", buffer.stateToString());
+		
+		iterator.addFirst((byte)1);
+		assertEquals("[01, 02, 03, 04, 05, 06, 07]", buffer.toString());
+		assertEquals("[04, 05, 06, {07}, 00, 00, 00, (01), 02, 03]", buffer.stateToString());
+		
+		iterator.addLast((byte)8);
+		assertEquals("[01, 02, 03, 04, 05, 06, 07, 08]", buffer.toString());
+		assertEquals("[04, 05, 06, 07, {08}, 00, 00, (01), 02, 03]", buffer.stateToString());
+		
+		iterator.addFirst((byte)0);
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08]", buffer.toString());
+		assertEquals("[04, 05, 06, 07, {08}, 00, (00), 01, 02, 03]", buffer.stateToString());
+		
+		iterator.addLast((byte)9);
 		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[04, 05, 06, 07, 08, {09}, (00), 01, 02, 03]", buffer.stateToString());
 		
 		iterator.addFirst((byte)10);
 		assertEquals("[0A, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[04, 05, 06, 07, 08, {09}, (0A), 01, 02, 03]", buffer.stateToString());
 		
 		iterator.addLast((byte)11);
 		assertEquals("[01, 02, 03, 04, 05, 06, 07, 08, 09, 0B]", buffer.toString());
+		assertEquals("[04, 05, 06, 07, 08, 09, {0B}, (01), 02, 03]", buffer.stateToString());
 	}
 	
 	@Test
@@ -830,4 +866,209 @@ public class CircularByteBufferIteratorTest
 		iterator.remove(0, 2);
 		assertEquals("[]", buffer.toString());
 	}
+	
+	@Test
+	public void testShiftFromStartScenarios()
+	{
+		// Test for shifting from the very start
+		iterator.shiftFromStart(6);
+		assertEquals("[07, 08, 00, 01, 02, 03]", list.toString());
+		assertEquals("[00, 01, 02, {03}, 04, 05, 06, (07), 08]", list.stateToString());
+		
+		// Test for shifting near the end
+		this.initializeBuffer();
+		iterator.shiftFromStart(2);
+		assertEquals("[06, 07, 08, 00, 01, 03]", list.toString());
+		assertEquals("[08, 00, 01, {03}, 04, 05, 06, (06), 07]", list.stateToString());
+		
+		// Test for shifting from the end
+		this.initializeBuffer();
+		iterator.shiftFromStart(3);
+		assertEquals("[06, 07, 08, 00, 01, 02]", list.toString());
+		assertEquals("[08, 00, 01, {02}, 04, 05, 06, (06), 07]", list.stateToString());
+		
+		// Test for shifting to the immediate next position from the start
+		this.initializeBuffer();
+		iterator.shiftFromStart(7);
+		assertEquals("[06, 08, 00, 01, 02, 03]", list.toString());
+		assertEquals("[00, 01, 02, {03}, 04, 05, 06, (06), 08]", list.stateToString());
+
+		// Test for shifting to a position right before the end
+		this.initializeBuffer();
+		iterator.shiftFromStart(1);
+		assertEquals("[06, 07, 08, 00, 02, 03]", list.toString());
+		assertEquals("[08, 00, 02, {03}, 04, 05, 06, (06), 07]", list.stateToString());
+
+		this.initializeBuffer();
+		iterator.shiftFromStart(8);
+		iterator.shiftFromStart(0);
+		assertEquals("[06, 07, 01, 02, 03]", list.toString());
+		assertEquals("[07, 01, 02, {03}, 04, 05, 06, 06, (06)]", list.stateToString());
+
+		this.initializeBuffer();
+		iterator.shiftFromStart(2);
+		iterator.shiftFromStart(3);
+		assertEquals("[06, 07, 08, 00, 01]", list.toString());
+		assertEquals("[07, 08, 00, {01}, 04, 05, 06, 06, (06)]", list.stateToString());
+		
+		// Test for multiple consecutive shifts
+		this.initializeBuffer();
+		iterator.shiftFromStart(3);
+		iterator.shiftFromStart(2);
+		assertEquals("[06, 07, 08, 00, 02]", list.toString());
+		assertEquals("[07, 08, 00, {02}, 04, 05, 06, 06, (06)]", list.stateToString());
+		
+		this.initializeBuffer();
+		iterator.shiftFromStart(7, 3);
+		assertEquals("[06]", list.toString());
+		assertEquals("[00, 01, 02, {(06)}, 04, 05, 06, 07, 08]", list.stateToString());
+		
+		iterator.shiftFromStart(3);
+		assertEquals("[]", list.toString());
+		assertEquals("[00, 01, 02, 06, 04, 05, 06, 07, 08]", list.stateToString());
+	}
+	
+	@Test
+	public void testShiftFromStartSegment()
+	{
+		iterator.shiftFromStart(1, 3);
+		assertEquals("[06, 07, 08, 00]", list.toString());
+		assertEquals("[(06), 07, 08, {00}, 04, 05, 06, 07, 08]", list.stateToString());
+		
+		// Test for shifting a segment that starts at the very beginning.
+		this.initializeBuffer();
+		iterator.shiftFromStart(0, 2);
+		assertEquals("[06, 07, 08, 03]", list.toString());
+		assertEquals("[(06), 07, 08, {03}, 04, 05, 06, 07, 08]", list.stateToString());
+		
+		// Test for shifting a segment that ends at the very end.
+		this.initializeBuffer();
+		iterator.shiftFromStart(7, 8);
+		assertEquals("[06, 00, 01, 02, 03]", list.toString());
+		assertEquals("[00, 01, 02, {03}, 04, 05, 06, 07, (06)]", list.stateToString());
+		
+		// Test for shifting a single element.
+		this.initializeBuffer();
+		iterator.shiftFromStart(2, 2);
+		assertEquals("[06, 07, 08, 00, 01, 03]", list.toString());
+		assertEquals("[08, 00, 01, {03}, 04, 05, 06, (06), 07]", list.stateToString());
+		
+		// Test for shifting the whole range.
+		this.initializeBuffer();
+		iterator.shiftFromStart(6, 3);
+		assertEquals("[]", list.toString());
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08]", list.stateToString());
+		
+		// Test for overlapping multiple consecutive shifts.
+		this.initializeBuffer();
+		iterator.shiftFromStart(0, 1);
+		iterator.shiftFromStart(2, 3);
+		assertEquals("[06, 07, 08]", list.toString());
+		assertEquals("[07, (06), 07, {08}, 04, 05, 06, 07, 06]", list.stateToString());
+		
+		// Test for shifting a segment starting from the end and wrapping to the start.
+		this.initializeBuffer();
+		iterator.shiftFromStart(7, 1);
+		assertEquals("[06, 02, 03]", list.toString());
+		assertEquals("[00, (06), 02, {03}, 04, 05, 06, 07, 08]", list.stateToString());
+	}
+	
+	@Test
+	public void testShiftFromEndScenarios()
+	{
+		// Test for shifting from the very end
+		iterator.shiftFromEnd(3);
+		assertEquals("[06, 07, 08, 00, 01, 02]", list.toString());
+		assertEquals("[00, 01, {02}, 03, 04, 05, (06), 07, 08]", list.stateToString());
+		
+		this.initializeBuffer();
+		iterator.shiftFromEnd(7);
+		assertEquals("[06, 08, 00, 01, 02, 03]", list.toString());
+		assertEquals("[01, 02, {03}, 03, 04, 05, (06), 08, 00]", list.stateToString());
+		
+		// Test for shifting from the very start (should be a no-op)
+		this.initializeBuffer();
+		iterator.shiftFromEnd(6);
+		assertEquals("[07, 08, 00, 01, 02, 03]", list.toString());
+		assertEquals("[01, 02, {03}, 03, 04, 05, (07), 08, 00]", list.stateToString());
+		
+		// Test for shifting the mid of buffer
+		this.initializeBuffer();
+		iterator.shiftFromEnd(8);
+		assertEquals("[06, 07, 00, 01, 02, 03]", list.toString());
+		assertEquals("[01, 02, {03}, 03, 04, 05, (06), 07, 00]", list.stateToString());
+		
+		// Test for two consecutive shifts.
+		this.initializeBuffer();
+		iterator.shiftFromEnd(7);
+		iterator.shiftFromEnd(7);
+		assertEquals("[06, 00, 01, 02, 03]", list.toString());
+		assertEquals("[02, {03}, 03, 03, 04, 05, (06), 00, 01]", list.stateToString());
+		
+		this.initializeBuffer();
+		iterator.shiftFromEnd(7, 3);
+		assertEquals("[06]", list.toString());
+		assertEquals("[00, 01, 02, 03, 04, 05, {(06)}, 07, 08]", list.stateToString());
+		
+		iterator.shiftFromEnd(6);
+		assertEquals("[]", list.toString());
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08]", list.stateToString());
+	}
+	
+	@Test
+	public void testShiftFromEndSegment()
+	{
+		iterator.shiftFromEnd(1, 3);
+		assertEquals("[06, 07, 08, 00]", list.toString());
+		assertEquals("[{00}, 01, 02, 03, 04, 05, (06), 07, 08]", list.stateToString());
+		
+		// Test for shifting a segment that starts at the very beginning.
+		this.initializeBuffer();
+		iterator.shiftFromEnd(0, 2);
+		assertEquals("[06, 07, 08, 03]", list.toString());
+		assertEquals("[{03}, 01, 02, 03, 04, 05, (06), 07, 08]", list.stateToString());
+		
+		// Test for shifting a segment that ends at the very end.
+		this.initializeBuffer();
+		iterator.shiftFromEnd(7, 8);
+		assertEquals("[06, 00, 01, 02, 03]", list.toString());
+		assertEquals("[02, {03}, 02, 03, 04, 05, (06), 00, 01]", list.stateToString());
+		
+		// Test for shifting a single element.
+		this.initializeBuffer();
+		iterator.shiftFromEnd(2, 2);
+		assertEquals("[06, 07, 08, 00, 01, 03]", list.toString());
+		assertEquals("[00, 01, {03}, 03, 04, 05, (06), 07, 08]", list.stateToString());
+		
+		// Test for shifting the whole range.
+		this.initializeBuffer();
+		iterator.shiftFromEnd(6, 3);
+		assertEquals("[]", list.toString());
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08]", list.stateToString());
+		
+		// Test for overlapping multiple consecutive shifts.
+		this.initializeBuffer();
+		iterator.shiftFromEnd(0, 1);
+		iterator.shiftFromEnd(6, 7); //TODO queda fuera de rango
+		assertEquals("[08, 02, 03]", list.toString());
+		assertEquals("[02, 03, 02, 03, 04, 05, (08), 02, {03}]", list.stateToString());
+		
+		// Test for shifting a segment starting from the end and wrapping to the start.
+		this.initializeBuffer();
+		iterator.shiftFromEnd(7, 1);
+		assertEquals("[06, 02, 03]", list.toString());
+		assertEquals("[00, 01, 02, 03, 04, 05, (06), 02, {03}]", list.stateToString());
+	}
+	
+//	@Test
+//	public void testShiftToStart() {
+//	    iterator.shiftToStart(7);
+//	    assertEquals("[06, 07, 07, 08, 00, 01, 02, 03]", list.toString());
+//	}
+//	
+//	@Test
+//	public void testShiftToEnd() {
+//	    iterator.shiftToEnd(4);
+//	    assertEquals("[07, 08, 06, 07, 08, 00, 01, 02, 03]", list.toString());
+//	}
 }

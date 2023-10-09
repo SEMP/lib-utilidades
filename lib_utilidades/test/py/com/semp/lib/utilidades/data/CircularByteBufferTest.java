@@ -459,6 +459,59 @@ public class CircularByteBufferTest
 		assertEquals("[0B, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
 	}
 	
+	@Test
+	public void testExtractInByteArray()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
+		{
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+		});
+		
+		// 1. Extracting a linear segment from the buffer.
+		Byte[] extracted1 = buffer.extractInByteArray(2, 6);
+		Byte[] expected1 = new Byte[]
+		{
+				2, 3, 4, 5, 6
+		};
+		assertArrayEquals(expected1, extracted1);
+		
+		// 2. Extracting a segment that wraps around from the end to the start.
+		buffer.start = 7;
+		buffer.end = 3;
+		Byte[] extracted2 = buffer.extractInByteArray(8, 1);
+		Byte[] expected2 = new Byte[]
+		{
+				8, 9, 0, 1
+		};
+		assertArrayEquals(expected2, extracted2);
+		
+		// 3. Extracting the entire buffer when it's linear.
+		Byte[] extracted3 = buffer.extractInByteArray(0, 9);
+		Byte[] expected3 = new Byte[]
+		{
+				0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+		};
+		assertArrayEquals(expected3, extracted3);
+		
+		// 4. Extracting the entire buffer when it wraps around.
+		buffer.start = 8;
+		buffer.end = 4;
+		Byte[] extracted4 = buffer.extractInByteArray(8, 4);
+		Byte[] expected4 = new Byte[]
+		{
+				8, 9, 0, 1, 2, 3, 4
+		};
+		assertArrayEquals(expected4, extracted4);
+		
+		// 5. Extracting a segment with the same start and end index.
+		Byte[] extracted5 = buffer.extractInByteArray(5, 5);
+		Byte[] expected5 = new Byte[]
+		{
+				5
+		};
+		assertArrayEquals(expected5, extracted5);
+	}
+	
 	//************************************ Parameterized Test ************************************//
 	
 	@ParameterizedTest

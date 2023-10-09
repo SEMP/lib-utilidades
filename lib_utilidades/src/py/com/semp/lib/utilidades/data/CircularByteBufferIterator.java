@@ -1067,7 +1067,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * - The index of the element to be overwritten by the shifting.
 	 * @author Sergio Morel
 	 */
-	private void shiftFromStart(int removeIndex)
+	protected void shiftFromStart(int removeIndex)
 	{
 		int copyFromIndex = this.goPrevious(removeIndex);
 		int copyToIndex = removeIndex;
@@ -1081,6 +1081,11 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		
 		this.buffer.start = this.goNext(copyToIndex);
+		
+		if(this.buffer.start == BUFFER_BOUNDARY)
+		{
+			this.buffer.end = BUFFER_BOUNDARY;
+		}
 	}
 	
 	/**
@@ -1093,7 +1098,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * - The end of the range that will be removed (inclusive).
 	 * @author Sergio Morel
 	 */
-	private void shiftFromStart(int removeFrom, int removeTo)
+	protected void shiftFromStart(int removeFrom, int removeTo)
 	{
 		int copyFromIndex = this.goPrevious(removeFrom);
 		int copyToIndex = removeTo;
@@ -1107,6 +1112,11 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		
 		this.buffer.start = this.goNext(copyToIndex);
+		
+		if(this.buffer.start == BUFFER_BOUNDARY)
+		{
+			this.buffer.end = BUFFER_BOUNDARY;
+		}
 	}
 	
 	/**
@@ -1117,7 +1127,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * - The index of the element to be overwritten by the shifting.
 	 * @author Sergio Morel
 	 */
-	private void shiftFromEnd(int removeIndex)
+	protected void shiftFromEnd(int removeIndex)
 	{
 		int copyFromIndex = this.goNext(removeIndex);
 		int copyToIndex = removeIndex;
@@ -1131,6 +1141,11 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		
 		this.buffer.end = this.goPrevious(copyToIndex);
+		
+		if(this.buffer.end == BUFFER_BOUNDARY)
+		{
+			this.buffer.start = BUFFER_BOUNDARY;
+		}
 	}
 	
 	/**
@@ -1143,7 +1158,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * - The end of the range that will be removed (inclusive).
 	 * @author Sergio Morel
 	 */
-	private void shiftFromEnd(int removeFrom, int removeTo)
+	protected void shiftFromEnd(int removeFrom, int removeTo)
 	{
 		int copyFromIndex = this.goNext(removeTo);
 		int copyToIndex = removeFrom;
@@ -1157,6 +1172,11 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		}
 		
 		this.buffer.end = this.goPrevious(copyToIndex);
+		
+		if(this.buffer.end == BUFFER_BOUNDARY)
+		{
+			this.buffer.start = BUFFER_BOUNDARY;
+		}
 	}
 	
 	/**
@@ -1172,7 +1192,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * - The starting point for the shift. After the shift, this position will have a duplicate of its value in the previous slot.
 	 * @author Sergio Morel
 	 */
-	private void shiftToStart(int index)
+	protected void shiftToStart(int index)
 	{
 		if(this.buffer.start <= this.buffer.end)
 		{
@@ -1220,7 +1240,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 * - The starting point for the shift. After the shift, this position will have a duplicate of its value in the previous slot.
 	 * @author Sergio Morel
 	 */
-	private void shiftToEnd(int index)
+	protected void shiftToEnd(int index)
 	{
 		if(this.buffer.start <= this.buffer.end)
 		{

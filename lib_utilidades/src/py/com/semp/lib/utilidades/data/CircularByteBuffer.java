@@ -30,22 +30,22 @@ public class CircularByteBuffer implements List<Byte>
 	/**
 	 * Value of index when not referring to a position in the buffer.
 	 */
-	static final int BUFFER_BOUNDARY = -1;
+	protected static final int BUFFER_BOUNDARY = -1;
 	
 	/**
 	 * Index for the first element of the buffer.
 	 */
-	int start;
+	protected int start;
 	
 	/**
 	 * Index for the last element of the buffer.
 	 */
-	int end;
+	protected int end;
 	
 	/**
 	 * Underlying byte array for the circular buffer.
 	 */
-	byte[] byteArray;
+	protected byte[] byteArray;
 	
 	/**
 	 * Constructor that initializes the buffer with a fixed size.
@@ -368,7 +368,7 @@ public class CircularByteBuffer implements List<Byte>
 	 * <b>false</b> if the indices are not in the data range.
 	 * @author Sergio Morel
 	 */
-	boolean inRange(int start, int end)
+	protected boolean inRange(int start, int end)
 	{
 		CircularByteBufferIterator iterator = this.iterator();
 		
@@ -386,7 +386,7 @@ public class CircularByteBuffer implements List<Byte>
 	 * - The size of the data range inside the buffer.
 	 * @author Sergio Morel
 	 */
-	int getDataSize(int start, int end)
+	protected int getDataSize(int start, int end)
 	{
 		if(this.isEmpty())
 		{
@@ -645,14 +645,14 @@ public class CircularByteBuffer implements List<Byte>
 	 * segment includes the content of both indexes. This does not modify the buffer.
 	 * 
 	 * @param start
-	 * - start index (inclusive).
+	 * - start internal index (inclusive).
 	 * @param end
-	 * - end index (inclusive).
+	 * - end internal index (inclusive).
 	 * @return
 	 * - the extracted segment.
 	 * @author Sergio Morel.
 	 */
-	byte[] extract(int start, int end)
+	protected byte[] extract(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
 		int bufferSize = this.getBufferSize();
@@ -680,18 +680,18 @@ public class CircularByteBuffer implements List<Byte>
 	}
 	
 	/**
-	 * Extracts from the buffer the segment contained between the indexes into a Byte array. The
-	 * segment includes the content of both indexes.
+	 * Extracts from the buffer the segment contained between the indexes. The
+	 * segment includes the content of both indexes. This does not modify the buffer.
 	 * 
 	 * @param start
-	 * - start index.
+	 * - start internal index (inclusive).
 	 * @param end
-	 * - end index.
+	 * - end internal index (inclusive).
 	 * @return
-	 * - A Byte array with the extracted segment elements.
+	 * - the extracted segment.
 	 * @author Sergio Morel.
 	 */
-	Byte[] extractInByteArray(int start, int end)
+	protected Byte[] extractInByteArray(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
 		int bufferSize = this.getBufferSize();
@@ -730,7 +730,7 @@ public class CircularByteBuffer implements List<Byte>
 	 * - An Object array with the extracted segment elements.
 	 * @author Sergio Morel.
 	 */
-	Object[] extractInObjectArray(int start, int end)
+	protected Object[] extractInObjectArray(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
 		int bufferSize = this.getBufferSize();
@@ -1091,6 +1091,76 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		
 		sb.append("]");
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Returns a string representing the circular buffer in its internal state.<br>
+	 * - the start index is marked by ()<br>
+	 * - the end index is marked by {}
+	 * 
+	 * @return
+	 * - the String corresponding to the state of the buffer.
+	 */
+	public String stateToString()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("[");
+		
+		for(int i = 0; i < this.byteArray.length; i++)
+		{
+			if(i != 0)
+			{
+				sb.append(", ");
+			}
+			
+			if(i == this.end)
+			{
+				sb.append("{");
+			}
+			
+			if(i == this.start)
+			{
+				sb.append("(");
+			}
+			
+			sb.append(this.formatValue(this.byteArray[i]));
+			
+			if(i == this.start)
+			{
+				sb.append(")");
+			}
+			
+			if(i == this.end)
+			{
+				sb.append("}");
+			}
+		}
+		
+		sb.append("]");
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Returns a string representing the circular buffer in its internal state. This
+	 * includes the data size, and the buffer capacity.<br>
+	 * - the start index is marked by ()<br>
+	 * - the end index is marked by {}
+	 * 
+	 * @return
+	 * - the String corresponding to the state of the buffer.
+	 */
+	public String stateToStringDetails()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(this.stateToString());
+		
+		sb.append(" Size: (").append(this.getDataSize()).append(" / ");
+	    sb.append(this.byteArray.length).append(")");
 		
 		return sb.toString();
 	}
