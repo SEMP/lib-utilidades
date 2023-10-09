@@ -505,39 +505,51 @@ public class CircularByteBufferIteratorTest
 		
 		iterator.add((byte)0x0C);
 		assertEquals("[00, 01, 0A, 0B, 0C, 02, 03, 04]", buffer.toString());
+		assertEquals("[0A, 0B, 0C, 02, 03, {04}, 00, 00, (00), 01]", buffer.stateToString());
 		
 		iterator.add((byte)0x0D);
 		assertEquals("[00, 01, 0A, 0B, 0C, 0D, 02, 03, 04]", buffer.toString());
+		assertEquals("[0A, 0B, 0C, 0D, 02, 03, {04}, 00, (00), 01]", buffer.stateToString());
 		
 		iterator.add((byte)0x0E);
 		assertEquals("[00, 01, 0A, 0B, 0C, 0D, 0E, 02, 03, 04]", buffer.toString());
+		assertEquals("[0A, 0B, 0C, 0D, 0E, 02, 03, {04}, (00), 01]", buffer.stateToString());
 		
 		iterator.add((byte)0x0F);
 		assertEquals("[01, 0A, 0B, 0C, 0D, 0E, 0F, 02, 03, 04]", buffer.toString());
+		assertEquals("[0B, 0C, 0D, 0E, 0F, 02, 03, {04}, (01), 0A]", buffer.stateToString());
 		
 		iterator.add((byte)0x10);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 02, 03, 04]", buffer.toString());
+		assertEquals("[0C, 0D, 0E, 0F, 10, 02, 03, {04}, (0A), 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x11);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 11, 03, 04]", buffer.toString());
+		assertEquals("[0C, 0D, 0E, 0F, 10, 11, 03, {04}, (0A), 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x12);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 11, 12, 04]", buffer.toString());
+		assertEquals("[0C, 0D, 0E, 0F, 10, 11, 12, {04}, (0A), 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x13);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 11, 12, 13]", buffer.toString());
+		assertEquals("[0C, 0D, 0E, 0F, 10, 11, 12, {13}, (0A), 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x14);
 		assertEquals("[0B, 0C, 0D, 0E, 0F, 10, 11, 12, 13, 14]", buffer.toString());
+		assertEquals("[0C, 0D, 0E, 0F, 10, 11, 12, 13, {14}, (0B)]", buffer.stateToString());
 		
 		iterator.add((byte)0x15);
 		assertEquals("[0C, 0D, 0E, 0F, 10, 11, 12, 13, 14, 15]", buffer.toString());
+		assertEquals("[(0C), 0D, 0E, 0F, 10, 11, 12, 13, 14, {15}]", buffer.stateToString());
 		
 		iterator.add((byte)0x16);
 		assertEquals("[0D, 0E, 0F, 10, 11, 12, 13, 14, 15, 16]", buffer.toString());
+		assertEquals("[{16}, (0D), 0E, 0F, 10, 11, 12, 13, 14, 15]", buffer.stateToString());
 		
 		iterator.add((byte)0x17);
 		assertEquals("[0E, 0F, 10, 11, 12, 13, 14, 15, 16, 17]", buffer.toString());
+		assertEquals("[16, {17}, (0E), 0F, 10, 11, 12, 13, 14, 15]", buffer.stateToString());
 	}
 	
 	@Test
@@ -549,6 +561,7 @@ public class CircularByteBufferIteratorTest
 		buffer.end = 2;
 		
 		assertEquals("[00, 01, 02, 03, 04]", buffer.toString());
+		assertEquals("[02, 03, {04}, 00, 00, 00, 00, 00, (00), 01]", buffer.stateToString());
 		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
@@ -564,45 +577,59 @@ public class CircularByteBufferIteratorTest
 		
 		iterator.add((byte)0x0A);
 		assertEquals("[00, 01, 0A, 02, 03, 04]", buffer.toString());
+		assertEquals("[02, 03, {04}, 00, 00, 00, 00, (00), 01, 0A]", buffer.stateToString());
 		
 		iterator.add((byte)0x0B);
 		assertEquals("[00, 01, 0A, 0B, 02, 03, 04]", buffer.toString());
+		assertEquals("[02, 03, {04}, 00, 00, 00, (00), 01, 0A, 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x0C);
 		assertEquals("[00, 01, 0A, 0B, 0C, 02, 03, 04]", buffer.toString());
+		assertEquals("[0C, 02, 03, {04}, 00, 00, (00), 01, 0A, 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x0D);
 		assertEquals("[00, 01, 0A, 0B, 0C, 0D, 02, 03, 04]", buffer.toString());
+		assertEquals("[0C, 0D, 02, 03, {04}, 00, (00), 01, 0A, 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x0E);
 		assertEquals("[00, 01, 0A, 0B, 0C, 0D, 0E, 02, 03, 04]", buffer.toString());
+		assertEquals("[0C, 0D, 0E, 02, 03, {04}, (00), 01, 0A, 0B]", buffer.stateToString());
 		
 		iterator.add((byte)0x0F);
 		assertEquals("[01, 0A, 0B, 0C, 0D, 0E, 0F, 02, 03, 04]", buffer.toString());
+		assertEquals("[0D, 0E, 0F, 02, 03, {04}, (01), 0A, 0B, 0C]", buffer.stateToString());
 		
 		iterator.add((byte)0x10);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 02, 03, 04]", buffer.toString());
+		assertEquals("[0E, 0F, 10, 02, 03, {04}, (0A), 0B, 0C, 0D]", buffer.stateToString());
 		
 		iterator.add((byte)0x11);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 11, 03, 04]", buffer.toString());
+		assertEquals("[0E, 0F, 10, 11, 03, {04}, (0A), 0B, 0C, 0D]", buffer.stateToString());
 		
 		iterator.add((byte)0x12);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 11, 12, 04]", buffer.toString());
+		assertEquals("[0E, 0F, 10, 11, 12, {04}, (0A), 0B, 0C, 0D]", buffer.stateToString());
 		
 		iterator.add((byte)0x13);
 		assertEquals("[0A, 0B, 0C, 0D, 0E, 0F, 10, 11, 12, 13]", buffer.toString());
+		assertEquals("[0E, 0F, 10, 11, 12, {13}, (0A), 0B, 0C, 0D]", buffer.stateToString());
 		
 		iterator.add((byte)0x14);
 		assertEquals("[0B, 0C, 0D, 0E, 0F, 10, 11, 12, 13, 14]", buffer.toString());
+		assertEquals("[0E, 0F, 10, 11, 12, 13, {14}, (0B), 0C, 0D]", buffer.stateToString());
 		
 		iterator.add((byte)0x15);
 		assertEquals("[0C, 0D, 0E, 0F, 10, 11, 12, 13, 14, 15]", buffer.toString());
+		assertEquals("[0E, 0F, 10, 11, 12, 13, 14, {15}, (0C), 0D]", buffer.stateToString());
 		
 		iterator.add((byte)0x16);
 		assertEquals("[0D, 0E, 0F, 10, 11, 12, 13, 14, 15, 16]", buffer.toString());
+		assertEquals("[0E, 0F, 10, 11, 12, 13, 14, 15, {16}, (0D)]", buffer.stateToString());
 		
 		iterator.add((byte)0x17);
 		assertEquals("[0E, 0F, 10, 11, 12, 13, 14, 15, 16, 17]", buffer.toString());
+		assertEquals("[(0E), 0F, 10, 11, 12, 13, 14, 15, 16, {17}]", buffer.stateToString());
 	}
 	
 	@Test
