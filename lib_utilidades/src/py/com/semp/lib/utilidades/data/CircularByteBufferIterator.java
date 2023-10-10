@@ -619,6 +619,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public void add(Byte element)
 	{
+		int bufferSize = this.buffer.getBufferSize();
 		int dataSize = this.buffer.getDataSize();
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
@@ -680,9 +681,21 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		//replace older data
 		if(this.newElementsIndex != dataStart)
 		{
-			this.shiftToStart(insertPoint);
-			this.buffer.byteArray[insertPoint] = element;
-			this.newElementsIndex = this.goPrevious(this.newElementsIndex);
+			if(forwardDistance <= backwardDistance)
+			{
+				this.buffer.end = (dataEnd + 1) % bufferSize;
+				this.buffer.start = (dataStart + 1) % bufferSize;
+				this.goNext();
+				this.shiftToEnd(this.index);
+				this.buffer.byteArray[this.index] = element;
+				
+			}
+			else
+			{
+				this.shiftToStart(insertPoint);
+				this.buffer.byteArray[insertPoint] = element;
+				this.newElementsIndex = this.goPrevious(this.newElementsIndex);
+			}
 			
 			return;
 		}
