@@ -91,9 +91,10 @@ public class CircularByteBufferIteratorTest
 	public void testForwardRewind()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8});
-		
 		buffer.start = 6;
 		buffer.end = 3;
+		
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", buffer.stateToStringDetails());
 		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		iterator.setInternalIndex(1);
@@ -154,9 +155,10 @@ public class CircularByteBufferIteratorTest
 	public void testForwardRewind2()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8});
-		
 		buffer.start = 6;
 		buffer.end = 3;
+		
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", buffer.stateToStringDetails());
 		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		iterator.setInternalIndex(6);
@@ -304,6 +306,8 @@ public class CircularByteBufferIteratorTest
 	public void testAddFirstLast()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		
+		assertEquals("[00, 00, 00, 00, 00, 00, 00, 00, 00, 00] Size: (0 / 10)", buffer.stateToStringDetails());
 		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
@@ -470,11 +474,10 @@ public class CircularByteBufferIteratorTest
 	public void testAdd()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
-		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
 		assertEquals("[]", buffer.toString());
-		assertEquals("[00, 00, 00, 00, 00, 00, 00, 00, 00, 00]", buffer.stateToString());
+		assertEquals("[00, 00, 00, 00, 00, 00, 00, 00, 00, 00] Size: (0 / 10)", buffer.stateToStringDetails());
 		
 		iterator.add((byte)0);
 		iterator.add((byte)1);
@@ -556,12 +559,11 @@ public class CircularByteBufferIteratorTest
 	public void testAddInversedIndex()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{02, 03, 04, 00, 00, 00, 00, 00, 00, 01});
-		
 		buffer.start = 8;
 		buffer.end = 2;
 		
 		assertEquals("[00, 01, 02, 03, 04]", buffer.toString());
-		assertEquals("[02, 03, {04}, 00, 00, 00, 00, 00, (00), 01]", buffer.stateToString());
+		assertEquals("[02, 03, {04}, 00, 00, 00, 00, 00, (00), 01] Size: (5 / 10)", buffer.stateToStringDetails());
 		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
@@ -638,6 +640,8 @@ public class CircularByteBufferIteratorTest
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
+		assertEquals("[00, 00, 00, 00, 00, 00, 00, 00, 00, 00] Size: (0 / 10)", buffer.stateToStringDetails());
+		
 		// If the list contains no elements, the new element becomes the sole element on the list.
 		iterator.add((byte)0x01);
 		assertEquals("[01]", buffer.toString());
@@ -682,6 +686,8 @@ public class CircularByteBufferIteratorTest
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
 		CircularByteBufferIterator iterator = buffer.iterator();
+		
+		assertEquals("[00, 00, 00, 00, 00, 00, 00, 00, 00, 00] Size: (0 / 10)", buffer.stateToStringDetails());
 		
 		// Test 1: If the list contains no elements, the new element becomes the sole element.
 		iterator.add((byte)0x01);
@@ -744,6 +750,8 @@ public class CircularByteBufferIteratorTest
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
 		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 		
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}] Size: (10 / 10)", buffer.stateToStringDetails());
+		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
 		// Move to a position in the middle of the buffer
@@ -803,6 +811,8 @@ public class CircularByteBufferIteratorTest
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
 		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 		
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}] Size: (10 / 10)", buffer.stateToStringDetails());
+		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
 		// 1. Test positioning at the start
@@ -836,7 +846,7 @@ public class CircularByteBufferIteratorTest
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
 		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 		
-		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}] Size: (10 / 10)", buffer.stateToStringDetails());
 		
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
@@ -882,7 +892,7 @@ public class CircularByteBufferIteratorTest
 		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 		CircularByteBufferIterator iterator = buffer.iterator();
 		
-		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}] Size: (10 / 10)", buffer.stateToStringDetails());
 		
 		// Scenario 1: Removing from an empty buffer
 		buffer.clear();
@@ -929,6 +939,8 @@ public class CircularByteBufferIteratorTest
 	@Test
 	public void testShiftFromStartScenarios()
 	{
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", list.stateToStringDetails());
+		
 		// Test for shifting from the very start
 		iterator.shiftFromStart(6);
 		assertEquals("[07, 08, 00, 01, 02, 03]", list.toString());
@@ -990,6 +1002,8 @@ public class CircularByteBufferIteratorTest
 	@Test
 	public void testShiftFromStartSegment()
 	{
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", list.stateToStringDetails());
+		
 		iterator.shiftFromStart(1, 3);
 		assertEquals("[06, 07, 08, 00]", list.toString());
 		assertEquals("[(06), 07, 08, {00}, 04, 05, 06, 07, 08]", list.stateToString());
@@ -1035,6 +1049,8 @@ public class CircularByteBufferIteratorTest
 	@Test
 	public void testShiftFromEndScenarios()
 	{
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", list.stateToStringDetails());
+		
 		// Test for shifting from the very end
 		iterator.shiftFromEnd(3);
 		assertEquals("[06, 07, 08, 00, 01, 02]", list.toString());
@@ -1077,6 +1093,8 @@ public class CircularByteBufferIteratorTest
 	@Test
 	public void testShiftFromEndSegment()
 	{
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", list.stateToStringDetails());
+		
 		iterator.shiftFromEnd(1, 3);
 		assertEquals("[06, 07, 08, 00]", list.toString());
 		assertEquals("[{00}, 01, 02, 03, 04, 05, (06), 07, 08]", list.stateToString());
@@ -1125,7 +1143,7 @@ public class CircularByteBufferIteratorTest
 	{
 		// Initial State
 		assertEquals("[06, 07, 08, 00, 01, 02, 03]", list.toString());
-		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08]", list.stateToString());
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", list.stateToStringDetails());
 		
 		// Shift first element
 		iterator.shiftToStart(6);
@@ -1191,7 +1209,7 @@ public class CircularByteBufferIteratorTest
 	{
 		// Initial State
 		assertEquals("[06, 07, 08, 00, 01, 02, 03]", list.toString());
-		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08]", list.stateToString());
+		assertEquals("[00, 01, 02, {03}, 04, 05, (06), 07, 08] Size: (7 / 9)", list.stateToStringDetails());
 		
 		// Shift last element
 		iterator.shiftToEnd(8);
