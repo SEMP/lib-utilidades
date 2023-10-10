@@ -1337,7 +1337,8 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	{
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append(this.getIndex());
+		sb.append("Data Index: ").append(this.getIndex());
+		sb.append("\nInternal Index: ").append(this.getInternalIndex());
 		
 		return sb.toString();
 	}

@@ -1448,7 +1448,7 @@ public class CircularByteBuffer implements List<Byte>
 	 * if {@code fromIndex} is greater than {@code toIndex}
 	 */
 	@Override
-	public List<Byte> subList(int fromIndex, int toIndex)
+	public CircularByteBuffer subList(int fromIndex, int toIndex)
 	{
 		int size = this.size();
 		

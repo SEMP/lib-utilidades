@@ -95,9 +95,8 @@ public class CircularByteBufferTest
 		assertEquals(false, Arrays.equals(buffer1.toArray(new Byte[]{}), buffer1.toArray(baseArray)));
 		assertEquals(true, Arrays.equals(buffer2.toArray(new Object[]{}), objectArray2));
 		
-		String expectedString = "[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0A]";
-		
-		assertEquals(expectedString, buffer1.toString());
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0A]", buffer1.toString());
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, 09, {0A}]", buffer1.stateToString());
 	}
 	
 	@Test
@@ -283,22 +282,28 @@ public class CircularByteBufferTest
 	public void testSet()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		
 		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
 		
 		// 1. Replace the element at the start.
 		Byte replacedValue = buffer.set(0, (byte)10);
 		assertEquals((byte)0, replacedValue.byteValue());
 		assertEquals("[0A, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[(0A), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
 		
 		// 2. Replace the element in the middle.
 		replacedValue = buffer.set(5, (byte)11);
 		assertEquals((byte)5, replacedValue.byteValue());
 		assertEquals("[0A, 01, 02, 03, 04, 0B, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[(0A), 01, 02, 03, 04, 0B, 06, 07, 08, {09}]", buffer.stateToString());
 		
 		// 3. Replace the element at the end.
 		replacedValue = buffer.set(9, (byte)12);
 		assertEquals((byte)9, replacedValue.byteValue());
 		assertEquals("[0A, 01, 02, 03, 04, 0B, 06, 07, 08, 0C]", buffer.toString());
+		assertEquals("[(0A), 01, 02, 03, 04, 0B, 06, 07, 08, {0C}]", buffer.stateToString());
 		
 		// 4. Ensure exceptions are thrown for out-of-bounds indices.
 		assertThrows(IndexOutOfBoundsException.class, () -> buffer.set(-1, (byte)13));
@@ -312,27 +317,36 @@ public class CircularByteBufferTest
 	public void testAddAtIndex()
 	{
 	    CircularByteBuffer buffer = new CircularByteBuffer(10);
+	    
 	    buffer.add(new byte[]{0, 1, 2, 3, 4});
+	    
+	    assertEquals("[(00), 01, 02, 03, {04}, 00, 00, 00, 00, 00]", buffer.stateToString());
+	    
 
 	    // 1. Add an element at the start.
 	    buffer.add(0, (byte)10);
 	    assertEquals("[0A, 00, 01, 02, 03, 04]", buffer.toString());
+	    assertEquals("[00, 01, 02, 03, {04}, 00, 00, 00, 00, (0A)]", buffer.stateToString());
 
 	    // 2. Add an element in the middle.
 	    buffer.add(3, (byte)11);
 	    assertEquals("[0A, 00, 01, 0B, 02, 03, 04]", buffer.toString());
+	    assertEquals("[01, 0B, 02, 03, {04}, 00, 00, 00, (0A), 00]", buffer.stateToString());
 
 	    // 3. Add an element at the end.
 	    buffer.add(7, (byte)12);
 	    assertEquals("[0A, 00, 01, 0B, 02, 03, 04, 0C]", buffer.toString());
+	    assertEquals("[01, 0B, 02, 03, 04, {0C}, 00, 00, (0A), 00]", buffer.stateToString());
 
 	    // 4. Add elements until the buffer becomes full.
 	    buffer.add(new byte[]{5, 6});
 	    assertEquals("[0A, 00, 01, 0B, 02, 03, 04, 0C, 05, 06]", buffer.toString());
+	    assertEquals("[01, 0B, 02, 03, 04, 0C, 05, {06}, (0A), 00]", buffer.stateToString());
 
 	    // 5. Adding an element when the buffer is full should replace the oldest element.
 	    buffer.add(10, (byte)13);
 	    assertEquals("[00, 01, 0B, 02, 03, 04, 0C, 05, 06, 0D]", buffer.toString());
+	    assertEquals("[01, 0B, 02, 03, 04, 0C, 05, 06, {0D}, (00)]", buffer.stateToString());
 
 	    // 6. Ensure exceptions are thrown for out-of-bounds indices.
 	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.add(-1, (byte)14));
@@ -346,22 +360,28 @@ public class CircularByteBufferTest
 	public void testRemoveAtIndex()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		
 		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+		
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
 		
 		// 1. Remove the element at the start.
 		Byte removedValue = buffer.remove(0);
 		assertEquals((byte)0, removedValue.byteValue());
 		assertEquals("[01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[00, (01), 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
 		
 		// 2. Remove an element in the middle.
 		removedValue = buffer.remove(4);
 		assertEquals((byte)5, removedValue.byteValue());
 		assertEquals("[01, 02, 03, 04, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[00, (01), 02, 03, 04, 06, 07, 08, {09}, 09]", buffer.stateToString());
 		
 		// 3. Remove an element at the end.
 		removedValue = buffer.remove(7);
 		assertEquals((byte)9, removedValue.byteValue());
 		assertEquals("[01, 02, 03, 04, 06, 07, 08]", buffer.toString());
+		assertEquals("[00, (01), 02, 03, 04, 06, 07, {08}, 09, 09]", buffer.stateToString());
 		
 		// 4. Repeatedly remove the last element until the buffer is empty.
 		while(buffer.size() > 0)
@@ -371,42 +391,55 @@ public class CircularByteBufferTest
 		}
 		assertTrue(buffer.isEmpty());
 		
+		assertEquals("[00, 01, 02, 03, 04, 06, 07, 08, 09, 09]", buffer.stateToString());
+		
 		// 5. Ensure exceptions are thrown for out-of-bounds indices.
 		assertThrows(IndexOutOfBoundsException.class, () -> buffer.remove(-1));
 		assertThrows(IndexOutOfBoundsException.class, () -> buffer.remove(0));
 		
 		// 6. Add some elements back and test again.
 		buffer.add(new byte[]{10, 11, 12});
+		
+		assertEquals("[(0A), 0B, {0C}, 03, 04, 06, 07, 08, 09, 09]", buffer.stateToString());
+		
 		removedValue = buffer.remove(1);
 		assertEquals((byte)11, removedValue.byteValue());
 		assertEquals("[0A, 0C]", buffer.toString());
+		assertEquals("[(0A), {0C}, 0C, 03, 04, 06, 07, 08, 09, 09]", buffer.stateToString());
 	}
 	
 	@Test
 	public void testAddAllAtIndex()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		
 		buffer.add(new byte[]{0, 1, 2, 3, 4});
+		
+		assertEquals("[(00), 01, 02, 03, {04}, 00, 00, 00, 00, 00]", buffer.stateToString());
 		
 		// 1. Add a collection at the start.
 		boolean changed = buffer.addAll(0, Arrays.asList((byte)10, (byte)11));
 		assertTrue(changed);
 		assertEquals("[0A, 0B, 00, 01, 02, 03, 04]", buffer.toString());
+		assertEquals("[00, 01, 02, 03, {04}, 00, 00, 00, (0A), 0B]", buffer.stateToString());
 		
 		// 2. Add a collection in the middle.
 		changed = buffer.addAll(3, Arrays.asList((byte)12, (byte)13));
 		assertTrue(changed);
 		assertEquals("[0A, 0B, 00, 0C, 0D, 01, 02, 03, 04]", buffer.toString());
+		assertEquals("[0D, 01, 02, 03, {04}, 00, (0A), 0B, 00, 0C]", buffer.stateToString());
 		
 		// 3. Add a collection at the end.
 		changed = buffer.addAll(9, Arrays.asList((byte)14, (byte)15));
 		assertTrue(changed);
 		assertEquals("[0B, 00, 0C, 0D, 01, 02, 03, 04, 0E, 0F]", buffer.toString()); // One element is overwritten due to full capacity.
+		assertEquals("[0D, 01, 02, 03, 04, 0E, {0F}, (0B), 00, 0C]", buffer.stateToString());
 		
 		// 4. Add a collection that causes more elements to be overwritten.
 		changed = buffer.addAll(5, Arrays.asList((byte)16, (byte)17, (byte)18, (byte)19));
 		assertTrue(changed);
 		assertEquals("[01, 10, 11, 12, 13, 02, 03, 04, 0E, 0F]", buffer.toString()); // Some previous elements are overwritten.
+		assertEquals("[12, 13, 02, 03, 04, 0E, {0F}, (01), 10, 11]", buffer.stateToString());
 		
 		// 5. Ensure exceptions are thrown for out-of-bounds indices.
 		assertThrows(IndexOutOfBoundsException.class, () -> buffer.addAll(-1, Arrays.asList((byte)20)));
@@ -416,6 +449,7 @@ public class CircularByteBufferTest
 		changed = buffer.addAll(3, new ArrayList<Byte>());
 		assertFalse(changed);
 		assertEquals("[01, 10, 11, 12, 13, 02, 03, 04, 0E, 0F]", buffer.toString());
+		assertEquals("[12, 13, 02, 03, 04, 0E, {0F}, (01), 10, 11]", buffer.stateToString());
 		
 		// 7. Test adding a null collection.
 		assertThrows(NullPointerException.class, () -> buffer.addAll(3, null));
@@ -425,27 +459,35 @@ public class CircularByteBufferTest
 	public void testSubList()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(10);
+		
 		buffer.add(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 		
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
+		
 		// 1. Get a sublist from the start.
-		List<Byte> sub = buffer.subList(0, 5);
+		CircularByteBuffer sub = buffer.subList(0, 5);
 		assertEquals(Arrays.asList((byte)0, (byte)1, (byte)2, (byte)3, (byte)4), sub);
+		assertEquals("[(00), 01, 02, 03, {04}]", sub.stateToString());
 		
 		// 2. Get a sublist from the middle.
 		sub = buffer.subList(3, 7);
 		assertEquals(Arrays.asList((byte)3, (byte)4, (byte)5, (byte)6), sub);
+		assertEquals("[(03), 04, 05, {06}]", sub.stateToString());
 		
 		// 3. Modify the sublist and ensure the original buffer is unchanged.
 		sub.add((byte)10);
 		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[(00), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
 		
 		// 4. Modify the original buffer and ensure the sublist is unchanged.
 		buffer.add(0, (byte)11);
+		assertEquals("[(0B), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
 		assertEquals(Arrays.asList((byte)4, (byte)5, (byte)6, (byte)10), sub); // No change.
 		
 		// 5. Get a sublist from the end.
 		sub = buffer.subList(8, 10);
 		assertEquals(Arrays.asList((byte)8, (byte)9), sub);
+		assertEquals("[(08), {09}]", sub.stateToString());
 		
 		// 6. Ensure exceptions are thrown for out-of-bounds indices.
 		assertThrows(IndexOutOfBoundsException.class, () -> buffer.subList(-1, 5));
@@ -457,58 +499,41 @@ public class CircularByteBufferTest
 		// 8. Clear the sublist and ensure the original buffer is unchanged.
 		sub.clear();
 		assertEquals("[0B, 01, 02, 03, 04, 05, 06, 07, 08, 09]", buffer.toString());
+		assertEquals("[(0B), 01, 02, 03, 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
 	}
 	
 	@Test
 	public void testExtractInByteArray()
 	{
-		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]
-		{
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-		});
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 		
 		// 1. Extracting a linear segment from the buffer.
 		Byte[] extracted1 = buffer.extractInByteArray(2, 6);
-		Byte[] expected1 = new Byte[]
-		{
-				2, 3, 4, 5, 6
-		};
+		Byte[] expected1 = new Byte[]{2, 3, 4, 5, 6};
 		assertArrayEquals(expected1, extracted1);
 		
 		// 2. Extracting a segment that wraps around from the end to the start.
 		buffer.start = 7;
 		buffer.end = 3;
 		Byte[] extracted2 = buffer.extractInByteArray(8, 1);
-		Byte[] expected2 = new Byte[]
-		{
-				8, 9, 0, 1
-		};
+		Byte[] expected2 = new Byte[]{8, 9, 0, 1};
 		assertArrayEquals(expected2, extracted2);
 		
 		// 3. Extracting the entire buffer when it's linear.
 		Byte[] extracted3 = buffer.extractInByteArray(0, 9);
-		Byte[] expected3 = new Byte[]
-		{
-				0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-		};
+		Byte[] expected3 = new Byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 		assertArrayEquals(expected3, extracted3);
 		
 		// 4. Extracting the entire buffer when it wraps around.
 		buffer.start = 8;
 		buffer.end = 4;
 		Byte[] extracted4 = buffer.extractInByteArray(8, 4);
-		Byte[] expected4 = new Byte[]
-		{
-				8, 9, 0, 1, 2, 3, 4
-		};
+		Byte[] expected4 = new Byte[]{8, 9, 0, 1, 2, 3, 4};
 		assertArrayEquals(expected4, extracted4);
 		
 		// 5. Extracting a segment with the same start and end index.
 		Byte[] extracted5 = buffer.extractInByteArray(5, 5);
-		Byte[] expected5 = new Byte[]
-		{
-				5
-		};
+		Byte[] expected5 = new Byte[]{5};
 		assertArrayEquals(expected5, extracted5);
 	}
 	
