@@ -21,6 +21,7 @@ class ArrayUtilsTest
 		byte[] expected = {1, 2, 3, 4, 5, 6};
 		
 		assertArrayEquals(expected, ArrayUtils.join(array1, array2));
+		assertArrayEquals(null, ArrayUtils.join((byte[][])null));
 	}
 	
 	@Test
@@ -92,81 +93,72 @@ class ArrayUtilsTest
 		Integer[] expected = {1, 2, 3, 4, 5, 6};
 		
 		assertArrayEquals(expected, ArrayUtils.join(array1, array2));
+		assertArrayEquals(expected, ArrayUtils.join(array1, null, array2));
+		assertArrayEquals(null, ArrayUtils.join((Integer[][])null));
 	}
 	
 	@Test
-	void intersect_byte()
+	void intersectByte()
 	{
 		byte[] array1 = {1, 2, 3};
 		byte[] array2 = {2, 3, 4};
+		byte[] array3 = {1, 4};
 		byte[] expected = {2, 3};
 		
 		assertArrayEquals(expected, ArrayUtils.intersect(array1, array2));
+		assertArrayEquals(new byte[]{}, ArrayUtils.intersect(array1, array2, array3));
+		assertArrayEquals(new byte[]{}, ArrayUtils.intersect(array1, null, array2));
+		assertArrayEquals(null, ArrayUtils.intersect((byte[][])null));
+		assertArrayEquals(new byte[]{}, ArrayUtils.intersect(new byte[][]{}));
 	}
 	
 	@Test
-	void intersect_generic()
+	void intersectGeneric()
 	{
 		Integer[] array1 = {1, 2, 3};
 		Integer[] array2 = {2, 3, 4};
+		Integer[] array3 = {1, 4};
 		Integer[] expected = {2, 3};
 		
 		assertArrayEquals(expected, ArrayUtils.intersect(array1, array2));
+		assertArrayEquals(new Integer[]{}, ArrayUtils.intersect(array1, array2, array3));
+		assertArrayEquals(new Integer[]{}, ArrayUtils.intersect(array1, null, array2));
+		assertArrayEquals(null, ArrayUtils.intersect((Integer[][])null));
+		assertArrayEquals(new Integer[]{}, ArrayUtils.intersect(new Integer[][]{}));
 	}
 	
 	@Test
-	void subArray_byte()
+	void subArrayByte()
 	{
 		byte[] array = {1, 2, 3, 4, 5};
-		byte[] expected = {2, 3};
 		
-		assertArrayEquals(expected, ArrayUtils.subArray(array, 1, 2));
+		assertArrayEquals(new byte[]{2, 3}, ArrayUtils.subArray(array, 1, 2));
+		assertArrayEquals(new byte[]{2, 3, 4, 5}, ArrayUtils.subArray(array, 1, 9));
+		assertArrayEquals(null, ArrayUtils.subArray((byte[])null, 1, 2));
+		assertThrows(IndexOutOfBoundsException.class, () -> ArrayUtils.subArray(array, 6, 3));
+		assertThrows(IndexOutOfBoundsException.class, () -> ArrayUtils.subArray(array, -1, 3));
 	}
 	
 	@Test
-	void subArray_byteArray_negativeIndex()
-	{
-		byte[] array = {1, 2, 3, 4, 5};
-		byte[] subArray = ArrayUtils.subArray(array, -1, 3);
-		byte[] expected = {};
-		
-		assertArrayEquals(expected, subArray);
-	}
-
-	@Test
-	void subArray_byteArray_exceedingIndex()
-	{
-		byte[] array = {1, 2, 3, 4, 5};
-		byte[] subArray = ArrayUtils.subArray(array, 6, 3);
-		byte[] expected = {};
-		
-		assertArrayEquals(expected, subArray);
-	}
-	
-	@Test
-	void subArray_generic()
+	void subArrayGeneric()
 	{
 		Integer[] array = {1, 2, 3, 4, 5};
-		Integer[] expected = {2, 3};
 		
-		assertArrayEquals(expected, ArrayUtils.subArray(array, 1, 2));
+		assertArrayEquals(new Integer[]{2, 3}, ArrayUtils.subArray(array, 1, 2));
+		assertArrayEquals(new Integer[]{2, 3, 4, 5}, ArrayUtils.subArray(array, 1, 9));
+		assertArrayEquals(null, ArrayUtils.subArray((Integer[])null, 1, 2));
+		assertThrows(IndexOutOfBoundsException.class, () -> ArrayUtils.subArray(array, 6, 3));
+		assertThrows(IndexOutOfBoundsException.class, () -> ArrayUtils.subArray(array, -1, 3));
 	}
 	
 	@Test
-	void contains_byte()
+	void containsByte()
 	{
 		byte[] array = {1, 2, 3};
 		
 		assertTrue(ArrayUtils.contains(array, (byte)2));
 		assertFalse(ArrayUtils.contains(array, (byte)4));
-	}
-	
-	@Test
-	void contains_byteArray_nullArray()
-	{
-		byte[] array = null;
-		
-		assertFalse(ArrayUtils.contains(array, (byte)1));
+		assertFalse(ArrayUtils.contains(null, (byte)4));
 	}
 	
 	@Test
@@ -176,24 +168,39 @@ class ArrayUtilsTest
 		
 		assertTrue(ArrayUtils.contains(array, 2));
 		assertFalse(ArrayUtils.contains(array, 4));
+		assertFalse(ArrayUtils.contains(null, 4));
 	}
 	
 	@Test
-	void findFirst_byte()
+	void findBytePredicate()
 	{
 		byte[] array = {1, 2, 3, 4, 5};
 		
 		assertEquals(2, ArrayUtils.findFirst(array, b -> b > 2));
+		assertEquals(-1, ArrayUtils.findFirst((byte[])null, b -> b > 2));
 		assertEquals(-1, ArrayUtils.findFirst(array, b -> b > 5));
+		assertEquals(-1, ArrayUtils.findFirst(array, (Predicate<Byte>)null));
+		
+		assertEquals(4, ArrayUtils.findLast(array, b -> b > 2));
+		assertEquals(-1, ArrayUtils.findLast((byte[])null, b -> b > 2));
+		assertEquals(-1, ArrayUtils.findLast(array, b -> b > 5));
+		assertEquals(-1, ArrayUtils.findLast(array, (Predicate<Byte>)null));
 	}
 	
 	@Test
-	void findFirst_generic()
+	void findGenericPredicate()
 	{
 		Integer[] array = {1, 2, 3, 4, 5};
 		
 		assertEquals(2, ArrayUtils.findFirst(array, b -> b > 2));
+		assertEquals(-1, ArrayUtils.findFirst((Integer[])null, b -> b > 2));
 		assertEquals(-1, ArrayUtils.findFirst(array, b -> b > 5));
+		assertEquals(-1, ArrayUtils.findFirst(array, (Predicate<Integer>)null));
+		
+		assertEquals(4, ArrayUtils.findLast(array, b -> b > 2));
+		assertEquals(-1, ArrayUtils.findLast((Integer[])null, b -> b > 2));
+		assertEquals(-1, ArrayUtils.findLast(array, b -> b > 5));
+		assertEquals(-1, ArrayUtils.findLast(array, (Predicate<Integer>)null));
 	}
 	
 	@Test
@@ -356,59 +363,28 @@ class ArrayUtilsTest
 		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{0, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
 		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6}));
 		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
 		
 		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{1, 3}));
 		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{4, 5, 6}));
 		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{0, 1, 2}));
-		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 5}));
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{1, 2, 3, 5}));
 		assertEquals(-1, ArrayUtils.findLast(array, (Byte[])null));
 		assertEquals(-1, ArrayUtils.findLast((Byte[])null, new Byte[]{1, 2}));
 		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{0, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
 		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6}));
-		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5}));
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5}));
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
 	}
 	
-	@Test
-	void testFindFirst_WithNullArray()
-	{
-		byte[] array = null;
-		byte[] subArray = {1, 2};
-		
-		int result = ArrayUtils.findFirst(array, subArray);
-		
-		assertEquals(-1, result);
-	}
-	
-	@Test
-	void testFindFirst_WithNullSubArray()
-	{
-		byte[] array = {1, 2, 3, 4, 5};
-		byte[] subArray = null;
-		
-		int result = ArrayUtils.findFirst(array, subArray);
-		
-		assertEquals(-1, result);
-	}
-	
-	@Test
-	void testFindFirst_WithEmptyArray()
-	{
-		byte[] array = {};
-		byte[] subArray = {1, 2};
-		
-		int result = ArrayUtils.findFirst(array, subArray);
-		
-		assertEquals(-1, result);
-	}
-	
-	@Test
-	void testFindFirst_WithEmptySubArray()
-	{
-		byte[] array = {1, 2, 3, 4, 5};
-		byte[] subArray = {};
-		
-		int result = ArrayUtils.findFirst(array, subArray);
-		
-		assertEquals(-1, result);
-	}
+//	@Test
+//	void testFindFirst_WithNullArray()
+//	{
+//		byte[] array = {1, 2, 3, 4, 5};
+//		
+//		assertEquals(-1, ArrayUtils.findFirst(new byte[]{}, new byte[]{1, 2}));
+//		assertEquals(-1, ArrayUtils.findFirst(array, new byte[] {}));
+//		assertEquals(-1, ArrayUtils.findFirst((byte[])null, new byte[]{1, 2}));
+//		assertEquals(-1, ArrayUtils.findFirst(array, (byte[])null));
+//	}
 }

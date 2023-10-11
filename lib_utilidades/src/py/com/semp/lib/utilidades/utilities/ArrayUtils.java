@@ -249,7 +249,8 @@ public final class ArrayUtils
 	 * @return
 	 * - new array with the sub set of elements.<br>
 	 * - <b>null</b> if the array is null.<br>
-	 * - empty array if the index is out of bounds.
+	 * @throws IndexOutOfBoundsException
+	 * if the index is out of bounds of the array.
 	 * @author Sergio Morel
 	 */
 	public static byte[] subArray(byte[] array, int index, int size)
@@ -261,7 +262,9 @@ public final class ArrayUtils
 		
 		if(index < 0 || index >= array.length)
 		{
-			return new byte[]{};
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, array.length);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
 		}
 		
 		int resultSize = Math.min(size, array.length - index);
@@ -297,7 +300,8 @@ public final class ArrayUtils
 	 * @return
 	 * - new array with the sub set of elements.<br>
 	 * - <b>null</b> if the array is null.<br>
-	 * - empty array if the index is out of bounds.
+	 * @throws IndexOutOfBoundsException
+	 * if the index is out of bounds of the array.
 	 * @author Sergio Morel
 	 */
 	public static <T> T[] subArray(T[] array, int index, int size)
@@ -309,10 +313,9 @@ public final class ArrayUtils
 		
 		if(index < 0 || index >= array.length)
 		{
-			@SuppressWarnings("unchecked")
-			T[] emptyArray = (T[])Array.newInstance(array.getClass().getComponentType(), 0);
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, array.length);
 			
-			return emptyArray;
+			throw new IndexOutOfBoundsException(errorMessage);
 		}
 		
 		int resultSize = Math.min(size, array.length - index);
