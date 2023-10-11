@@ -819,9 +819,34 @@ public final class ArrayUtils
 		
 		Set<Byte> set = new HashSet<>();
 		
-		for(byte b : array)
+		for(byte element : array)
 		{
-			set.add(b);
+			set.add(element);
+		}
+		
+		return set;
+	}
+	
+	/**
+	 * Creates a {@link Set} using the elements of the array.
+	 * 
+	 * @param array
+	 * - array from which you want to build a {@link Set} array.<br>
+	 * - <b>null</b> if the array is null.
+	 * @author Sergio Morel
+	 */
+	public static <T> Set<T> toSet(T[] array)
+	{
+		if(array == null)
+		{
+			return null;
+		}
+		
+		Set<T> set = new HashSet<>();
+		
+		for(T element : array)
+		{
+			set.add(element);
 		}
 		
 		return set;
