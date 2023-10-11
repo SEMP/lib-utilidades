@@ -1,14 +1,20 @@
 package py.com.semp.lib.utilidades.utilities;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.function.Predicate;
+
+import org.junit.jupiter.api.Test;
 
 class ArrayUtilsTest
 {
 	@Test
-	void join_byte()
+	void joinByte()
 	{
 		byte[] array1 = {1, 2, 3};
 		byte[] array2 = {4, 5, 6};
@@ -18,7 +24,7 @@ class ArrayUtilsTest
 	}
 	
 	@Test
-	void join_byteArrays()
+	void joinByteArrays()
 	{
 		byte[] array1 = {1, 2, 3};
 		byte[] array2 = {4, 5, 6};
@@ -28,7 +34,34 @@ class ArrayUtilsTest
 		
 		assertArrayEquals(expected, joined);
 	}
-
+	
+	@Test
+	void toStringTest()
+	{
+		byte[] array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+		
+		assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]", ArrayUtils.toString(array));
+		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0A, 0B, 0C, 0D, 0E, 0F, 10]", ArrayUtils.toHexaArrayString(array));
+		assertEquals("0x000102030405060708090A0B0C0D0E0F10", ArrayUtils.toHexaString(array));
+	}
+	
+	@Test
+	void indexOfTest()
+	{
+		byte[] array = {10, 9, 2, 3, 4, 10, 6, 7, 8, 9, 10};
+		
+		assertEquals(0, ArrayUtils.findFirst(array, (byte)10));
+		assertEquals(1, ArrayUtils.findFirst(array, (byte)9));
+		assertEquals(2, ArrayUtils.findFirst(array, (byte)2));
+		assertEquals(6, ArrayUtils.findLast(array, (byte)6));
+		assertEquals(9, ArrayUtils.findLast(array, (byte)9));
+		assertEquals(10, ArrayUtils.findLast(array, (byte)10));
+		assertEquals(-1, ArrayUtils.findFirst(array, (byte)11));
+		assertEquals(-1, ArrayUtils.findLast(array, (byte)11));
+		assertEquals(-1, ArrayUtils.findFirst((byte[])null, (byte)10));
+		assertEquals(-1, ArrayUtils.findLast((byte[])null, (byte)10));
+	}
+	
 	@Test
 	void join_byteArrays_emptyArrays()
 	{
@@ -250,25 +283,89 @@ class ArrayUtilsTest
 	}
 	
 	@Test
-	void testFindFirst_WithExistingSubArray()
+	void testFindWithExistingSubArray()
 	{
-		byte[] array = {1, 2, 3, 4, 5};
-		byte[] subArray = {3, 4};
+		byte[] array = {1, 2, 3, 4, 5, 1, 2, 3, 4, 5};
 		
-		int result = ArrayUtils.findFirst(array, subArray);
+		assertEquals(0, ArrayUtils.findFirst(array, new byte[]{1, 2}));
+		assertEquals(2, ArrayUtils.findFirst(array, new byte[]{3, 4}));
+		assertEquals(3, ArrayUtils.findFirst(array, new byte[]{4, 5}));
+		assertEquals(4, ArrayUtils.findFirst(array, new byte[]{5, 1}));
+		assertEquals(0, ArrayUtils.findFirst(array, new byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
 		
-		assertEquals(2, result);
+		assertEquals(5, ArrayUtils.findLast(array, new byte[]{1, 2}));
+		assertEquals(7, ArrayUtils.findLast(array, new byte[]{3, 4}));
+		assertEquals(8, ArrayUtils.findLast(array, new byte[]{4, 5}));
+		assertEquals(4, ArrayUtils.findLast(array, new byte[]{5, 1}));
+		assertEquals(0, ArrayUtils.findLast(array, new byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
 	}
 	
 	@Test
-	void testFindFirst_WithNonExistingSubArray()
+	void testFindWithNonExistingSubArray()
 	{
-		byte[] array = {1, 2, 3, 4, 5};
-		byte[] subArray = {6, 7};
+		byte[] array = {1, 2, 3, 4, 5, 1, 2, 3, 4, 5};
 		
-		int result = ArrayUtils.findFirst(array, subArray);
+		assertEquals(-1, ArrayUtils.findFirst(array, new byte[]{1, 3}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new byte[]{4, 5, 6}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new byte[]{0, 1, 2}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new byte[]{1, 2, 3, 5}));
+		assertEquals(-1, ArrayUtils.findFirst(array, (byte[])null));
+		assertEquals(-1, ArrayUtils.findFirst((byte[])null, new byte[]{1, 2}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new byte[]{0, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6}));
 		
-		assertEquals(-1, result);
+		assertEquals(-1, ArrayUtils.findLast(array, new byte[]{1, 3}));
+		assertEquals(-1, ArrayUtils.findLast(array, new byte[]{4, 5, 6}));
+		assertEquals(-1, ArrayUtils.findLast(array, new byte[]{0, 1, 2}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new byte[]{1, 2, 3, 5}));
+		assertEquals(-1, ArrayUtils.findLast(array, (byte[])null));
+		assertEquals(-1, ArrayUtils.findLast((byte[])null, new byte[]{1, 2}));
+		assertEquals(-1, ArrayUtils.findLast(array, new byte[]{0, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
+		assertEquals(-1, ArrayUtils.findLast(array, new byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6}));
+	}
+	
+	@Test
+	void testFindWithExistingObjectSubArray()
+	{
+		Byte[] array = {1, 2, 3, 4, 5, null, 1, 2, 3, 4, 5};
+		
+		assertEquals(0, ArrayUtils.findFirst(array, new Byte[]{1, 2}));
+		assertEquals(2, ArrayUtils.findFirst(array, new Byte[]{3, 4}));
+		assertEquals(3, ArrayUtils.findFirst(array, new Byte[]{4, 5}));
+		assertEquals(4, ArrayUtils.findFirst(array, new Byte[]{5, null, 1}));
+		assertEquals(0, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, null, 1, 2, 3, 4, 5}));
+		
+		assertEquals(6, ArrayUtils.findLast(array, new Byte[]{1, 2}));
+		assertEquals(8, ArrayUtils.findLast(array, new Byte[]{3, 4}));
+		assertEquals(9, ArrayUtils.findLast(array, new Byte[]{4, 5}));
+		assertEquals(4, ArrayUtils.findLast(array, new Byte[]{5, null, 1}));
+		assertEquals(0, ArrayUtils.findLast(array, new Byte[]{1, 2, 3, 4, 5, null, 1, 2, 3, 4, 5}));
+	}
+	
+	@Test
+	void testFindWithNonExistingObjectSubArray()
+	{
+		Byte[] array = {1, 2, 3, 4, 5, null, 1, 2, 3, 4, 5};
+		
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 3}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{4, 5, 6}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{0, 1, 2}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 5}));
+		assertEquals(-1, ArrayUtils.findFirst(array, (Byte[])null));
+		assertEquals(-1, ArrayUtils.findFirst((Byte[])null, new Byte[]{1, 2}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{0, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5}));
+		
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{1, 3}));
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{4, 5, 6}));
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{0, 1, 2}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 5}));
+		assertEquals(-1, ArrayUtils.findLast(array, (Byte[])null));
+		assertEquals(-1, ArrayUtils.findLast((Byte[])null, new Byte[]{1, 2}));
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{0, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5}));
+		assertEquals(-1, ArrayUtils.findLast(array, new Byte[]{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6}));
+		assertEquals(-1, ArrayUtils.findFirst(array, new Byte[]{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5}));
 	}
 	
 	@Test

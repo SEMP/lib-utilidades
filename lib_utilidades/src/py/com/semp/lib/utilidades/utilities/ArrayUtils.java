@@ -426,6 +426,36 @@ public final class ArrayUtils
 	}
 	
 	/**
+	 * Finds the index of the last occurrence of an element in the array.
+	 * 
+	 * @param array
+	 * - array to check.
+	 * @param element
+	 * - element to be found in the array.
+	 * @return
+	 * - the index of the found element.<br>
+	 * - <b>-1</b> if the element wasn't found or the array is null.
+	 * @author Sergio Morel
+	 */
+	public static int findLast(byte[] array, byte element)
+	{
+		if(array == null)
+		{
+			return -1;
+		}
+		
+		for(int i = array.length - 1; i >= 0; i--)
+		{
+			if(array[i] == element)
+			{
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
 	 * Finds the index of the first occurrence of subArray in the array.
 	 * 
 	 * @param array
@@ -449,6 +479,120 @@ public final class ArrayUtils
 			for(int j = i; (j - i) < subArray.length; j++)
 			{
 				if(array[j] != subArray[j - i])
+				{
+					break;
+				}
+				
+				if((j - i) == subArray.length - 1)
+				{
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the index of the last occurrence of subArray in the array.
+	 * 
+	 * @param array
+	 * - array where you want to find the sub array.
+	 * @param subArray
+	 * - sub array whose index you want to find.
+	 * @return
+	 * - the index of the first element where the sub array was found.<br>
+	 * - <b>-1</b> if the sub array wasn't found or the array is null.
+	 * @author Sergio Morel
+	 */
+	public static int findLast(byte[] array, byte[] subArray)
+	{
+		if(array == null || subArray == null || subArray.length > array.length)
+		{
+			return -1;
+		}
+		
+		for(int i = (array.length - subArray.length); i >= 0; i--)
+		{
+			for(int j = i; (j - i) < subArray.length; j++)
+			{
+				if(array[j] != subArray[j - i])
+				{
+					break;
+				}
+				
+				if((j - i) == subArray.length - 1)
+				{
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the index of the first occurrence of subArray in the array.
+	 * 
+	 * @param array
+	 * - array where you want to find the sub array.
+	 * @param subArray
+	 * - sub array whose index you want to find.
+	 * @return
+	 * - the index of the first element where the sub array was found.<br>
+	 * - <b>-1</b> if the sub array wasn't found or the array is null.
+	 * @author Sergio Morel
+	 */
+	public static <T> int findFirst(T[] array, T[] subArray)
+	{
+		if(array == null || subArray == null || subArray.length > array.length)
+		{
+			return -1;
+		}
+		
+		for(int i = 0; i <= (array.length - subArray.length); i++)
+		{
+			for(int j = i; (j - i) < subArray.length; j++)
+			{
+				if(!Utilities.equals(array[j], subArray[j - i]))
+				{
+					break;
+				}
+				
+				if((j - i) == subArray.length - 1)
+				{
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the index of the last occurrence of subArray in the array.
+	 * 
+	 * @param array
+	 * - array where you want to find the sub array.
+	 * @param subArray
+	 * - sub array whose index you want to find.
+	 * @return
+	 * - the index of the first element where the sub array was found.<br>
+	 * - <b>-1</b> if the sub array wasn't found or the array is null.
+	 * @author Sergio Morel
+	 */
+	public static <T> int findLast(T[] array, T[] subArray)
+	{
+		if(array == null || subArray == null || subArray.length > array.length)
+		{
+			return -1;
+		}
+		
+		for(int i = (array.length - subArray.length); i >= 0; i--)
+		{
+			for(int j = i; (j - i) < subArray.length; j++)
+			{
+				if(!Utilities.equals(array[j], subArray[j - i]))
 				{
 					break;
 				}
@@ -495,6 +639,37 @@ public final class ArrayUtils
 	}
 	
 	/**
+	 * Finds the index of the last occurrence of an element that
+	 * complies to the predicate.
+	 * 
+	 * @param array
+	 * - array to check.
+	 * @param predicate
+	 * - predicate that establishes if the element is found.
+	 * @return
+	 * - the index of the found element.<br>
+	 * - <b>-1</b> if the element wasn't found.
+	 * @author Sergio Morel
+	 */
+	public static int findLast(byte[] array, Predicate<Byte> predicate)
+	{
+		if(array == null || predicate == null)
+		{
+			return -1;
+		}
+		
+		for(int i = array.length - 1; i >= 0; i--)
+		{
+			if(predicate.test(array[i]))
+			{
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
 	 * Finds the index of the first occurrence of an element in the array.
 	 * 
 	 * @param <T>
@@ -516,6 +691,38 @@ public final class ArrayUtils
 		}
 		
 		for(int i = 0; i < array.length; i++)
+		{
+			if(Utilities.equals(array[i], element))
+			{
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the index of the last occurrence of an element in the array.
+	 * 
+	 * @param <T>
+	 * - type of the array's element.
+	 * @param array
+	 * - array to check.
+	 * @param element
+	 * - element to be found in the array.
+	 * @return
+	 * - the index of the found element.<br>
+	 * - <b>-1</b> if the element wasn't found or the array is null.
+	 * @author Sergio Morel
+	 */
+	public static <T> int findLast(T[] array, T element)
+	{
+		if(array == null)
+		{
+			return -1;
+		}
+		
+		for(int i = array.length - 1; i >= 0; i--)
 		{
 			if(Utilities.equals(array[i], element))
 			{
@@ -549,6 +756,39 @@ public final class ArrayUtils
 		}
 		
 		for(int i = 0; i < array.length; i++)
+		{
+			if(predicate.test(array[i]))
+			{
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the index of the last occurrence of an element that
+	 * complies to the predicate.
+	 * 
+	 * @param <T>
+	 * - type of the array's element.
+	 * @param array
+	 * - array to check.
+	 * @param predicate
+	 * - predicate that establishes if the element is found.
+	 * @return
+	 * - the index of the found element.<br>
+	 * - <b>-1</b> if the element wasn't found or if the array or predicate are null.
+	 * @author Sergio Morel
+	 */
+	public static <T> int findLast(T[] array, Predicate<T> predicate)
+	{
+		if(array == null || predicate == null)
+		{
+			return -1;
+		}
+		
+		for(int i = array.length - 1; i >= 0; i--)
 		{
 			if(predicate.test(array[i]))
 			{
@@ -627,6 +867,78 @@ public final class ArrayUtils
 	}
 	
 	/**
+	 * Creates a {@link String} from the byte array. Each element is represented
+	 * as a decimal number.
+	 * @param bytes
+	 * - bytes to be converted to the corresponding string.
+	 * @return
+	 * - {@link String} that represents the byte array with each element in decimal.<br>
+	 * - <b>null</b> if the parameter is null.
+	 * @author Sergio Morel
+	 */
+	public static String toString(byte... bytes)
+	{
+		if(bytes == null)
+		{
+			return null;
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("[");
+		
+		boolean includeSeparator = false;
+		
+		String separator = ", ";
+		
+		for(byte b : bytes)
+		{
+			if(includeSeparator)
+			{
+				sb.append(separator);
+			}
+			
+			sb.append(b);
+			
+			includeSeparator = true;
+		}
+		
+		sb.append("]");
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Creates a {@link String} from the byte array. The resulting string is
+	 * uses the following format: 0xA0BD7801
+	 * @param bytes
+	 * - bytes to be converted to the corresponding string.
+	 * @return
+	 * - {@link String} that represents the byte array in hexadecimal.<br>
+	 * - <b>null</b> if the parameter is null.
+	 * @author Sergio Morel
+	 */
+	
+	public static String toHexaString(byte... bytes)
+	{
+		if(bytes == null)
+		{
+			return null;
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("0x");
+		
+		for(int i = 0; i < bytes.length; i++)
+		{
+			sb.append(String.format("%02X", bytes[i]));
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
 	 * Converts an hexadecimal string into a byte array.
 	 * @param hexaString
 	 * - the string that will be converted to a byte array.
@@ -679,35 +991,5 @@ public final class ArrayUtils
 		}
 		
 		return bytes;
-	}
-	
-	/**
-	 * Creates a {@link String} from the byte array. The resulting string is
-	 * uses the following format: 0xA0BD7801
-	 * @param bytes
-	 * - bytes to be converted to the corresponding string.
-	 * @return
-	 * - {@link String} that represents the byte array in hexadecimal.<br>
-	 * - <b>null</b> if the parameter is null.
-	 * @author Sergio Morel
-	 */
-	
-	public static String toHexaString(byte... bytes)
-	{
-		if(bytes == null)
-		{
-			return null;
-		}
-		
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("0x");
-		
-		for(int i = 0; i < bytes.length; i++)
-		{
-			sb.append(String.format("%02X", bytes[i]));
-		}
-		
-		return sb.toString();
 	}
 }
