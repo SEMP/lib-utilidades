@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -14,6 +16,26 @@ import org.junit.jupiter.api.Test;
 
 class ArrayUtilsTest
 {
+	@Test
+	void testArrayUtilsConstructor()
+	{
+		assertThrows(InvocationTargetException.class, () ->
+		{
+			Constructor<ArrayUtils> constructor = ArrayUtils.class.getDeclaredConstructor();
+			constructor.setAccessible(true);
+			try
+			{
+				constructor.newInstance();
+			}
+			catch(InvocationTargetException ite)
+			{
+				Throwable cause = ite.getCause();
+				assertTrue(cause instanceof AssertionError);
+				throw ite;
+			}
+		});
+	}
+	
 	@Test
 	void joinByteArrays()
 	{

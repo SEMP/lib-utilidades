@@ -34,7 +34,7 @@ public record MessageManager(String path, String resource, Locale locale)
      */
 	public MessageManager
 	{
-		path = ensureTrailingSlash(path);
+		path = this.ensureTrailingSlash(path);
     }
 	
 	/**

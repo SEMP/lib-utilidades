@@ -1259,4 +1259,22 @@ public class CircularByteBufferIteratorTest
 		assertEquals("[00, 00, 01, 02, 03, 04, 05, 06, 07]", list.toString());
 		assertEquals("[(00), 00, 01, 02, 03, 04, 05, 06, {07}]", list.stateToString());
 	}
+	
+	@Test
+	void testToString()
+	{
+		assertEquals("Data Index: -1\nInternal Index: -1", this.iterator.toString());
+		
+		this.iterator.next();
+		
+		assertEquals("Data Index: 0\nInternal Index: 6", this.iterator.toString());
+		
+		this.iterator.previous();
+		
+		assertEquals("Data Index: 0\nInternal Index: 6", this.iterator.toString());
+		
+		this.iterator.rewind(1);
+		
+		assertEquals("Data Index: 6\nInternal Index: 3", this.iterator.toString());
+	}
 }

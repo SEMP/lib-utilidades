@@ -24,7 +24,9 @@ public final class Utilities
 	}
 	
 	/**
-	 * Verifies if the object is present in the collection.
+	 * Verifies if the object is present in the collection. It uses Utilities::equals to compare
+	 * the elements, which does a deeper comparison than than Object::equals. This method also
+	 * avoids NullPointerException in case the collection is <b>null</b>.
 	 * 
 	 * @param collection
 	 * - Collection from which to find the object.
@@ -54,15 +56,16 @@ public final class Utilities
 	}
 	
 	/**
-	 * Checks if two objects are equal.
+	 * Compares two objects for equality, performing a deep comparison when necessary.<br>
+	 * - For arrays, performs a deep comparison of their contents.<br>
+	 * - For Iterables, compares elements in order.<br>
+	 * - For other objects, uses their own equals method.<br>
 	 * 
-	 * @param object1
-	 * - first object to check.
-	 * @param object2
-	 * - second object to check.
+	 * @param object1 first object to check.
+	 * @param object2 second object to check.
 	 * @return
 	 * - <b>true</b> if the objects are equal.<br>
-	 * - <b>false</b> if the objects are not equal.
+	 * - <b>false</b> otherwise.
 	 * @author Sergio Morel
 	 */
 	public static boolean equals(Object object1, Object object2)
@@ -134,7 +137,8 @@ public final class Utilities
 	}
 	
 	/**
-	 * Compares if two iterables are equal.
+	 * Compares if two iterables have equal elements. It uses Utilities::equal to compare
+	 * the elements.
 	 * @param iterable1
 	 * - first iterable
 	 * @param iterable2
