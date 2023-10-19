@@ -70,10 +70,18 @@ class MessageUtilTest
 	}
 	
 	@Test
-	void testNullValuesNotAllowedMessageWithNullParameters()
+	void testNullValuesNotAllowedMessageWithNullParameterArray()
 	{
 		String expectedMessage = "Null values are not allowed in ''{0}''.";
 		String actualMessage = MessageUtil.getMessage("NULL_VALUES_NOT_ALLOWED_ERROR", (Object[])null);
+		assertEquals(expectedMessage, actualMessage);
+	}
+	
+	@Test
+	void testNullValuesNotAllowedMessageWithANullParameter()
+	{
+		String expectedMessage = "Null values are not allowed in 'null'.";
+		String actualMessage = MessageUtil.getMessage("NULL_VALUES_NOT_ALLOWED_ERROR", (Object)null);
 		assertEquals(expectedMessage, actualMessage);
 	}
 	

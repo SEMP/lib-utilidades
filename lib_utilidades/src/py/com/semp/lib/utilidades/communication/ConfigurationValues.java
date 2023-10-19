@@ -1,417 +1,269 @@
 package py.com.semp.lib.utilidades.communication;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-//import py.com.lib.util.templates.GenericEnum;
-import py.com.semp.lib.utilidades.data.Pair;
+import py.com.semp.lib.utilidades.data.TypedParameter;
+import py.com.semp.lib.utilidades.data.TypedValue;
+import py.com.semp.lib.utilidades.internal.MessageUtil;
+import py.com.semp.lib.utilidades.internal.Messages;
 
 /**
- * Clase de configuraci&oacute;n para la comunicaci&oacute;n.
+ * Class for storing configuration values.
  * 
  * @author Sergio Morel
  */
 public abstract class ConfigurationValues
 {
-	/**
-	 * Par&aacute;metros.
-	 * - <b>String name:</b> nombre del par&aacute;metro.<br>
-	 * - <b>Class&lt;?&gt type:</b> tipo de dato del par&aacute;metro.<br>
-	 * - <b>Object value:</b> valor del par&aacute;metro.<br>
-	 */
-	private final Map<String, Pair<Class<?>, Object>> parameters;
+	private static final String NULL_VALUE = "null";
+	
+	private final ConcurrentHashMap<String, TypedValue<?>> parameters = new ConcurrentHashMap<>();
+	private final CopyOnWriteArraySet<TypedParameter> requiredParameters = new CopyOnWriteArraySet<>();
+	private final CopyOnWriteArraySet<TypedParameter> optionalParameters = new CopyOnWriteArraySet<>();
 	
 	/**
-	 * Par&aacute;metros requeridos.
-	 * - <b>Class&lt;?&gt type:</b> tipo de dato del par&aacute;metro.<br>
-	 * - <b>String name:</b> nombre del par&aacute;metro.<br>
+	 * Constructor to set required, optional and default parameters.
 	 */
-	private final List<Pair<Class<?>, String>> requiredParameters;
-	
-	/**
-	 * Par&aacute;metros opcionales.
-	 * - <b>Class&lt;?&gt type:</b> tipo de dato del par&aacute;metro.<br>
-	 * - <b>String name:</b> nombre del par&aacute;metro.<br>
-	 */
-	private final List<Pair<Class<?>, String>> optionalParameters;
-	
 	public ConfigurationValues()
 	{
-		this.parameters = Collections.synchronizedMap(new HashMap<>());
-		this.requiredParameters = Collections.synchronizedList(new LinkedList<>());
-		this.optionalParameters = Collections.synchronizedList(new LinkedList<>());
-		
 		this.setRequiredParameters();
 		this.setOptionalParameters();
 		this.setDefaultValues();
 	}
 	
 	/**
-	 * Guardar un par&aacute;metro.
+	 * Stores a parameter. The value can't be null.
 	 * 
-	 * @param type
-	 * typo de dato del par&aacute;metro.
-	 * @param name
-	 * nombre del par&aacute;metro.
-	 * @param value
-	 * valor del par&aacute;metro.
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
+	 * @param name Parameter name.
+	 * @param value Parameter value.
+	 * @return ConfigurationValues object used to call this method.
 	 */
-	public ConfigurationValues setParameter(String name, Object value)
+	public <T> ConfigurationValues setParameter(String name, T value)
 	{
-		if(value == null)
-		{
-			StringBuilder errorMessage = new StringBuilder();
-			
-			errorMessage.append("No se puede determinar el tipo de dato de: ");
-			errorMessage.append(value);
-			
-			throw new IllegalArgumentException(errorMessage.toString());
-		}
+		TypedValue<T> typedValue = new TypedValue<T>(value);
 		
-		Class<?> type = value.getClass();
-		Pair<Class<?>, Object> pair = new Pair<Class<?>, Object>(type, value);
-		
-		this.setParameter(name, pair);
+		this.setParameter(name, typedValue);
 		
 		return this;
 	}
 	
 	/**
-	 * Guardar un par&aacute;metro.
+	 * Store a parameter.
 	 * 
-	 * @param type
-	 * typo de dato del par&aacute;metro.
-	 * @param name
-	 * nombre del par&aacute;metro.
-	 * @param value
-	 * valor del par&aacute;metro.
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
+	 * @param type Parameter data type.
+	 * @param name Parameter name.
+	 * @param value Parameter value.
+	 * @return ConfigurationValues object used to call this method.
 	 */
-	public ConfigurationValues setParameter(Class<?> type, String name, Object value)
+	public <T> ConfigurationValues setParameter(Class<T> type, String name, T value)
 	{
-		Pair<Class<?>, Object> pair = new Pair<Class<?>, Object>(type, value);
+		TypedValue<T> typedValue = new TypedValue<T>(type, value);
 		
-		this.setParameter(name, pair);
+		this.setParameter(name, typedValue);
 		
 		return this;
 	}
 	
-	/**
-	 * Obtiene el tipo de dato y el valor del par&aacute;metro que conicide con el nombre.
-	 * @param name
-	 * nombre del par&aacute;metro que se quiere obtener.
-	 * @return
-	 * - Objeto del tipo {@link Pair}. El primer valor corresponde al tipo de dato, y el segundo al valor del par&aacute;metro.<br>
-	 * - <b>null</b> en caso de que no se encuentre ningun par&aacute;metro con el nombre buscado.
-	 */
-	public Pair<Class<?>, Object> getParameter(String name)
+	public <T> void setParameter(String name, TypedValue<T> typedValue)
 	{
-		Pair<Class<?>, Object> pair;
+		this.checkValidName(name);
 		
 		synchronized(this.parameters)
 		{
-			pair = this.parameters.get(name);
-			
-			this.parameters.notifyAll();
-		}
-		
-		return pair;
-	}
-	
-	public void setParameter(String name, Pair<Class<?>, Object> pair)
-	{
-		synchronized(this.parameters)
-		{
-			this.parameters.put(name, pair);
-			
-			this.parameters.notifyAll();
+			this.parameters.put(name, typedValue);
 		}
 	}
 	
 	/**
-	 * Obtiene el valor del par&aacute;metro que conicide con el nombre.
-	 * @param
-	 * tipo de dato del par&aacute;metro.
-	 * @param name
-	 * nombre del par&aacute;metro que se quiere obtener.
-	 * @return
-	 * - Valor del par&aacute;metro.<br>
-	 * - <b>null</b> en caso de que no se encuentre ningun par&aacute;metro con el nombre buscado.
-	 */
-	public <T> T getParameter(Class<T> type, String name)
-	{
-		Pair<Class<?>, Object> parameter = this.getParameter(name);
-		
-		if(parameter == null)
-		{
-			return null;
-		}
-		
-		return type.cast(parameter.getSecond());
-	}
-	
-	/**
-	 * Obtiene el mapa de par&aacute;metros.<br>
-	 * Campos:<br>
-	 * - <b>String name:</b> nombre del par&aacute;metro.<br>
-	 * - <b>Class&lt;?&gt type:</b> tipo de dato del par&aacute;metro.<br>
-	 * - <b>Object value:</b> valor del par&aacute;metro.<br> 
+	 * Fetches the parameter type and value that matches the given name.
 	 * 
-	 * @return
-	 * mapa de par&aacute;metros.
+	 * @param name Parameter name to fetch.
+	 * @return TypedValue object. Null if no parameter with the given name is found.
 	 */
-	public Map<String, Pair<Class<?>, Object>> getParameters()
+	public TypedValue<?> getParameter(String name)
+	{
+		TypedValue<?> typedValue;
+		
+		synchronized(this.parameters)
+		{
+			typedValue = this.parameters.get(name);
+		}
+		
+		return typedValue;
+	}
+	
+	/**
+	 * Get the parameter map.
+	 * 
+	 * @return Map containing the parameters.
+	 */
+	public Map<String, TypedValue<?>> getParameters()
 	{
 		return this.parameters;
 	}
 	
-//	public <T extends GenericEnum> T getEnum(Class<T> type)
-//	{
-//		String name = getNameFromClass(type);
-//		
-//		Pair<Class<?>,Object> parameter = this.getParameter(name);
-//		
-//		@SuppressWarnings("unchecked")
-//		T value = (T) parameter.getSecond();
-//		
-//		return value;
-//	}
-//	
-//	public <T extends GenericEnum> ConfigurationValues setEnum(T enumeration)
-//	{
-//		Class<?> type = enumeration.getClass();
-//		String name = getNameFromClass(type);
-//		
-//		this.setParameter(type, name, enumeration);
-//		
-//		return this;
-//	}
+	public <T> T getValue(String name)
+	{
+		TypedValue<?> typedValue = this.getParameter(name);
+		
+		if(typedValue == null)
+		{
+			return null;
+		}
+		
+		@SuppressWarnings("unchecked")
+		T value = (T)typedValue.getValue();
+		
+		return value;
+	}
 	
 	/**
-	 * Verifica se se cuenta con los par&aacute;metros requeridos con los tipos de dato correctos..
+	 * Validates if all required parameters with correct data types are present.
 	 * 
-	 * @return
-	 * - <b>true</b> si los par&aacute;metro est&aacute;n correctos.<br>
-	 * - <b>false</b> si los par&aacute;metro no est&aacute;n correctos.
+	 * @return true if parameters are correct, false otherwise.
 	 */
 	public boolean checkRequiredParameters()
 	{
-		List<Pair<Class<?>,String>> requiredParameters = this.getRequiredParameters();
+		Set<TypedParameter> requiredParameters = this.getRequiredParameters();
 		
-		synchronized(requiredParameters)
+		for(TypedParameter requiredParameter : requiredParameters)
 		{
-			for(Pair<Class<?>, String> requiredParameter : requiredParameters)
+			if(!this.checkRequiredParameter(requiredParameter))
 			{
-				String requiredName = requiredParameter.getSecond();
-				Class<?> requiredType = requiredParameter.getFirst();
-				
-				Pair<Class<?>,Object> parameter = this.getParameter(requiredName);
-				
-				if(parameter == null)
-				{
-					return false;
-				}
-				
-				Class<?> type = parameter.getFirst();
-				
-				if(!requiredType.isAssignableFrom(type))
-				{
-					return false;
-				}
+				return false;
 			}
-			
-			requiredParameters.notifyAll();
 		}
 		
 		return true;
 	}
 	
+	private boolean checkRequiredParameter(TypedParameter requiredParameter)
+	{
+		String requiredName = requiredParameter.getName();
+		Class<?> requiredType = requiredParameter.getType();
+		
+		TypedValue<?> typedValue = this.getParameter(requiredName);
+		
+		if(typedValue == null)
+		{
+			return false;
+		}
+		
+		Class<?> type = typedValue.getType();
+		
+		if(!requiredType.isAssignableFrom(type))
+		{
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private void checkValidName(String name)
+	{
+		if(name == null || name.trim().isEmpty())
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INVALID_NAME_ERROR, name);
+			
+			throw new IllegalArgumentException(errorMessage);
+		}
+	}
+	
 	/**
-	 * Establece los valores de configuraci&oacute;n requeridos.
+	 * Set required configuration values.
 	 */
 	protected abstract void setRequiredParameters();
 	
 	/**
-	 * Establece los valores de configuraci&oacute;n opcionales.
+	 * Set optional configuration values.
 	 */
 	protected abstract void setOptionalParameters();
 	
 	/**
-	 * Establece los valores de configuraci&oacute;n predeterminados.
+	 * Set default configuration values.
 	 */
 	protected abstract void setDefaultValues();
 	
 	/**
-	 * Obtiene una lista de par&aacute;metros requeridos para la comunicaci&oacute;n.
+	 * Fetches a list of required parameters for communication.
 	 * 
-	 * @return
-	 * Lista de pares del tipo {@link Pair} con los siguientes campos:<br>
-	 * - <b>tipo</b> de dato del par&aacute;metro.<br>
-	 * - <b>nombre</b> del par&aacute;metro.
+	 * @return Set of TypedParameter.
 	 */
-	public List<Pair<Class<?>, String>> getRequiredParameters()
+	public Set<TypedParameter> getRequiredParameters()
 	{
 		return this.requiredParameters;
 	}
 	
 	/**
-	 * Agrega un nuevo par&aacute;metro requerido.
+	 * Adds a new required parameter.
 	 * 
-	 * @param parameter
-	 * par&aacute;metro con los siguientes campos:
-	 * - <b>tipo</b> de dato del par&aacute;metro.<br>
-	 * - <b>nombre</b> del par&aacute;metro.
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
+	 * @param typedParameter Parameter to be added.
+	 * @return ConfigurationValues object used to call this method.
 	 */
-	public ConfigurationValues addRequiredParameter(Pair<Class<?>, String> parameter)
+	public ConfigurationValues addRequiredParameter(TypedParameter typedParameter)
 	{
 		synchronized(this.requiredParameters)
 		{
-			this.requiredParameters.add(parameter);
-			
-			this.requiredParameters.notifyAll();
+			this.requiredParameters.add(typedParameter);
 		}
 		
 		return this;
 	}
 	
 	/**
-	 * Agrega un nuevo par&aacute;metro requerido.
+	 * Adds a new required parameter.
 	 * 
-	 * @param parameterType
-	 * tipo de dato del par&aacute;metro
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
-	 */
-	public ConfigurationValues addRequiredParameter(Class<?> parameterType)
-	{
-		Pair<Class<?>, String> parameter = getClassTypeNamePair(parameterType);
-		
-		return this.addRequiredParameter(parameter);
-	}
-	
-	/**
-	 * Agrega un nuevo par&aacute;metro requerido.
-	 * 
-	 * @param parameterType
-	 * tipo de dato del par&aacute;metro
-	 * @param parameterName
-	 * nombre del par&aacute;metro.
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
+	 * @param parameterType Parameter data type.
+	 * @param parameterName Parameter name.
+	 * @return ConfigurationValues object used to call this method.
 	 */
 	public ConfigurationValues addRequiredParameter(Class<?> parameterType, String parameterName)
 	{
-		Pair<Class<?>, String> parameter = new Pair<Class<?>, String>(parameterType, parameterName);
+		TypedParameter typedParameter = new TypedParameter(parameterType, parameterName);
 		
-		return this.addRequiredParameter(parameter);
+		return this.addRequiredParameter(typedParameter);
 	}
 	
 	/**
-	 * Obtiene una lista de par&aacute;metros opcionales para la configuraci&oacute;n.
+	 * Fetches a list of optional parameters for communication.
 	 * 
-	 * @return
-	 * Lista de pares del tipo {@link Pair} con los siguientes campos:<br>
-	 * - <b>tipo</b> de dato del par&aacute;metro.<br>
-	 * - <b>nombre</b> del par&aacute;metro.
+	 * @return Set of TypedParameter.
 	 */
-	public List<Pair<Class<?>, String>> getOptionalParameters()
+	public Set<TypedParameter> getOptionalParameters()
 	{
-		return optionalParameters;
+		return this.optionalParameters;
 	}
 	
 	/**
-	 * Agrega un nuevo par&aacute;metro opcional.
+	 * Adds a new optional parameter.
 	 * 
-	 * @param parameterType
-	 * tipo de dato del par&aacute;metro
-	 * @param parameterName
-	 * nombre del par&aacute;metro.
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
+	 * @param typedParameter Parameter to be added.
+	 * @return ConfigurationValues object used to call this method.
 	 */
-	public ConfigurationValues addOptionalParameter(Pair<Class<?>, String> parameter)
+	public ConfigurationValues addOptionalParameter(TypedParameter typedParameter)
 	{
 		synchronized(this.optionalParameters)
 		{
-			this.optionalParameters.add(parameter);
-			
-			this.optionalParameters.notifyAll();
+			this.optionalParameters.add(typedParameter);
 		}
 		
 		return this;
 	}
 	
 	/**
-	 * Agrega un nuevo par&aacute;metro opcional.
+	 * Adds a new optional parameter.
 	 * 
-	 * @param parameterType
-	 * tipo de dato del par&aacute;metro
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
-	 */
-	public ConfigurationValues addOptionalParameter(Class<?> parameterType)
-	{
-		Pair<Class<?>, String> parameter = getClassTypeNamePair(parameterType);
-		
-		return this.addOptionalParameter(parameter);
-	}
-	
-	/**
-	 * Agrega un nuevo par&aacute;metro opcional.
-	 * 
-	 * @param parameterType
-	 * tipo de dato del par&aacute;metro
-	 * @param parameterName
-	 * nombre del par&aacute;metro.
-	 * @return
-	 * - Objeto de configuraci&oacute;n utilizado para llamar al m&eacute;todo.
+	 * @param parameterType Parameter data type.
+	 * @param parameterName Parameter name.
+	 * @return ConfigurationValues object used to call this method.
 	 */
 	public ConfigurationValues addOptionalParameter(Class<?> parameterType, String parameterName)
 	{
-		Pair<Class<?>, String> parameter = new Pair<Class<?>, String>(parameterType, parameterName);
+		TypedParameter typedParameter = new TypedParameter(parameterType, parameterName);
 		
-		return this.addOptionalParameter(parameter);
-	}
-	
-	public static Pair<Class<?>, String> getClassTypeNamePair(Class<?> type)
-	{
-		String name = getNameFromClass(type);
-		
-		return new Pair<Class<?>, String>(type, name);
-	}
-	
-	private static String getNameFromClass(Class<?> type)
-	{
-		String className = type.getSimpleName();
-		
-		if(className == null || className.isEmpty())
-		{
-			StringBuilder errorMessage = new StringBuilder();
-			
-			errorMessage.append("No se puede determinar el nombre de la clase: ");
-			errorMessage.append(type);
-			
-			throw new IllegalArgumentException(errorMessage.toString());
-		}
-		
-		StringBuilder name = new StringBuilder();
-		
-		name.append(className.substring(0, 1).toLowerCase());
-		
-		if(className.length() > 1)
-		{
-			name.append(className.substring(1));
-		}
-		
-		return name.toString();
+		return this.addOptionalParameter(typedParameter);
 	}
 	
 	@Override
@@ -419,28 +271,26 @@ public abstract class ConfigurationValues
 	{
 		StringBuilder sb = new StringBuilder();
 		
-		Map<String, Pair<Class<?>, Object>> parameters = this.getParameters();
+		Map<String, TypedValue<?>> parameters = this.getParameters();
 		
 		synchronized(parameters)
 		{
-			for(Map.Entry<String, Pair<Class<?>, Object>> entry : parameters.entrySet())
+			for(Map.Entry<String, TypedValue<?>> entry : parameters.entrySet())
 			{
-				Pair<Class<?>, Object> parameter = entry.getValue();
+				TypedValue<?> typedValue = entry.getValue();
 				
 				String name = entry.getKey();
-				Class<?> type = parameter.getFirst();
-				Object value = parameter.getSecond();
+				Class<?> type = typedValue.getType();
+				Object value = typedValue.getValue();
 				
 				sb.append(" - ");
 				sb.append(type.getCanonicalName());
 				sb.append(" ");
 				sb.append(name);
 				sb.append(" = ");
-				sb.append(value  == null ? "null" : value);
+				sb.append(value == null ? NULL_VALUE : value);
 				sb.append("\n");
 			}
-			
-			parameters.notifyAll();
 		}
 		
 		return sb.toString();

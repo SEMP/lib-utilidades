@@ -1,8 +1,7 @@
 package py.com.semp.lib.utilidades.data;
 
 import java.io.Serializable;
-
-import py.com.semp.lib.utilidades.utilities.Utilities;
+import java.util.Objects;
 
 /**
  * A utility class to hold two related objects or values.
@@ -68,19 +67,13 @@ public class Pair<A, B> implements Serializable
 		@SuppressWarnings("unchecked")
 		Pair<A, B> pair = (Pair<A, B>)obj;
 		
-		return Utilities.equals(this.first, pair.first) && Utilities.equals(this.second, pair.second);
+		return Objects.equals(this.first, pair.first) && Objects.equals(this.second, pair.second);
 	}
 	
 	@Override
 	public int hashCode()
 	{
-		final int prime = 31;
-		int result = 1;
-		
-		result = prime * result + (this.first == null ? 0 : this.first.hashCode());
-		result = prime * result + (this.second == null ? 0 : this.second.hashCode());
-		
-		return result;
+		return Objects.hash(this.first, this.second);
 	}
 	
 	@Override

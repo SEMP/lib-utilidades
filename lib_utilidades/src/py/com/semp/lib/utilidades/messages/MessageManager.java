@@ -82,7 +82,21 @@ public record MessageManager(String path, String resource, Locale locale)
 			return message;
 		}
 		
-		return MessageFormat.format(message, arguments);
+		Object[] notNullArguments = new Object[arguments.length];
+		
+		for(int i = 0; i < notNullArguments.length; i++)
+		{
+			if(arguments[i] == null)
+			{
+				notNullArguments[i] = "null";
+			}
+			else
+			{
+				notNullArguments[i] = arguments[i];
+			}
+		}
+		
+		return MessageFormat.format(message, notNullArguments);
 	}
 	
 	/**
