@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 
@@ -30,7 +31,7 @@ public class CircularByteBuffer implements List<Byte>
 	/**
 	 * Value of index when not referring to a position in the buffer.
 	 */
-	protected static final int BUFFER_BOUNDARY = -1;
+	private static final int BUFFER_BOUNDARY = Values.Constants.BUFFER_BOUNDARY;
 	
 	/**
 	 * Index for the first element of the buffer.

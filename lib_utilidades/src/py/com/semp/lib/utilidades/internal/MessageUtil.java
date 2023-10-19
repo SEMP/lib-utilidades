@@ -1,5 +1,6 @@
 package py.com.semp.lib.utilidades.internal;
 
+import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.messages.MessageKey;
 import py.com.semp.lib.utilidades.messages.MessageManager;
 
@@ -16,12 +17,12 @@ public final class MessageUtil
 	/**
      * The resource bundle base name.
      */
-	private static final String RESOURCE = "messages";
+	private static final String RESOURCE = Values.Resources.MESSAGES_BASE_NAME;
 	
 	/**
      * The path pointing to the location of the resource bundles.
      */
-	private static final String PATH = "py/com/semp/lib/utilidades";
+	private static final String PATH = Values.Constants.MESSAGES_PATH;
 	
 	/**
      * The shared instance of the MessageManager for message retrieval.

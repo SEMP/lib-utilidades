@@ -3,6 +3,7 @@ package py.com.semp.lib.utilidades.data;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
+import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.enumerations.IterationAction;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
@@ -17,7 +18,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	/**
 	 * Value of index when not referring to a position in the buffer.
 	 */
-	private static final int BUFFER_BOUNDARY = CircularByteBuffer.BUFFER_BOUNDARY;
+	private static final int BUFFER_BOUNDARY = Values.Constants.BUFFER_BOUNDARY;
 	
 	/**
 	 * Buffer to be iterated.

@@ -10,6 +10,8 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import py.com.semp.lib.utilidades.configuration.Values;
+
 public class CircularByteBufferIteratorTest
 {
 	private CircularByteBuffer list;
@@ -286,7 +288,7 @@ public class CircularByteBufferIteratorTest
 	@Test
 	public void testNextIndex()
 	{
-		assertEquals(CircularByteBuffer.BUFFER_BOUNDARY, iterator.getIndex());
+		assertEquals(Values.Constants.BUFFER_BOUNDARY, iterator.getIndex());
 		assertEquals(0, iterator.nextIndex());
 		iterator.next();
 		assertEquals(0, iterator.getIndex());
@@ -801,7 +803,7 @@ public class CircularByteBufferIteratorTest
 		// 7. Test removing from illegal index.
 		iterator.reset();
 		iterator.next();
-		iterator.setInternalIndex(CircularByteBuffer.BUFFER_BOUNDARY);
+		iterator.setInternalIndex(Values.Constants.BUFFER_BOUNDARY);
 		assertThrows(NoSuchElementException.class, () -> iterator.remove());
 	}
 	
