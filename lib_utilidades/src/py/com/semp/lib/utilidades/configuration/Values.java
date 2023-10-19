@@ -15,9 +15,15 @@ public interface Values
 	public interface Constants
 	{
 		//Integers
+		/**
+		 * Value of the index for the buffer boundaries. 
+		 */
 		public static final int BUFFER_BOUNDARY = -1;
 		
 		//Strings
+		/**
+		 * Path where the messages for localization are found.
+		 */
 		public static final String MESSAGES_PATH = "py/com/semp/lib/utilidades";
 	}
 	
@@ -28,6 +34,9 @@ public interface Values
 	 */
 	public interface Resources
 	{
+		/**
+		 * Base name of the boundle of properties files for each language.
+		 */
 		public static final String MESSAGES_BASE_NAME = "messages";
 	}
 }
