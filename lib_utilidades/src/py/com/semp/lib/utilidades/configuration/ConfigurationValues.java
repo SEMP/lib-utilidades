@@ -1,4 +1,4 @@
-package py.com.semp.lib.utilidades.communication;
+package py.com.semp.lib.utilidades.configuration;
 
 import java.util.Map;
 import java.util.Set;

@@ -1,6 +1,7 @@
 package py.com.semp.lib.utilidades.communication;
 
 import py.com.semp.lib.utilidades.communication.listeners.ConnectionEventListener;
+import py.com.semp.lib.utilidades.configuration.ConfigurationValues;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
 
 public interface DataInterface
