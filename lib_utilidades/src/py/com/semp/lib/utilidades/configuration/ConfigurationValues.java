@@ -17,8 +17,6 @@ import py.com.semp.lib.utilidades.internal.Messages;
  */
 public abstract class ConfigurationValues
 {
-	private static final String NULL_VALUE = "null";
-	
 	private final ConcurrentHashMap<String, TypedValue<?>> parameters = new ConcurrentHashMap<>();
 	private final CopyOnWriteArraySet<TypedParameter> requiredParameters = new CopyOnWriteArraySet<>();
 	private final CopyOnWriteArraySet<TypedParameter> optionalParameters = new CopyOnWriteArraySet<>();
@@ -70,10 +68,7 @@ public abstract class ConfigurationValues
 	{
 		this.checkValidName(name);
 		
-		synchronized(this.parameters)
-		{
-			this.parameters.put(name, typedValue);
-		}
+		this.parameters.put(name, typedValue);
 	}
 	
 	/**
@@ -86,10 +81,7 @@ public abstract class ConfigurationValues
 	{
 		TypedValue<?> typedValue;
 		
-		synchronized(this.parameters)
-		{
-			typedValue = this.parameters.get(name);
-		}
+		typedValue = this.parameters.get(name);
 		
 		return typedValue;
 	}
@@ -139,6 +131,16 @@ public abstract class ConfigurationValues
 		return true;
 	}
 	
+	/**
+	 * Verifies if the required parameter is stored. It also checks if the data type
+	 * of the parameter is correct.
+	 * 
+	 * @param requiredParameter
+	 * {@link TypedParameter} that contains the data type and name of the required parameter.
+	 * @return
+	 * - <b>true</b> if the required parameter is stored.<br>
+	 * - <b>true</b> if the required parameter isn't stored or if the data type is not compatible.<br>
+	 */
 	private boolean checkRequiredParameter(TypedParameter requiredParameter)
 	{
 		String requiredName = requiredParameter.getName();
@@ -204,10 +206,7 @@ public abstract class ConfigurationValues
 	 */
 	public ConfigurationValues addRequiredParameter(TypedParameter typedParameter)
 	{
-		synchronized(this.requiredParameters)
-		{
-			this.requiredParameters.add(typedParameter);
-		}
+		this.requiredParameters.add(typedParameter);
 		
 		return this;
 	}
@@ -244,10 +243,7 @@ public abstract class ConfigurationValues
 	 */
 	public ConfigurationValues addOptionalParameter(TypedParameter typedParameter)
 	{
-		synchronized(this.optionalParameters)
-		{
-			this.optionalParameters.add(typedParameter);
-		}
+		this.optionalParameters.add(typedParameter);
 		
 		return this;
 	}
@@ -273,24 +269,21 @@ public abstract class ConfigurationValues
 		
 		Map<String, TypedValue<?>> parameters = this.getParameters();
 		
-		synchronized(parameters)
+		for(Map.Entry<String, TypedValue<?>> entry : parameters.entrySet())
 		{
-			for(Map.Entry<String, TypedValue<?>> entry : parameters.entrySet())
-			{
-				TypedValue<?> typedValue = entry.getValue();
-				
-				String name = entry.getKey();
-				Class<?> type = typedValue.getType();
-				Object value = typedValue.getValue();
-				
-				sb.append(" - ");
-				sb.append(type.getCanonicalName());
-				sb.append(" ");
-				sb.append(name);
-				sb.append(" = ");
-				sb.append(value == null ? NULL_VALUE : value);
-				sb.append("\n");
-			}
+			TypedValue<?> typedValue = entry.getValue();
+			
+			String name = entry.getKey();
+			Class<?> type = typedValue.getType();
+			Object value = typedValue.getValue();
+			
+			sb.append(" - ");
+			sb.append(type.getCanonicalName());
+			sb.append(" ");
+			sb.append(name);
+			sb.append(" = ");
+			sb.append(value == null ? Values.Constants.NULL_VALUE_STRING : value);
+			sb.append("\n");
 		}
 		
 		return sb.toString();
