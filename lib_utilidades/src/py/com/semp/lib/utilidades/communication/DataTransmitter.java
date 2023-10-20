@@ -11,7 +11,7 @@ public interface DataTransmitter
 	 * @param listeners
 	 * Data Listeners to add.
 	 */
-	public void addDataListeners(DataListener... listeners);
+	public DataTransmitter addDataListeners(DataListener... listeners);
 	
 	/**
 	 * Removes data listeners.
@@ -19,12 +19,12 @@ public interface DataTransmitter
 	 * @param listeners
 	 * Data listeners to remove.
 	 */
-	public void removeDataListeners(DataListener... listeners);
+	public DataTransmitter removeDataListeners(DataListener... listeners);
 	
 	/**
 	 * Removes all data listeners.
 	 */
-	public void removeAllDataListeners();
+	public DataTransmitter removeAllDataListeners();
 	
 	/**
 	 * Sends data.

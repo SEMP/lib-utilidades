@@ -59,18 +59,18 @@ public interface DataInterface
 	/**
      * Adds one or more connection event listeners to this data interface.
      *
-     * @param connectionEventListeners The event listeners to be added.
+     * @param listeners The event listeners to be added.
      * @return A reference to this DataInterface instance.
      */
-	public DataInterface addConnectionEventListeners(ConnectionEventListener... connectionEventListeners);
+	public DataInterface addConnectionEventListeners(ConnectionEventListener... listeners);
 	
 	/**
      * Removes one or more connection event listeners from this data interface.
      *
-     * @param connectionEventListeners The event listeners to be removed.
+     * @param listeners The event listeners to be removed.
      * @return A reference to this DataInterface instance.
      */
-	public DataInterface removeConnectionEventListeners(ConnectionEventListener... connectionEventListeners);
+	public DataInterface removeConnectionEventListeners(ConnectionEventListener... listeners);
 	
 	/**
      * Removes all connection event listeners from this data interface.

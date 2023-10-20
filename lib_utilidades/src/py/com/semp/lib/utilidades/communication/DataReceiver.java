@@ -16,7 +16,7 @@ public interface DataReceiver
 	 * @param listeners
 	 * Data Listeners to add.
 	 */
-	public void addDataListeners(DataListener... listeners);
+	public DataReceiver addDataListeners(DataListener... listeners);
 	
 	/**
 	 * Removes data listeners.
@@ -24,12 +24,12 @@ public interface DataReceiver
 	 * @param listeners
 	 * Data listeners to remove.
 	 */
-	public void removeDataListeners(DataListener... listeners);
+	public DataReceiver removeDataListeners(DataListener... listeners);
 	
 	/**
 	 * Removes all data listeners.
 	 */
-	public void removeAllDataListeners();
+	public DataReceiver removeAllDataListeners();
 	
 	/**
 	 * Reads data.
