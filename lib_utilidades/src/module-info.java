@@ -10,6 +10,7 @@ module lib_utilidades
 	exports py.com.semp.lib.utilidades.configuration;
 	exports py.com.semp.lib.utilidades.communication.listeners;
 	exports py.com.semp.lib.utilidades.exceptions;
+	exports py.com.semp.lib.utilidades.log;
 	
 	requires org.junit.jupiter.api;
 	requires com.fasterxml.jackson.core;

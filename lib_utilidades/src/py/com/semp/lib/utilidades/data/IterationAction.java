@@ -1,4 +1,4 @@
-package py.com.semp.lib.utilidades.enumerations;
+package py.com.semp.lib.utilidades.data;
 
 /**
  * Indicates what was the previous iteration movement.

@@ -4,7 +4,6 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 import py.com.semp.lib.utilidades.configuration.Values;
-import py.com.semp.lib.utilidades.enumerations.IterationAction;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 
