@@ -76,6 +76,30 @@ public interface Logger
 	}
 	
 	/**
+     * Logs an informational message along with a Throwable.
+     * 
+     * @param message The message to log with INFO level.
+     * @param throwable The throwable to log.
+     */
+	default void info(String message, Throwable throwable)
+	{
+		this.log(LogLevel.INFO, message, throwable);
+	}
+	
+	/**
+     * Logs an object's string representation as an informational message along with a Throwable.
+     * 
+     * @param object The object whose string representation will be logged with INFO level.
+     * @param throwable The throwable to log.
+     */
+	default void info(Object object, Throwable throwable)
+	{
+		String message = Objects.toString(object);
+		
+		this.log(LogLevel.INFO, message, throwable);
+	}
+	
+	/**
 	 * Logs an error message.
 	 * 
 	 * @param message The message to log with ERROR level.
@@ -95,6 +119,30 @@ public interface Logger
 		String message = Objects.toString(object);
 		
 		this.log(LogLevel.ERROR, message);
+	}
+	
+	/**
+     * Logs an error message along with a Throwable.
+     * 
+     * @param message The message to log with ERROR level.
+     * @param throwable The throwable to log.
+     */
+	default void error(String message, Throwable throwable)
+	{
+		this.log(LogLevel.ERROR, message, throwable);
+	}
+	
+	/**
+     * Logs an object's string representation as an error message along with a Throwable.
+     * 
+     * @param object The object whose string representation will be logged with ERROR level.
+     * @param throwable The throwable to log.
+     */
+	default void error(Object object, Throwable throwable)
+	{
+		String message = Objects.toString(object);
+		
+		this.log(LogLevel.ERROR, message, throwable);
 	}
 	
 	/**
@@ -120,6 +168,30 @@ public interface Logger
 	}
 	
 	/**
+     * Logs a warning message along with a Throwable.
+     * 
+     * @param message The message to log with WARN level.
+     * @param throwable The throwable to log.
+     */
+	default void warning(String message, Throwable throwable)
+	{
+		this.log(LogLevel.WARN, message, throwable);
+	}
+	
+	/**
+     * Logs an object's string representation as a warning message along with a Throwable.
+     * 
+     * @param object The object whose string representation will be logged with WARN level.
+     * @param throwable The throwable to log.
+     */
+	default void warning(Object object, Throwable throwable)
+	{
+		String message = Objects.toString(object);
+		
+		this.log(LogLevel.WARN, message, throwable);
+	}
+	
+	/**
 	 * Logs a debug message.
 	 * 
 	 * @param message The message to log with DEBUG level.
@@ -142,6 +214,30 @@ public interface Logger
 	}
 	
 	/**
+     * Logs a debug message along with a Throwable.
+     * 
+     * @param message The message to log with DEBUG level.
+     * @param throwable The throwable to log.
+     */
+	default void debug(String message, Throwable throwable)
+	{
+		this.log(LogLevel.DEBUG, message, throwable);
+	}
+	
+	/**
+     * Logs an object's string representation as a debug message along with a Throwable.
+     * 
+     * @param object The object whose string representation will be logged with DEBUG level.
+     * @param throwable The throwable to log.
+     */
+	default void debug(Object object, Throwable throwable)
+	{
+		String message = Objects.toString(object);
+		
+		this.log(LogLevel.DEBUG, message, throwable);
+	}
+	
+	/**
 	 * Logs a fatal error message.
 	 * 
 	 * @param message The message to log with FATAL level.
@@ -161,5 +257,29 @@ public interface Logger
 		String message = Objects.toString(object);
 		
 		this.log(LogLevel.FATAL, message);
+	}
+	
+	/**
+     * Logs a fatal error message along with a Throwable.
+     * 
+     * @param message The message to log with FATAL level.
+     * @param throwable The throwable to log.
+     */
+	default void fatal(String message, Throwable throwable)
+	{
+		this.log(LogLevel.FATAL, message, throwable);
+	}
+	
+	/**
+     * Logs an object's string representation as a fatal error message along with a Throwable.
+     * 
+     * @param object The object whose string representation will be logged with FATAL level.
+     * @param throwable The throwable to log.
+     */
+	default void fatal(Object object, Throwable throwable)
+	{
+		String message = Objects.toString(object);
+		
+		this.log(LogLevel.FATAL, message, throwable);
 	}
 }

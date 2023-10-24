@@ -22,6 +22,11 @@ public interface Values
 		
 		//Strings
 		/**
+		 * Context name for the utilities library
+		 */
+		public static final String UTILITIES_CONTEXT = "lib_utilidades";
+		
+		/**
 		 * Path where the messages for localization are found.
 		 */
 		public static final String MESSAGES_PATH = "py/com/semp/lib/utilidades";
