@@ -1,5 +1,5 @@
 /**
- * Package for utilities for localization messages.
+ * Package in utilities for localization messages.
  * 
  * @author Sergio Morel
  */
