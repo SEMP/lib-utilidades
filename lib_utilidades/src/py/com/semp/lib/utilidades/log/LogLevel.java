@@ -27,7 +27,7 @@ public enum LogLevel
     /**
      * Warning conditions that require attention but are not critical.
      */
-    WARN,
+    WARNING,
     
     /**
      * Informational messages that provide insights into the application's behavior.

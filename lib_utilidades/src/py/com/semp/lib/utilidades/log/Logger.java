@@ -152,7 +152,7 @@ public interface Logger
 	 */
 	default void warning(String message)
 	{
-		this.log(LogLevel.WARN, message);
+		this.log(LogLevel.WARNING, message);
 	}
 	
 	/**
@@ -164,7 +164,7 @@ public interface Logger
 	{
 		String message = Objects.toString(object);
 		
-		this.log(LogLevel.WARN, message);
+		this.log(LogLevel.WARNING, message);
 	}
 	
 	/**
@@ -175,7 +175,7 @@ public interface Logger
      */
 	default void warning(String message, Throwable throwable)
 	{
-		this.log(LogLevel.WARN, message, throwable);
+		this.log(LogLevel.WARNING, message, throwable);
 	}
 	
 	/**
@@ -188,7 +188,7 @@ public interface Logger
 	{
 		String message = Objects.toString(object);
 		
-		this.log(LogLevel.WARN, message, throwable);
+		this.log(LogLevel.WARNING, message, throwable);
 	}
 	
 	/**
