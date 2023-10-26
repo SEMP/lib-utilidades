@@ -148,7 +148,7 @@ public interface Logger
 	/**
 	 * Logs a warning message.
 	 * 
-	 * @param message The message to log with WARN level.
+	 * @param message The message to log with WARNING level.
 	 */
 	default void warning(String message)
 	{
@@ -158,7 +158,7 @@ public interface Logger
 	/**
 	 * Logs an object's string representation as a warning message.
 	 * 
-	 * @param object The object whose string representation will be logged with WARN level.
+	 * @param object The object whose string representation will be logged with WARNING level.
 	 */
 	default void warning(Object object)
 	{
@@ -170,7 +170,7 @@ public interface Logger
 	/**
      * Logs a warning message along with a Throwable.
      * 
-     * @param message The message to log with WARN level.
+     * @param message The message to log with WARNING level.
      * @param throwable The throwable to log.
      */
 	default void warning(String message, Throwable throwable)
@@ -181,7 +181,7 @@ public interface Logger
 	/**
      * Logs an object's string representation as a warning message along with a Throwable.
      * 
-     * @param object The object whose string representation will be logged with WARN level.
+     * @param object The object whose string representation will be logged with WARNING level.
      * @param throwable The throwable to log.
      */
 	default void warning(Object object, Throwable throwable)
