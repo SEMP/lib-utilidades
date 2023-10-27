@@ -27,6 +27,11 @@ public interface Values
 		public static final String UTILITIES_CONTEXT = "lib_utilidades";
 		
 		/**
+		 * Context name for Shutdown
+		 */
+		public static final String SHUTDOWN_CONTEXT = "shutdown";
+		
+		/**
 		 * Path where the messages for localization are found.
 		 */
 		public static final String MESSAGES_PATH = "py/com/semp/lib/utilidades";

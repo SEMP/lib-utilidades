@@ -88,6 +88,14 @@ public interface DataInterface
 	public String getStringIdentifier();
 	
 	/**
+	 * Emergency shutdown method.
+	 * 
+	 * @return A reference to this DataInterface instance.
+     * @throws CommunicationException If any error occurs during the shutdown process.
+	 */
+	public DataInterface shutdown() throws CommunicationException;;
+	
+	/**
      * Checks if the data interface is currently connected to its data source.
      *
      * @return True if connected, false otherwise.
