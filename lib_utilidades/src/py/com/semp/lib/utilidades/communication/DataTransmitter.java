@@ -29,10 +29,19 @@ public interface DataTransmitter
 	/**
 	 * Sends data.
 	 * 
-	 * @return
-	 * - The data sent.
 	 * @throws CommunicationException
 	 * if there was a communication exception while sending data.
 	 */
 	public void sendData(byte[] data) throws CommunicationException;
+	
+	/**
+	 * Sends data.
+	 * 
+	 * @throws CommunicationException
+	 * if there was a communication exception while sending data.
+	 */
+	default public void sendData(String data) throws CommunicationException
+	{
+		this.sendData(data.getBytes());
+	}
 }
