@@ -34,7 +34,7 @@ public interface Values
 		/**
 		 * Path where the messages for localization are found.
 		 */
-		public static final String MESSAGES_PATH = "py/com/semp/lib/utilidades/";
+		public static final String MESSAGES_PATH = "/py/com/semp/lib/utilidades/";
 		
 		/**
 		 * String representation of a null value.
