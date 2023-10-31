@@ -1,16 +1,20 @@
 package py.com.semp.lib.utilidades.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.Locale;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import py.com.semp.lib.utilidades.configuration.Values;
 
 class MessageUtilTest
 {
@@ -27,6 +31,16 @@ class MessageUtilTest
 	void tearDown()
 	{
 		Locale.setDefault(originalLocale);
+	}
+	
+	@Test
+	void testResource()
+	{
+		String name = "/" + Values.Constants.MESSAGES_PATH + Values.Resources.MESSAGES_BASE_NAME + ".properties";
+		
+		URL resource = this.getClass().getResource(name);
+		
+		assertNotNull(resource, name);
 	}
 	
 	@Test

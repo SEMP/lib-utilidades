@@ -2,6 +2,8 @@ package py.com.semp.lib.utilidades.messages;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ResourceBundle;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +18,7 @@ public class MessageManagerTest
 	@BeforeEach
 	public void setup()
 	{
-		messageManager = new MessageManager("py/com/semp/lib/utilidades", "messages");
+		messageManager = new MessageManager(ResourceBundle.getBundle("py/com/semp/lib/utilidades/" + "messages"));
 	}
 	
 	@Test

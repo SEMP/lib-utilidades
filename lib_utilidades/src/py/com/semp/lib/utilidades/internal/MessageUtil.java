@@ -1,5 +1,7 @@
 package py.com.semp.lib.utilidades.internal;
 
+import java.util.ResourceBundle;
+
 import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.messages.MessageKey;
 import py.com.semp.lib.utilidades.messages.MessageManager;
@@ -27,7 +29,7 @@ public final class MessageUtil
 	/**
      * The shared instance of the MessageManager for message retrieval.
      */
-	private static final MessageManager MESSAGE_MANAGER = new MessageManager(PATH, RESOURCE);
+	private static final MessageManager MESSAGE_MANAGER = new MessageManager(ResourceBundle.getBundle(PATH + RESOURCE));
 	
 	private MessageUtil()
 	{

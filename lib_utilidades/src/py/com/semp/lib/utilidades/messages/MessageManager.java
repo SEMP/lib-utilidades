@@ -1,8 +1,9 @@
 package py.com.semp.lib.utilidades.messages;
 
 import java.text.MessageFormat;
-import java.util.Locale;
 import java.util.ResourceBundle;
+
+import py.com.semp.lib.utilidades.configuration.Values;
 
 /**
  * MessageManager provides functionality to retrieve localized messages 
@@ -10,50 +11,13 @@ import java.util.ResourceBundle;
  * 
  * @author Sergio Morel
  */
-public record MessageManager(String path, String resource, Locale locale)
+public class MessageManager
 {
-	/**
-     * Constructor that initializes the MessageManager with the given path and 
-     * resource and uses the default locale.
-     *
-     * @param path
-     * - The base path for the resource bundles.
-     * @param resource
-     * - The base name of the resource bundle.
-     * @author Sergio Morel
-     */
-	public MessageManager(String path, String resource)
-	{
-		this(path, resource, Locale.getDefault());
-	}
+	private final ResourceBundle resourceBundle;
 	
-	/**
-     * Canonical constructor that ensures the path ends with a trailing slash.
-     * 
-     * @author Sergio Morel
-     */
-	public MessageManager
+	public MessageManager(ResourceBundle resourceBundle)
 	{
-		path = this.ensureTrailingSlash(path);
-    }
-	
-	/**
-     * Ensures that the provided path ends with a trailing slash ('/').
-     *
-     * @param path
-     * - The path to be checked and possibly modified.
-     * @return
-     * - The path ending with a trailing slash, or null if the input path was null.
-     * @author Sergio Morel
-     */
-	private String ensureTrailingSlash(String path)
-	{
-		if(path == null)
-		{
-			return null;
-		}
-		
-		return path.endsWith("/") ? path : path + "/";
+		this.resourceBundle = resourceBundle;
 	}
 	
 	/**
@@ -69,13 +33,7 @@ public record MessageManager(String path, String resource, Locale locale)
      */
 	public String getMessage(String messageKey, Object... arguments)
 	{
-		ResourceBundle bundle = ResourceBundle.getBundle
-		(
-			this.path() + this.resource(),
-			this.locale()
-		);
-		
-		String message = bundle.getString(messageKey);
+		String message = this.resourceBundle.getString(messageKey);
 		
 		if(arguments == null || arguments.length < 1)
 		{
@@ -88,7 +46,7 @@ public record MessageManager(String path, String resource, Locale locale)
 		{
 			if(arguments[i] == null)
 			{
-				notNullArguments[i] = "null";
+				notNullArguments[i] = Values.Constants.NULL_VALUE_STRING;
 			}
 			else
 			{
