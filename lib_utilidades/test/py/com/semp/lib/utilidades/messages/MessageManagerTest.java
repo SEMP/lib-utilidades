@@ -2,51 +2,43 @@ package py.com.semp.lib.utilidades.messages;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import py.com.semp.lib.utilidades.data.Pair;
-import py.com.semp.lib.utilidades.test.TestUtils;
+import py.com.semp.lib.utilidades.configuration.Values;
+import py.com.semp.lib.utilidades.internal.Messages;
 
 public class MessageManagerTest
 {
-	
-	private MessageManager messageManager;
+	private MessageManager englishMessage;
+	private MessageManager spanishMessage;
 	
 	@BeforeEach
 	public void setup()
 	{
-		messageManager = new MessageManager(ResourceBundle.getBundle("py/com/semp/lib/utilidades/" + "messages"));
+		ResourceBundle englishBundle = ResourceBundle.getBundle(Values.Constants.MESSAGES_PATH + Values.Resources.MESSAGES_BASE_NAME, Locale.ENGLISH);
+		ResourceBundle spanisheBundle = ResourceBundle.getBundle(Values.Constants.MESSAGES_PATH + Values.Resources.MESSAGES_BASE_NAME, new Locale("es"));
+		
+		this.englishMessage = new MessageManager(englishBundle);
+		this.spanishMessage = new MessageManager(spanisheBundle);
 	}
 	
 	@Test
-	public void testEnsureTrailingSlashForNullPath()
+	public void retrieveEnglishMessage()
 	{
-		String path = null;
+		String message = this.englishMessage.getMessage(Messages.TYPE_NOT_DEFINED_ERROR);
 		
-		Pair<Class<?>, Object> argument = new Pair<>(String.class, path);
-		
-		// Using reflection to test the private method.
-		String result = (String)TestUtils.invokePrivateMethod(messageManager, "ensureTrailingSlash", argument);
-		
-		assertEquals(null, result);
+		assertEquals("The data type must be defined.", message);
 	}
 	
 	@Test
-	public void testEnsureTrailingSlashWithPathEndingWithSlash()
+	public void retrieveSpanishMessage()
 	{
-		String path = "example/path/";
-		String result = (String)TestUtils.invokePrivateMethod(messageManager, "ensureTrailingSlash", path);
-		assertEquals("example/path/", result);
-	}
-	
-	@Test
-	public void testEnsureTrailingSlashWithPathNotEndingWithSlash()
-	{
-		String path = "example/path";
-		String result = (String)TestUtils.invokePrivateMethod(messageManager, "ensureTrailingSlash", path);
-		assertEquals("example/path/", result);
+		String message = this.spanishMessage.getMessage(Messages.TYPE_NOT_DEFINED_ERROR);
+		
+		assertEquals("Se debe definir el tipo de dato.", message);
 	}
 }

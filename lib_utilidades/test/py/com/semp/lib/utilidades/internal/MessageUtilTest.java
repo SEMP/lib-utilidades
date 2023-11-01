@@ -23,14 +23,16 @@ class MessageUtilTest
 	@BeforeEach
 	void setUp()
 	{
-		originalLocale = Locale.getDefault();
+		this.originalLocale = Locale.getDefault();
 		Locale.setDefault(Locale.ENGLISH);
+		MessageUtil.setLocale(Locale.ENGLISH);
 	}
 	
 	@AfterEach
 	void tearDown()
 	{
-		Locale.setDefault(originalLocale);
+		Locale.setDefault(this.originalLocale);
+		MessageUtil.setLocale(this.originalLocale);
 	}
 	
 	@Test
@@ -105,5 +107,17 @@ class MessageUtilTest
 		String expectedMessage = "Null values are not allowed in ''{0}''.";
 		String actualMessage = MessageUtil.getMessage("NULL_VALUES_NOT_ALLOWED_ERROR");
 		assertEquals(expectedMessage, actualMessage);
+	}
+	
+	@Test
+	public void testMessageLocalizationChange()
+	{
+		String message = MessageUtil.getMessage(Messages.TYPE_NOT_DEFINED_ERROR);
+		assertEquals("The data type must be defined.", message);
+		
+		MessageUtil.setLocale(new Locale("es"));
+		
+		message = MessageUtil.getMessage(Messages.TYPE_NOT_DEFINED_ERROR);
+		assertEquals("Se debe definir el tipo de dato.", message);
 	}
 }
