@@ -2,7 +2,7 @@ package py.com.semp.lib.utilidades.communication.listeners;
 
 import java.time.Instant;
 
-import py.com.semp.lib.utilidades.communication.DataInterface;
+import py.com.semp.lib.utilidades.communication.interfaces.DataInterface;
 
 /**
  * Listen to events corresponding to the connection of the {@link DataInterface}

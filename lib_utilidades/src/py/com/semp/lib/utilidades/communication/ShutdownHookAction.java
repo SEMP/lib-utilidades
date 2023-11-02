@@ -1,5 +1,6 @@
 package py.com.semp.lib.utilidades.communication;
 
+import py.com.semp.lib.utilidades.communication.interfaces.DataInterface;
 import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
 import py.com.semp.lib.utilidades.internal.MessageUtil;

@@ -1,4 +1,4 @@
-package py.com.semp.lib.utilidades.communication;
+package py.com.semp.lib.utilidades.communication.interfaces;
 
 import py.com.semp.lib.utilidades.communication.listeners.ConnectionEventListener;
 import py.com.semp.lib.utilidades.configuration.ConfigurationValues;
