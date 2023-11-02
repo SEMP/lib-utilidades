@@ -20,6 +20,17 @@ public interface Values
 		 */
 		public static final int BUFFER_BOUNDARY = -1;
 		
+		/**
+		 * The size of the thread pool used to inform listeners of events.
+		 */
+		public static final int LISTENERS_THREAD_POOL_SIZE = 10;
+		
+		//Longs
+		/**
+		 * Time to wait for tasks termination.
+		 */
+		public static final long TERMINATION_TIMOUT_MS = 3000L;
+		
 		//Strings
 		/**
 		 * Context name for the utilities library

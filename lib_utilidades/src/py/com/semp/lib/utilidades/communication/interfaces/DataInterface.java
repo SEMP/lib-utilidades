@@ -1,5 +1,7 @@
 package py.com.semp.lib.utilidades.communication.interfaces;
 
+import java.util.Set;
+
 import py.com.semp.lib.utilidades.communication.listeners.ConnectionEventListener;
 import py.com.semp.lib.utilidades.configuration.ConfigurationValues;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
@@ -78,6 +80,14 @@ public interface DataInterface
      * @return A reference to this DataInterface instance.
      */
 	public DataInterface removeAllConnectionEventListeners();
+	
+	/**
+	 * Obtains the data listeners.
+	 * 
+	 * @return
+	 * - The data listeners.
+	 */
+	public Set<ConnectionEventListener> getConnectionEventListeners();
 	
 	/**
      * Retrieves a string identifier for this data interface. This can be used for logging or 

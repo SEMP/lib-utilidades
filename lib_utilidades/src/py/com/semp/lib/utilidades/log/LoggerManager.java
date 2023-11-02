@@ -1,5 +1,6 @@
 package py.com.semp.lib.utilidades.log;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import py.com.semp.lib.utilidades.internal.MessageUtil;
@@ -71,6 +72,28 @@ public final class LoggerManager
 		checkContextName(context);
 		
 		LOGGERS.put(context, logger);
+	}
+	
+	/**
+     * Sets a Logger instance for all existing contexts. Replaces any existing Logger for any given context.
+     * 
+     * @param logger The logger to be set.
+     * 
+     * @throws IllegalArgumentException if the context is null or empty.
+     */
+	public static void setLogger(Logger logger)
+	{
+		Set<String> contexts = getContexts();
+		
+		for(String context : contexts)
+		{
+			LOGGERS.put(context, logger);
+		}
+	}
+	
+	public static Set<String> getContexts()
+	{
+		return LOGGERS.keySet();
 	}
 	
 	/**

@@ -1,5 +1,7 @@
 package py.com.semp.lib.utilidades.communication.interfaces;
 
+import java.util.Set;
+
 import py.com.semp.lib.utilidades.communication.listeners.DataListener;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
 
@@ -30,6 +32,14 @@ public interface DataReceiver
 	 * Removes all data listeners.
 	 */
 	public DataReceiver removeAllDataListeners();
+	
+	/**
+	 * Obtains the data listeners.
+	 * 
+	 * @return
+	 * - The data listeners.
+	 */
+	public Set<DataListener> getDataListeners();
 	
 	/**
 	 * Reads data.
