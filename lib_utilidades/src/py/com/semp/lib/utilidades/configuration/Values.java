@@ -54,6 +54,32 @@ public interface Values
 	}
 	
 	/**
+	 * Contains variable names
+	 * 
+	 * @author Sergio Morel
+	 */
+	public interface VariableNames
+	{
+		/**
+		 * The time communication will be blocked during a read operation before throwing an exception.<br>
+		 */
+		public static final String READ_TIMEOUT_MS = "readTimeoutMS";
+	}
+	
+	/**
+	 * Contains constants with default values.
+	 * 
+	 * @author Sergio Morel
+	 */
+	public interface Defaults
+	{
+		//Integer values
+		public static final Integer CONNECTION_TIMEOUT_MS = -1;
+		public static final Integer READ_TIMEOUT_MS = -1;
+		public static final Integer WRITE_TIMEOUT_MS = -1;
+	}
+	
+	/**
 	 * Contains resources names
 	 * 
 	 * @author Sergio Morel

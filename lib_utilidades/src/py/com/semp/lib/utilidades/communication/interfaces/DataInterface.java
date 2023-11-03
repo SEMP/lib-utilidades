@@ -103,7 +103,16 @@ public interface DataInterface
 	 * @return A reference to this DataInterface instance.
      * @throws CommunicationException If any error occurs during the shutdown process.
 	 */
-	public DataInterface shutdown() throws CommunicationException;;
+	public DataInterface shutdown() throws CommunicationException;
+	
+	/**
+	 * Indicates if the {@link DataInterface} is shutting down.
+	 * 
+	 * @return
+	 * - <b>true</b> if the {@link DataInterface} is being shutdown.<br>
+	 * - <b>false</b> otherwise.
+	 */
+	public boolean isShuttingdown();
 	
 	/**
      * Checks if the data interface is currently connected to its data source.

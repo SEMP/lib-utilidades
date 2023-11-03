@@ -6,5 +6,5 @@ public interface DataReader extends Runnable
 	public void pauseReading();
 	public void stopReading();
 	public boolean isReading();
-	public boolean hasFinalized();
+	public boolean readingComplete();
 }

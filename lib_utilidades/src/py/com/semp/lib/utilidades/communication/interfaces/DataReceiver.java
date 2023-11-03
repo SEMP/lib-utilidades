@@ -42,6 +42,14 @@ public interface DataReceiver
 	public Set<DataListener> getDataListeners();
 	
 	/**
+	 * Obtains the data reader for this {@link DataReceiver}.
+	 * 
+	 * @return
+	 * - The data reader for this {@link DataReceiver}.
+	 */
+	public DataReader getDataReader();
+	
+	/**
 	 * Reads data.
 	 * 
 	 * @return
