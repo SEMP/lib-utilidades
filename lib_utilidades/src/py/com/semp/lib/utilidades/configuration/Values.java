@@ -21,6 +21,11 @@ public interface Values
 		public static final int BUFFER_BOUNDARY = -1;
 		
 		/**
+		 * Time delay for polls.
+		 */
+		public static final int POLL_DELAY_MS = 50;
+		
+		/**
 		 * The size of the thread pool used to inform listeners of events.
 		 */
 		public static final int LISTENERS_THREAD_POOL_SIZE = 10;

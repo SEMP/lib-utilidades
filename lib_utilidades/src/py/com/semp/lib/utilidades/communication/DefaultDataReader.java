@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 import py.com.semp.lib.utilidades.communication.interfaces.DataInterface;
@@ -27,6 +26,8 @@ import py.com.semp.lib.utilidades.utilities.NamedThreadFactory;
 
 public class DefaultDataReader<T extends DataReceiver & DataInterface> implements DataReader, ConnectionEventListener
 {
+	private static final String LISTENER_THREAD_NAME = "DefaultDataReaderListeners";
+	
 	private T dataReceiver;
 	
 	private volatile boolean pauseReading;
@@ -35,7 +36,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	private volatile boolean stopping;
 	
 	private static final Logger LOGGER = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
-	private final ExecutorService executorService = Executors.newFixedThreadPool(Values.Constants.LISTENERS_THREAD_POOL_SIZE, new NamedThreadFactory("DefaultDataReaderListeners"));
+	private final ExecutorService executorService = Executors.newFixedThreadPool(Values.Constants.LISTENERS_THREAD_POOL_SIZE, new NamedThreadFactory(LISTENER_THREAD_NAME));
 	
 	public DefaultDataReader(T dataReceiver)
 	{
@@ -83,19 +84,39 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 				}
 				catch(ConnectionClosedException e)
 				{
-					//TODO mensaje desoncetado
-					LOGGER.error(this.getReceiverString(Instant.now(), this.dataReceiver), e);
+					String errorMessage = MessageUtil.getMessage(Messages.CONNECTION_CLOSED_ERROR, this.getReceiverString(this.dataReceiver));
+					
+					LOGGER.error(errorMessage, e);
 					
 					this.stopReading();
 				}
 				catch(CommunicationException e)
 				{
-					LOGGER.error(this.getReceiverString(Instant.now(), this.dataReceiver), e);
+					String errorMessage = MessageUtil.getMessage(Messages.READING_ERROR, this.getReceiverString(this.dataReceiver));
+					
+					LOGGER.error(errorMessage, e);
 				}
 			}
 			else
 			{
 				this.isReading = false;
+				
+				try
+				{
+					Thread.sleep(Values.Constants.POLL_DELAY_MS);
+				}
+				catch(InterruptedException e)
+				{
+					Thread.currentThread().interrupt();
+					
+					String errorMessage = MessageUtil.getMessage(Messages.READING_ERROR, this.getReceiverString(this.dataReceiver));
+					
+					LOGGER.error(errorMessage, e);
+					
+					this.shutdown();
+					
+					return;
+				}
 			}
 		}
 		
@@ -134,7 +155,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			
 			if(readTimeoutMS >= 0 && (current - start > readTimeoutMS))
 			{
-				String errorMessage = MessageUtil.getMessage(Messages.READING_TIMOUT_ERROR, this.getConfiguration().toString());
+				String errorMessage = MessageUtil.getMessage(Messages.READING_TIMOUT_ERROR, this.getConfigurationValues().toString());
 				
 				throw new CommunicationTimeoutException(errorMessage);
 			}
@@ -160,7 +181,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		return value;
 	}
 	
-	private ConfigurationValues getConfiguration()
+	private ConfigurationValues getConfigurationValues()
 	{
 		return this.dataReceiver.getConfigurationValues();
 	}
@@ -173,7 +194,9 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		}
 		catch(CommunicationException e)
 		{
-			LOGGER.error(this.getReceiverString(Instant.now(), this.dataReceiver), e);
+			String errorMessage = MessageUtil.getMessage(Messages.DISCONNECTION_ERROR, this.getReceiverString(this.dataReceiver));
+			
+			LOGGER.error(errorMessage, e);
 		}
 		
 		this.executorService.shutdown();
@@ -181,27 +204,32 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		this.isReading = false;
 		this.readingComplete = true;
 		
+		boolean terminated = false;
+		
 		try
 		{
-			boolean terminated = this.executorService.awaitTermination(Values.Constants.TERMINATION_TIMOUT_MS, TimeUnit.MILLISECONDS);
-			
-			if(!terminated)
-			{
-				this.executorService.shutdownNow();
-				
-				String timeoutMethod = "boolean" + this.executorService.getClass().getName() + "::awaitTermination(long, TimeUnit) ";
-				String errorMessage = MessageUtil.getMessage(Messages.TERMINATION_TIMEOUT_ERROR, timeoutMethod);
-				
-				LOGGER.error(errorMessage);
-			}
+			terminated = this.executorService.awaitTermination(Values.Constants.TERMINATION_TIMOUT_MS, TimeUnit.MILLISECONDS);
 		}
 		catch(InterruptedException e)
 		{
 			Thread.currentThread().interrupt();
 			
-			LOGGER.error(this.getReceiverString(Instant.now(), this.dataReceiver));
+			String methodName = "boolean" + this.executorService.getClass().getName() + "::awaitTermination(long, TimeUnit) ";
+			String errorMessage = MessageUtil.getMessage(Messages.INTERRUPTED_ERROR, methodName);
 			
-			this.executorService.shutdownNow();
+			LOGGER.error(errorMessage, e);
+		}
+		finally
+		{
+			if(!terminated)
+			{
+				this.executorService.shutdownNow();
+				
+				String methodName = "boolean" + this.executorService.getClass().getName() + "::awaitTermination(long, TimeUnit) ";
+				String errorMessage = MessageUtil.getMessage(Messages.TERMINATION_TIMEOUT_ERROR, methodName);
+				
+				LOGGER.error(errorMessage);
+			}
 		}
 	}
 	
@@ -223,8 +251,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		{
 			this.executorService.submit(() ->
 			{
-				//TODO nombrar threads
-				if(this.stopping)
+				if(this.dataReceiver.isShuttingdown())
 				{
 					return;
 				}
@@ -278,9 +305,9 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	@Override
 	public void onConnectError(Instant instant, DataInterface dataInterface, Exception exception)
 	{
-		String message = this.getReceiverString(instant, dataInterface);
+		String errorMessage = MessageUtil.getMessage(Messages.CONNECTION_ERROR, this.getConfigurationValues().toString());
 		
-		LOGGER.error(message, exception);
+		LOGGER.error(errorMessage, exception);
 	}
 	
 	private String getReceiverString(DataInterface dataInterface)
@@ -296,9 +323,9 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	@Override
 	public void onDisconnectError(Instant instant, DataInterface dataInterface, Exception exception)
 	{
-		String message = this.getReceiverString(instant, dataInterface);
+		String errorMessage = MessageUtil.getMessage(Messages.DISCONNECTION_ERROR, this.getReceiverString(dataInterface));
 		
-		LOGGER.error(message, exception);
+		LOGGER.error(errorMessage, exception);
 	}
 	
 	@Override
