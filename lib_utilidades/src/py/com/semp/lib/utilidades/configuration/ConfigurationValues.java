@@ -96,6 +96,15 @@ public abstract class ConfigurationValues
 		return this.parameters;
 	}
 	
+	/**
+	 * Retrieves the value for the specified configuration parameter name.
+	 * The value is cast to the expected type.
+	 *
+	 * @param <T>   the expected type of the configuration parameter value
+	 * @param name  the name of the configuration parameter to retrieve
+	 * @return the value of the configuration parameter cast to the expected type, or {@code null} if not found
+	 * @throws ClassCastException if the value cannot be cast to the expected type
+	 */
 	public <T> T getValue(String name)
 	{
 		TypedValue<?> typedValue = this.getParameter(name);
@@ -107,6 +116,27 @@ public abstract class ConfigurationValues
 		
 		@SuppressWarnings("unchecked")
 		T value = (T)typedValue.getValue();
+		
+		return value;
+	}
+	
+	/**
+	 * Retrieves the value for the specified configuration parameter name,
+	 * returning a default value if the parameter is not found or is set to {@code null}.
+	 *
+	 * @param <T>          the expected type of the configuration parameter value
+	 * @param name         the name of the configuration parameter to retrieve
+	 * @param defaultValue the default value to return if the actual value is {@code null} or not found
+	 * @return the value of the configuration parameter if it exists, otherwise the default value
+	 */
+	public <T> T getValue(String name, T defaultValue)
+	{
+		T value = this.getValue(name);
+		
+		if(value == null)
+		{
+			return defaultValue;
+		}
 		
 		return value;
 	}

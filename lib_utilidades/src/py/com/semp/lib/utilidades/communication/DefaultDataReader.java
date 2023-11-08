@@ -1,6 +1,7 @@
 package py.com.semp.lib.utilidades.communication;
 
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 
 import py.com.semp.lib.utilidades.communication.interfaces.DataInterface;
 import py.com.semp.lib.utilidades.communication.interfaces.DataReader;
@@ -60,6 +61,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	public void run()
 	{
 		Integer readTimeoutMS = this.getConfiguration(Values.VariableNames.READ_TIMEOUT_MS, Values.Defaults.READ_TIMEOUT_MS);
+		long readTimeoutNanos = TimeUnit.MICROSECONDS.toNanos(readTimeoutMS);
 		
 		while(true)
 		{
@@ -81,7 +83,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 				{
 					this.isReading = true;
 					
-					this.readWithTimeout(readTimeoutMS);
+					this.readWithTimeout(readTimeoutNanos);
 				}
 				catch(ConnectionClosedException e)
 				{
@@ -122,21 +124,21 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	 * a CommunicationTimeoutException is thrown. This method repeatedly tries to read data until it is successful 
 	 * or the timeout is exceeded.
 	 *
-	 * @param readTimeoutMS the maximum time in milliseconds to wait for data to be read
+	 * @param readTimeoutNanos the maximum time in nano seconds to wait for data to be read
 	 * @return the read data as a byte array
 	 * @throws CommunicationException if there is an issue with reading the data or a timeout occurs
 	 */
-	private byte[] readWithTimeout(Integer readTimeoutMS) throws CommunicationException
+	private byte[] readWithTimeout(long readTimeoutNanos) throws CommunicationException
 	{
 		byte[] data;
 		
-		long start = System.currentTimeMillis();
+		long start = System.nanoTime();
 		
 		do
 		{
-			long current = System.currentTimeMillis();
+			long current = System.nanoTime();
 			
-			if(readTimeoutMS >= 0 && (current - start > readTimeoutMS))
+			if(readTimeoutNanos >= 0 && (current - start > readTimeoutNanos))
 			{
 				String errorMessage = MessageUtil.getMessage(Messages.READING_TIMOUT_ERROR, this.getConfigurationValues().toString());
 				
@@ -170,14 +172,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			return defaultValue;
 		}
 		
-		C value = configurationValues.getValue(name);
-		
-		if(value == null)
-		{
-			return defaultValue;
-		}
-		
-		return value;
+		return configurationValues.getValue(name, defaultValue);
 	}
 	
 	/**

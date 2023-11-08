@@ -34,7 +34,7 @@ public interface Values
 		/**
 		 * Time to wait for tasks termination.
 		 */
-		public static final long TERMINATION_TIMOUT_MS = 3000L;
+		public static final int TERMINATION_TIMOUT_MS = 3000;
 		
 		//Strings
 		/**
