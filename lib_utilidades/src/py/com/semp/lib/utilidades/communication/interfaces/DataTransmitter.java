@@ -37,6 +37,17 @@ public interface DataTransmitter
 	public Set<DataListener> getDataListeners();
 	
 	/**
+	 * Informs the {@link DataListener} instances of exceptions occurring when
+	 * sending data.
+	 * 
+	 * @param data
+	 * - Data tried to be sent when the error occurred.
+	 * @param exception
+	 * - The exception that occurred.
+	 */
+	public void informOnSendingError(byte[] data, Throwable exception);
+	
+	/**
 	 * Sends data.
 	 * 
 	 * @throws CommunicationException

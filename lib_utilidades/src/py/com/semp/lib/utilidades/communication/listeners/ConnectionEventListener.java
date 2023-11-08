@@ -38,10 +38,10 @@ public interface ConnectionEventListener
 	 * Instant at which the error occurred.
 	 * @param dataInterface
 	 * Data source where the error occurred.
-	 * @param exception
+	 * @param throwable
 	 * Exception encountered during the connection attempt.
 	 */
-	public void onConnectError(Instant instant, DataInterface dataInterface, Exception exception);
+	public void onConnectError(Instant instant, DataInterface dataInterface, Throwable throwable);
 	
 	/**
 	 * Indicates that there was an error while trying to close a connection.
@@ -50,8 +50,8 @@ public interface ConnectionEventListener
 	 * Instant at which the error occurred.
 	 * @param dataInterface
 	 * Data source where the error occurred.
-	 * @param exception
+	 * @param throwable
 	 * Exception encountered while closing the connection.
 	 */
-	public void onDisconnectError(Instant instant, DataInterface dataInterface, Exception exception);
+	public void onDisconnectError(Instant instant, DataInterface dataInterface, Throwable throwable);
 }

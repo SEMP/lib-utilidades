@@ -29,20 +29,21 @@ public interface DataListener
 	void onDataReceived(Instant instant, DataInterface dataInterface, byte[] data);
 	
 	/**
-	 * Receives the Exception when there is an error while sending data.
+	 * Receives the Throwable when there is an error while sending data.
 	 * 
 	 * @param instant        Instant at which the error occurred.
 	 * @param dataInterface  Data source where the error occurred.
-	 * @param exception      Exception thrown during data sending.
+	 * @param data           The data attempted to be sent when the error occurred.
+	 * @param throwable      Throwable thrown during data sending.
 	 */
-	void onSendingError(Instant instant, DataInterface dataInterface, Exception exception);
+	void onSendingError(Instant instant, DataInterface dataInterface, byte[] data, Throwable throwable);
 	
 	/**
 	 * Receives the Exception when there is an error while receiving data.
 	 * 
 	 * @param instant        Instant at which the error occurred.
 	 * @param dataInterface  Data source where the error occurred.
-	 * @param exception      Exception thrown during data reception.
+	 * @param throwable      Throwable thrown when reading data.
 	 */
-	void onReceivingError(Instant instant, DataInterface dataInterface, Exception exception);
+	void onReceivingError(Instant instant, DataInterface dataInterface, Throwable exception);
 }

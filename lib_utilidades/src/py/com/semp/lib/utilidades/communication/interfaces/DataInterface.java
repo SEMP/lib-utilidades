@@ -90,6 +90,26 @@ public interface DataInterface
 	public Set<ConnectionEventListener> getConnectionEventListeners();
 	
 	/**
+	 * Informs the {@link ConnectionEventListener} instances of exceptions occurring
+	 * during connection.
+	 * 
+	 * @param exception
+	 * - The exception that occurred.
+	 * @return A reference to this DataInterface instance.
+	 */
+	public DataInterface informOnConnectError(Throwable e);
+	
+	/**
+	 * Informs the {@link ConnectionEventListener} instances of exceptions occurring
+	 * during disconnection.
+	 * 
+	 * @param exception
+	 * - The exception that occurred.
+	 * @return A reference to this DataInterface instance.
+	 */
+	public DataInterface informOnDisconnectError(Throwable e);
+	
+	/**
      * Retrieves a string identifier for this data interface. This can be used for logging or 
      * other identification purposes.
      *

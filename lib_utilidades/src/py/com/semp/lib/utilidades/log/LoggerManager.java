@@ -14,6 +14,8 @@ import py.com.semp.lib.utilidades.internal.Messages;
  */
 public final class LoggerManager
 {
+	private static Logger defaultLogger;
+	
 	/**
      * Stores Logger instances in a thread-safe manner, mapped by their context.
      */
@@ -38,9 +40,24 @@ public final class LoggerManager
      * 
      * @return a new instance of {@link DefaultLogger}
      */
-	private static Logger getDefaultLogger()
+	public static Logger getDefaultLogger()
 	{
-		return new DefaultLogger();
+		if(defaultLogger == null)
+		{
+			defaultLogger = new DefaultLogger();
+		}
+		
+		return defaultLogger;
+	}
+	
+	/**
+     * Provides a default logger instance.
+     * 
+     * @return a new instance of {@link DefaultLogger}
+     */
+	public static void setDefaultLogger(Logger logger)
+	{
+		defaultLogger = logger;
 	}
 	
 	/**

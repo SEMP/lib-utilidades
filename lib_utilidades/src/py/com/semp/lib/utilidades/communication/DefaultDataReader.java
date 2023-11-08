@@ -1,18 +1,11 @@
 package py.com.semp.lib.utilidades.communication;
 
 import java.time.Instant;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import py.com.semp.lib.utilidades.communication.interfaces.DataInterface;
 import py.com.semp.lib.utilidades.communication.interfaces.DataReader;
 import py.com.semp.lib.utilidades.communication.interfaces.DataReceiver;
 import py.com.semp.lib.utilidades.communication.listeners.ConnectionEventListener;
-import py.com.semp.lib.utilidades.communication.listeners.DataListener;
 import py.com.semp.lib.utilidades.configuration.ConfigurationValues;
 import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
@@ -22,7 +15,6 @@ import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.log.Logger;
 import py.com.semp.lib.utilidades.log.LoggerManager;
-import py.com.semp.lib.utilidades.utilities.NamedThreadFactory;
 
 /**
  * The {@link DefaultDataReader} class is responsible for asynchronously reading data from a data receiver
@@ -35,8 +27,6 @@ import py.com.semp.lib.utilidades.utilities.NamedThreadFactory;
  */
 public class DefaultDataReader<T extends DataReceiver & DataInterface> implements DataReader, ConnectionEventListener
 {
-	private static final String LISTENER_THREAD_NAME = "DefaultDataReaderListeners";
-	
 	private T dataReceiver;
 	
 	private volatile boolean pauseReading;
@@ -45,7 +35,6 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	private volatile boolean stopping;
 	
 	private static final Logger LOGGER = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
-	private final ExecutorService executorService = Executors.newFixedThreadPool(Values.Constants.LISTENERS_THREAD_POOL_SIZE, new NamedThreadFactory(LISTENER_THREAD_NAME));
 	
 	 /**
      * Constructor for {@link DefaultDataReader}.
@@ -92,27 +81,13 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 				{
 					this.isReading = true;
 					
-					byte[] data = this.readWithTimeout(readTimeoutMS);
-					
-					if(data.length > 0)
-					{
-						this.informDataReceived(data);
-					}
+					this.readWithTimeout(readTimeoutMS);
 				}
 				catch(ConnectionClosedException e)
 				{
-					String errorMessage = MessageUtil.getMessage(Messages.CONNECTION_CLOSED_ERROR, this.getReceiverString(this.dataReceiver));
-					
-					LOGGER.error(errorMessage, e);
-					
 					this.stopReading();
 				}
-				catch(CommunicationException e)
-				{
-					String errorMessage = MessageUtil.getMessage(Messages.READING_ERROR, this.getReceiverString(this.dataReceiver));
-					
-					LOGGER.error(errorMessage, e);
-				}
+				catch(CommunicationException e) {}
 			}
 			else
 			{
@@ -128,7 +103,9 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 					
 					String errorMessage = MessageUtil.getMessage(Messages.READING_ERROR, this.getReceiverString(this.dataReceiver));
 					
-					LOGGER.error(errorMessage, e);
+					CommunicationException exception = new CommunicationException(errorMessage, e);
+					
+					this.dataReceiver.informOnReceivingError(exception);
 					
 					this.shutdown();
 					
@@ -163,7 +140,9 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			{
 				String errorMessage = MessageUtil.getMessage(Messages.READING_TIMOUT_ERROR, this.getConfigurationValues().toString());
 				
-				throw new CommunicationTimeoutException(errorMessage);
+				CommunicationTimeoutException exception = new CommunicationTimeoutException(errorMessage);
+				
+				this.dataReceiver.informOnReceivingError(exception);
 			}
 			
 			data = this.dataReceiver.readData();
@@ -186,12 +165,18 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	{
 		ConfigurationValues configurationValues = this.dataReceiver.getConfigurationValues();
 		
+		if(configurationValues == null)
+		{
+			return defaultValue;
+		}
+		
 		C value = configurationValues.getValue(name);
 		
 		if(value == null)
 		{
-			value = defaultValue;
+			return defaultValue;
 		}
+		
 		return value;
 	}
 	
@@ -224,114 +209,8 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			LOGGER.error(errorMessage, e);
 		}
 		
-		this.executorService.shutdown();
-		
 		this.isReading = false;
 		this.readingComplete = true;
-		
-		boolean terminated = false;
-		
-		try
-		{
-			terminated = this.executorService.awaitTermination(Values.Constants.TERMINATION_TIMOUT_MS, TimeUnit.MILLISECONDS);
-		}
-		catch(InterruptedException e)
-		{
-			Thread.currentThread().interrupt();
-			
-			String methodName = "boolean" + this.executorService.getClass().getName() + "::awaitTermination(long, TimeUnit) ";
-			String errorMessage = MessageUtil.getMessage(Messages.INTERRUPTED_ERROR, methodName);
-			
-			LOGGER.error(errorMessage, e);
-		}
-		finally
-		{
-			if(!terminated)
-			{
-				this.executorService.shutdownNow();
-				
-				String methodName = "boolean" + this.executorService.getClass().getName() + "::awaitTermination(long, TimeUnit) ";
-				String errorMessage = MessageUtil.getMessage(Messages.TERMINATION_TIMEOUT_ERROR, methodName);
-				
-				LOGGER.error(errorMessage);
-			}
-		}
-	}
-	
-	/**
-     * Informs all data listeners that new data has been received.
-     *
-     * @param data The data received from the data receiver.
-     */
-	private void informDataReceived(byte[] data)
-	{
-		Set<DataListener> dataListeners = this.dataReceiver.getDataListeners();
-		
-		String methodName = "void DefaultDataReader::informDataReceived(byte[])";
-		
-		notifyListeners(methodName, dataListeners, (listener) ->
-		{
-			listener.onDataReceived(Instant.now(), this.dataReceiver, data);
-		});
-	}
-	
-	/**
-     * Submits a task to notify all listeners about an event.
-     *
-     * @param methodName The name of the method in which the listeners are notified.
-     * @param listeners The set of listeners to notify.
-     * @param notificationTask The consumer task that performs the notification.
-     * @param <L> The listener type.
-     */
-	private <L> void notifyListeners(String methodName, Set<L> listeners, Consumer<L> notificationTask)
-	{
-		try
-		{
-			this.executorService.submit(() ->
-			{
-				if(this.dataReceiver.isShuttingdown())
-				{
-					return;
-				}
-				
-				for(L listener : listeners)
-				{
-					try
-					{
-						notificationTask.accept(listener);
-					}
-					catch(RuntimeException e)
-					{
-						String errorMessage = MessageUtil.getMessage(Messages.LISTENER_THROWN_EXCEPTION_ERROR, listener.getClass().getName());
-						
-						LOGGER.warning(errorMessage, e);
-					}
-				}
-			});
-		}
-		catch(RejectedExecutionException e)
-		{
-			String errorMessage = MessageUtil.getMessage(Messages.TASK_SHUTDOWN_ERROR, methodName);
-			
-			LOGGER.debug(errorMessage, e);
-		}
-	}
-	
-	/**
-	 * Generates a string representation of the data receiver for logging purposes. This representation includes 
-	 * a timestamp and the identifier of the data receiver.
-	 *
-	 * @param dataInterface the data interface whose string representation is to be generated
-	 * @return a string representation of the data interface
-	 */
-	private String getReceiverString(DataInterface dataInterface)
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(Instant.now()).append(": ");
-		sb.append(dataInterface.getStringIdentifier());
-		
-		return sb.toString();
 	}
 	
 	/**
@@ -358,7 +237,6 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	{
 		try
 		{
-			this.executorService.shutdownNow();
 			this.dataReceiver.shutdown();
 		}
 		catch(CommunicationException e)
@@ -406,19 +284,19 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	}
 	
 	@Override
-	public void onConnectError(Instant instant, DataInterface dataInterface, Exception exception)
+	public void onConnectError(Instant instant, DataInterface dataInterface, Throwable throwable)
 	{
 		String errorMessage = MessageUtil.getMessage(Messages.CONNECTION_ERROR, this.getConfigurationValues().toString());
 		
-		LOGGER.warning(errorMessage, exception);
+		LOGGER.warning(errorMessage, throwable);
 	}
 	
 	@Override
-	public void onDisconnectError(Instant instant, DataInterface dataInterface, Exception exception)
+	public void onDisconnectError(Instant instant, DataInterface dataInterface, Throwable throwable)
 	{
 		String errorMessage = MessageUtil.getMessage(Messages.DISCONNECTION_ERROR, this.getReceiverString(dataInterface));
 		
-		LOGGER.warning(errorMessage, exception);
+		LOGGER.warning(errorMessage, throwable);
 	}
 	
 	@Override
@@ -437,5 +315,22 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	public boolean isReadingComplete()
 	{
 		return this.readingComplete;
+	}
+	
+	/**
+	 * Generates a string representation of the data receiver for logging purposes. This representation includes 
+	 * a timestamp and the identifier of the data receiver.
+	 *
+	 * @param dataInterface the data interface whose string representation is to be generated
+	 * @return a string representation of the data interface
+	 */
+	private String getReceiverString(DataInterface dataInterface)
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(Instant.now()).append(": ");
+		sb.append(dataInterface.getStringIdentifier());
+		
+		return sb.toString();
 	}
 }

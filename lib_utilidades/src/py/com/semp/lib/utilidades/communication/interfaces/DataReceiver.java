@@ -42,6 +42,15 @@ public interface DataReceiver
 	public Set<DataListener> getDataListeners();
 	
 	/**
+	 * Informs the {@link DataListener} instances of exceptions occurring when
+	 * receiving data.
+	 * 
+	 * @param exception
+	 * - The exception that occurred.
+	 */
+	public void informOnReceivingError(Throwable exception);
+	
+	/**
 	 * Obtains the data reader for this {@link DataReceiver}.
 	 * 
 	 * @return
