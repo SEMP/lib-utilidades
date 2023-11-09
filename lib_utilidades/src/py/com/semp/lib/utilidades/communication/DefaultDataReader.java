@@ -11,7 +11,6 @@ import py.com.semp.lib.utilidades.configuration.ConfigurationValues;
 import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
 import py.com.semp.lib.utilidades.exceptions.CommunicationTimeoutException;
-import py.com.semp.lib.utilidades.exceptions.ConnectionClosedException;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.log.Logger;
@@ -72,7 +71,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 				return;
 			}
 			
-			if(this.stopping)
+			if(this.stopping || this.dataReceiver.isStopping())
 			{
 				break;
 			}
@@ -85,11 +84,10 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 					
 					this.readWithTimeout(readTimeoutNanos);
 				}
-				catch(ConnectionClosedException e)
+				catch(CommunicationException e)
 				{
 					this.stopReading();
 				}
-				catch(CommunicationException e) {}
 			}
 			else
 			{
@@ -203,9 +201,11 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			
 			LOGGER.error(errorMessage, e);
 		}
-		
-		this.isReading = false;
-		this.readingComplete = true;
+		finally
+		{
+			this.isReading = false;
+			this.readingComplete = true;
+		}
 	}
 	
 	/**
@@ -283,7 +283,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	{
 		String errorMessage = MessageUtil.getMessage(Messages.CONNECTION_ERROR, this.getConfigurationValues().toString());
 		
-		LOGGER.warning(errorMessage, throwable);
+		LOGGER.debug(errorMessage, throwable);
 	}
 	
 	@Override
@@ -291,7 +291,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	{
 		String errorMessage = MessageUtil.getMessage(Messages.DISCONNECTION_ERROR, this.getReceiverString(dataInterface));
 		
-		LOGGER.warning(errorMessage, throwable);
+		LOGGER.debug(errorMessage, throwable);
 	}
 	
 	@Override

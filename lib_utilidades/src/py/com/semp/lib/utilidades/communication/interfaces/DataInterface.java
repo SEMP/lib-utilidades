@@ -126,6 +126,15 @@ public interface DataInterface
 	public DataInterface shutdown() throws CommunicationException;
 	
 	/**
+	 * Indicates if the {@link DataInterface} is stopping.
+	 * 
+	 * @return
+	 * - <b>true</b> if the {@link DataInterface} is stopping.<br>
+	 * - <b>false</b> otherwise.
+	 */
+	public boolean isStopping();
+	
+	/**
 	 * Indicates if the {@link DataInterface} is shutting down.
 	 * 
 	 * @return

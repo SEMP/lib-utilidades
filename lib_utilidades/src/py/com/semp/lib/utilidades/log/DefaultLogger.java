@@ -23,6 +23,7 @@ package py.com.semp.lib.utilidades.log;
  */
 public class DefaultLogger implements Logger
 {
+	private volatile boolean debug = false;
 	@Override
 	public void log(LogLevel level, String message)
 	{
@@ -32,7 +33,17 @@ public class DefaultLogger implements Logger
 		}
 		else
 		{
-			System.out.println(message);
+			if(level == LogLevel.DEBUG)
+			{
+				if(this.debug)
+				{
+					System.out.println(message);
+				}
+			}
+			else
+			{
+				System.out.println(message);
+			}
 		}
 	}
 	
@@ -46,8 +57,24 @@ public class DefaultLogger implements Logger
 		}
 		else
 		{
-			System.out.println(message);
-			throwable.printStackTrace(System.out);
+			if(level == LogLevel.DEBUG)
+			{
+				if(this.debug)
+				{
+					System.out.println(message);
+					throwable.printStackTrace(System.out);
+				}
+			}
+			else
+			{
+				System.out.println(message);
+				throwable.printStackTrace(System.out);
+			}
 		}
+	}
+	
+	public void setDebug(boolean debug)
+	{
+		this.debug = debug;
 	}
 }
