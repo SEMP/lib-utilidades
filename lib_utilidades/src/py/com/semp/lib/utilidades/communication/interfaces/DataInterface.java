@@ -20,7 +20,9 @@ public interface DataInterface
 	/**
      * Connects to the data source without any specific configuration.
      *
-     * @return A reference to this DataInterface instance.
+     * @return
+	 * - A reference to this {@link DataInterface} instance.
+     * 
      * @throws CommunicationException If any error occurs during the connection process.
      */
 	public DataInterface connect() throws CommunicationException;
@@ -29,7 +31,8 @@ public interface DataInterface
      * Connects to the data source using the provided configuration values.
      *
      * @param configurationValues The configuration values to be used for the connection.
-     * @return A reference to this DataInterface instance.
+     * @return
+	 * - A reference to this {@link DataInterface} instance.
      * @throws CommunicationException If any error occurs during the connection process.
      */
 	public DataInterface connect(ConfigurationValues configurationValues) throws CommunicationException;
@@ -46,7 +49,8 @@ public interface DataInterface
      * Sets the configuration values for this data interface.
      *
      * @param configurationValues The configuration values to be set.
-     * @return A reference to this DataInterface instance.
+     * @return
+	 * - A reference to this {@link DataInterface} instance.
      * @throws CommunicationException If any error occurs while setting the configuration.
      */
 	public DataInterface setConfigurationValues(ConfigurationValues configurationValues) throws CommunicationException;
@@ -62,7 +66,9 @@ public interface DataInterface
      * Adds one or more connection event listeners to this data interface.
      *
      * @param listeners The event listeners to be added.
-     * @return A reference to this DataInterface instance.
+     * 
+     * @return
+	 * - A reference to this {@link DataInterface} instance.
      */
 	public DataInterface addConnectionEventListeners(ConnectionEventListener... listeners);
 	
@@ -70,14 +76,17 @@ public interface DataInterface
      * Removes one or more connection event listeners from this data interface.
      *
      * @param listeners The event listeners to be removed.
-     * @return A reference to this DataInterface instance.
+     * 
+     * @return
+	 * - A reference to this {@link DataInterface} instance.
      */
 	public DataInterface removeConnectionEventListeners(ConnectionEventListener... listeners);
 	
 	/**
      * Removes all connection event listeners from this data interface.
      *
-     * @return A reference to this DataInterface instance.
+     * @return
+	 * - A reference to this {@link DataInterface} instance.
      */
 	public DataInterface removeAllConnectionEventListeners();
 	
@@ -95,7 +104,9 @@ public interface DataInterface
 	 * 
 	 * @param exception
 	 * - The exception that occurred.
-	 * @return A reference to this DataInterface instance.
+	 * 
+	 * @return
+	 * - A reference to this {@link DataInterface} instance.
 	 */
 	public DataInterface informOnConnectError(Throwable e);
 	
@@ -120,19 +131,21 @@ public interface DataInterface
 	/**
 	 * Emergency shutdown method.
 	 * 
-	 * @return A reference to this DataInterface instance.
+	 * @return
+	 * - A reference to this {@link DataInterface} instance.
+	 * 
      * @throws CommunicationException If any error occurs during the shutdown process.
 	 */
 	public DataInterface shutdown() throws CommunicationException;
 	
 	/**
-	 * Indicates if the {@link DataInterface} is stopping.
+	 * Indicates if the {@link DataInterface} is disconnecting.
 	 * 
 	 * @return
-	 * - <b>true</b> if the {@link DataInterface} is stopping.<br>
+	 * - <b>true</b> if the {@link DataInterface} is disconnecting.<br>
 	 * - <b>false</b> otherwise.
 	 */
-	public boolean isStopping();
+	public boolean isDisconnecting();
 	
 	/**
 	 * Indicates if the {@link DataInterface} is shutting down.

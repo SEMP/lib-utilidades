@@ -17,6 +17,9 @@ public interface DataReceiver
 	 * 
 	 * @param listeners
 	 * Data Listeners to add.
+	 * 
+	 * @return
+	 * - A reference to this {@link DataReceiver} instance.
 	 */
 	public DataReceiver addDataListeners(DataListener... listeners);
 	
@@ -25,11 +28,17 @@ public interface DataReceiver
 	 * 
 	 * @param listeners
 	 * Data listeners to remove.
+	 * 
+	 * @return
+	 * - A reference to this {@link DataReceiver} instance.
 	 */
 	public DataReceiver removeDataListeners(DataListener... listeners);
 	
 	/**
 	 * Removes all data listeners.
+	 * 
+	 * @return
+	 * - A reference to this {@link DataReceiver} instance.
 	 */
 	public DataReceiver removeAllDataListeners();
 	
@@ -47,8 +56,11 @@ public interface DataReceiver
 	 * 
 	 * @param exception
 	 * - The exception that occurred.
+	 * 
+	 * @return
+	 * - A reference to this {@link DataReceiver} instance.
 	 */
-	public void informOnReceivingError(Throwable exception);
+	public DataReceiver informOnReceivingError(Throwable exception);
 	
 	/**
 	 * Obtains the data reader for this {@link DataReceiver}.

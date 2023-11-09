@@ -71,7 +71,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 				return;
 			}
 			
-			if(this.stopping || this.dataReceiver.isStopping())
+			if(this.stopping || this.dataReceiver.isDisconnecting())
 			{
 				break;
 			}
