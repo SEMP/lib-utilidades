@@ -77,4 +77,10 @@ public class DefaultLogger implements Logger
 	{
 		this.debug = debug;
 	}
+	
+	@Override
+	public boolean isDebugging()
+	{
+		return this.debug;
+	}
 }

@@ -145,7 +145,7 @@ public interface DataInterface
 	 * - <b>true</b> if the {@link DataInterface} is disconnecting.<br>
 	 * - <b>false</b> otherwise.
 	 */
-	public boolean isDisconnecting();
+	public boolean isStopping();
 	
 	/**
 	 * Indicates if the {@link DataInterface} is shutting down.

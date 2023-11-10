@@ -282,4 +282,6 @@ public interface Logger
 		
 		this.log(LogLevel.FATAL, message, throwable);
 	}
+	
+	public boolean isDebugging();
 }
