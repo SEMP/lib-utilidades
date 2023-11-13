@@ -2,6 +2,7 @@ package py.com.semp.lib.utilidades.communication;
 
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import py.com.semp.lib.utilidades.communication.interfaces.DataInterface;
 import py.com.semp.lib.utilidades.communication.interfaces.DataReader;
@@ -29,10 +30,11 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 {
 	private T dataReceiver;
 	
-	private volatile boolean pauseReading;
-	private volatile boolean isReading;
-	private volatile boolean readingComplete;
-	private volatile boolean stopping;
+	private volatile boolean pauseReading = false;
+	private volatile boolean isReading = false;
+	private volatile boolean readingComplete = false;
+	private volatile boolean stopping = false;
+	private volatile AtomicBoolean threadNameUpdated  = new AtomicBoolean(false);;
 	
 	private static final Logger LOGGER = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
 	
@@ -47,10 +49,6 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		
 		this.dataReceiver = dataReceiver;
 		this.dataReceiver.addConnectionEventListeners(this);
-		this.isReading = false;
-		this.pauseReading = false;
-		this.readingComplete = false;
-		this.stopping = false;
 	}
 	
 	 /**
@@ -80,6 +78,11 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			
 			if(!this.pauseReading && this.dataReceiver.isConnected())
 			{
+				if(this.threadNameUpdated.compareAndSet(false, true))
+				{
+					this.setThreadName();
+				}
+				
 				try
 				{
 					this.isReading = true;
@@ -272,10 +275,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	}
 	
 	@Override
-	public void onConnect(Instant instant, DataInterface dataInterface)
-	{
-		this.setThreadName();
-	}
+	public void onConnect(Instant instant, DataInterface dataInterface) {}
 	
 	@Override
 	public void onConnectError(Instant instant, DataInterface dataInterface, Throwable throwable)
