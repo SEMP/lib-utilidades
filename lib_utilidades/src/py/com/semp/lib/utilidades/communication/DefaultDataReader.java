@@ -62,6 +62,8 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		Integer readTimeoutMS = this.getConfiguration(Values.VariableNames.READ_TIMEOUT_MS, Values.Defaults.READ_TIMEOUT_MS);
 		long readTimeoutNanos = TimeUnit.MICROSECONDS.toNanos(readTimeoutMS);
 		
+		this.setThreadName();
+		
 		while(true)
 		{
 			if(this.dataReceiver.isShuttingdown())
@@ -92,31 +94,27 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			else
 			{
 				this.isReading = false;
-				
-				try
-				{
-					Thread.sleep(Values.Constants.POLL_DELAY_MS);
-				}
-				catch(InterruptedException e)
-				{
-					Thread.currentThread().interrupt();
-					
-					String errorMessage = MessageUtil.getMessage(Messages.READING_ERROR, this.getReceiverString(this.dataReceiver));
-					
-					CommunicationException exception = new CommunicationException(errorMessage, e);
-					
-					this.dataReceiver.informOnReceivingError(exception);
-					
-					this.shutdown();
-					
-					return;
-				}
 			}
 		}
 		
 		this.completeReading();
 	}
 	
+	private void setThreadName()
+	{
+		Thread currentThread = Thread.currentThread();
+		
+		StringBuilder threadName = new StringBuilder();
+		
+		threadName.append(this.getClass().getSimpleName());
+		threadName.append("_");
+		threadName.append(currentThread.getId());
+		threadName.append("_");
+		threadName.append(this.dataReceiver.getDynamicStringIdentifier());
+		
+		currentThread.setName(threadName.toString());
+	}
+
 	/**
 	 * Attempts to read data with a specified timeout. If data is not received within the timeout period, 
 	 * a CommunicationTimeoutException is thrown. This method repeatedly tries to read data until it is successful 
@@ -276,6 +274,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	@Override
 	public void onConnect(Instant instant, DataInterface dataInterface)
 	{
+		this.setThreadName();
 	}
 	
 	@Override
@@ -324,7 +323,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(Instant.now()).append(": ");
-		sb.append(dataInterface.getStringIdentifier());
+		sb.append(dataInterface.getDynamicStringIdentifier());
 		
 		return sb.toString();
 	}

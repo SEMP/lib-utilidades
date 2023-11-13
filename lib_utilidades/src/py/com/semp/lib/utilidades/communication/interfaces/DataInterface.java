@@ -121,12 +121,24 @@ public interface DataInterface
 	public DataInterface informOnDisconnectError(Throwable e);
 	
 	/**
+	 * Retrieves a stable string identifier for this data communication instance. The identifier is 
+	 * intended to remain constant after the connection or communication channel is established.
+	 * If called before establishment, the behavior is implementation-specific; it may return {@code null}.
+	 *
+	 * @return a stable string identifier for this communication instance, or {@code null} if the
+	 * connection is not yet established or identifiable.
+	 */
+	public String getStableStringIdentifier();
+	
+	/**
      * Retrieves a string identifier for this data interface. This can be used for logging or 
      * other identification purposes.
+     * If the necesary data is not available when this method is called, the resulting string
+     * might contain the value {@link Values.Constant.PENDING_VAULE}.
      *
      * @return A string identifier for this data interface.
      */
-	public String getStringIdentifier();
+	public String getDynamicStringIdentifier();
 	
 	/**
 	 * Emergency shutdown method.

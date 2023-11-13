@@ -76,7 +76,7 @@ public class ShutdownHookAction implements Runnable
 		}
 		catch(CommunicationException e)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.SHUTDOWN_ERROR, this.dataInterface.getStringIdentifier());
+			String errorMessage = MessageUtil.getMessage(Messages.SHUTDOWN_ERROR, this.dataInterface.getDynamicStringIdentifier());
 			
 			this.logger.error(errorMessage, e);
 		}

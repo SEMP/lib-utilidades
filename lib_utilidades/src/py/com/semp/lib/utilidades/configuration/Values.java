@@ -20,7 +20,7 @@ public interface Values
 		 */
 		public static final int BUFFER_BOUNDARY = -1;
 		
-		/**
+		/**public static final String 
 		 * Time delay for polls.
 		 */
 		public static final int POLL_DELAY_MS = 50;
@@ -56,6 +56,11 @@ public interface Values
 		 * String representation of a null value.
 		 */
 		public static final String NULL_VALUE_STRING = "null";
+		
+		/**
+		 * String for when the value is still not available.
+		 */
+		public static final String PENDING_VAULE = "pending";
 	}
 	
 	/**
