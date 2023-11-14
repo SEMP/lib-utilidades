@@ -213,16 +213,6 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	 * {@inheritDoc}
 	 * <p>
 	 * This implementation immediately disconnects the data receiver and shuts down the executor service
-	 * without delay, marking the reading state as false and the reading process as complete, regardless
-	 * of the current reading state or any potential listeners.
-	 * </p>
-	 * @throws CommunicationException if any communication error occurs during the shutdown process.
-	 */
-	
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * This implementation immediately disconnects the data receiver and shuts down the executor service
 	 * swiftly, ensuring an immediate attempt to cease reading operations. It sets the reading state to false
 	 * and marks the reading process as complete. This is done irrespective of the current reading state or
 	 * ongoing tasks, and without ensuring that all listeners are informed of the shutdown.
