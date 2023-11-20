@@ -71,6 +71,13 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 				return;
 			}
 			
+			if(Thread.currentThread().isInterrupted())
+			{
+				this.shutdown();
+				
+				return;
+			}
+			
 			if(this.stopping || this.dataReceiver.isStopping())
 			{
 				break;
@@ -147,7 +154,6 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			}
 			
 			data = this.dataReceiver.readData();
-			
 		}
 		while(data.length == 0);
 		
