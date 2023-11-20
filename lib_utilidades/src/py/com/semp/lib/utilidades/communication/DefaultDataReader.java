@@ -31,10 +31,10 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	private T dataReceiver;
 	
 	private volatile boolean pauseReading = false;
-	private volatile boolean isReading = false;
+	private volatile boolean reading = false;
 	private volatile boolean readingComplete = false;
 	private volatile boolean stopping = false;
-	private volatile AtomicBoolean threadNameUpdated  = new AtomicBoolean(false);;
+	private volatile AtomicBoolean threadNameUpdated  = new AtomicBoolean(false);
 	
 	private static final Logger LOGGER = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
 	
@@ -85,7 +85,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 				
 				try
 				{
-					this.isReading = true;
+					this.reading = true;
 					
 					this.readWithTimeout(readTimeoutNanos);
 				}
@@ -96,7 +96,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			}
 			else
 			{
-				this.isReading = false;
+				this.reading = false;
 			}
 		}
 		
@@ -204,7 +204,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		}
 		finally
 		{
-			this.isReading = false;
+			this.reading = false;
 			this.readingComplete = true;
 		}
 	}
@@ -233,7 +233,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		}
 		finally
 		{
-			this.isReading = false;
+			this.reading = false;
 			this.readingComplete = true;
 		}
 	}
@@ -255,7 +255,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	@Override
 	public boolean isReading()
 	{
-		return this.isReading;
+		return this.reading;
 	}
 	
 	@Override
