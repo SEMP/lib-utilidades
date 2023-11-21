@@ -20,11 +20,6 @@ public interface Values
 		 */
 		public static final int BUFFER_BOUNDARY = -1;
 		
-		/**public static final String 
-		 * Time delay for polls.
-		 */
-		public static final int POLL_DELAY_MS = 50;
-		
 		/**
 		 * The size of the thread pool used to inform listeners of events.
 		 */
@@ -87,6 +82,11 @@ public interface Values
 		public static final Integer CONNECTION_TIMEOUT_MS = -1;
 		public static final Integer READ_TIMEOUT_MS = -1;
 		public static final Integer WRITE_TIMEOUT_MS = -1;
+		
+		/**
+		 * Default time delay for polls.
+		 */
+		public static final int POLL_DELAY_MS = 50;
 	}
 	
 	/**

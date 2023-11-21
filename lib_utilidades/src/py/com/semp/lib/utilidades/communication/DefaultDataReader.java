@@ -30,6 +30,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 {
 	private T dataReceiver;
 	
+	private int pollDelayMS = Values.Defaults.POLL_DELAY_MS;
 	private volatile boolean pauseReading = false;
 	private volatile boolean reading = false;
 	private volatile boolean readingComplete = false;
@@ -104,6 +105,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			else
 			{
 				this.reading = false;
+				this.pollDelay();
 			}
 		}
 		
@@ -136,11 +138,11 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	 */
 	private byte[] readWithTimeout(long readTimeoutNanos) throws CommunicationException
 	{
-		byte[] data;
+		byte[] data = new byte[]{};
 		
 		long start = System.nanoTime();
 		
-		do
+		while(!Thread.currentThread().isInterrupted())
 		{
 			long current = System.nanoTime();
 			
@@ -154,8 +156,14 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			}
 			
 			data = this.dataReceiver.readData();
+			
+			if(data.length != 0)
+			{
+				break;
+			}
+			
+			this.pollDelay();
 		}
-		while(data.length == 0);
 		
 		return data;
 	}
@@ -305,6 +313,28 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	public boolean isReadingComplete()
 	{
 		return this.readingComplete;
+	}
+	
+	public void setPollDelayMS(int pollDelayMS)
+	{
+		this.pollDelayMS = pollDelayMS;
+	}
+	
+	public int getPollDelayMS()
+	{
+		return this.pollDelayMS;
+	}
+	
+	private void pollDelay()
+	{
+		try
+		{
+			Thread.sleep(this.pollDelayMS);
+		}
+		catch(InterruptedException e)
+		{
+			Thread.currentThread().interrupt();
+		}
 	}
 	
 	/**
