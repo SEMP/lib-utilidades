@@ -1,10 +1,12 @@
 package py.com.semp.lib.utilidades.communication.interfaces;
 
+import py.com.semp.lib.utilidades.shutdown.ShutdownCapable;
+
 /**
  * The {@link DataReader} interface defines the operations for reading data
  * from a data source in a separate thread of execution.
  */
-public interface DataReader extends Runnable
+public interface DataReader extends Runnable, ShutdownCapable
 {
 	 /**
      * Initiates the reading process from a data source.
@@ -27,7 +29,7 @@ public interface DataReader extends Runnable
      * without concern for informing all listeners of the shutdown. This is in contrast to
      * {@link #stopReading()}, which may perform a more graceful shutdown with notifications.
      */
-    void shutdown();
+    public DataReader shutdown();
     
     /**
      * Checks if the reader is currently in the process of reading.

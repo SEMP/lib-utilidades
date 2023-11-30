@@ -219,6 +219,7 @@ public class CircularByteBufferTest
 	}
 	
 	@Test
+	@SuppressWarnings("unlikely-arg-type")
 	public void testEquals()
 	{
 		CircularByteBuffer buffer1 = new CircularByteBuffer(new byte[]{0, 1, 2});

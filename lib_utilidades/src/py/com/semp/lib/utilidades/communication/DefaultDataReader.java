@@ -12,6 +12,7 @@ import py.com.semp.lib.utilidades.configuration.ConfigurationValues;
 import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
 import py.com.semp.lib.utilidades.exceptions.CommunicationTimeoutException;
+import py.com.semp.lib.utilidades.exceptions.ShutdownException;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.log.Logger;
@@ -233,13 +234,13 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	 * </p>
 	 */
 	@Override
-	public void shutdown()
+	public DefaultDataReader<T> shutdown()
 	{
 		try
 		{
 			this.dataReceiver.shutdown();
 		}
-		catch(CommunicationException e)
+		catch(ShutdownException e)
 		{
 			String errorMessage = MessageUtil.getMessage(Messages.SHUTDOWN_ERROR, this.getReceiverString(this.dataReceiver));
 			
@@ -250,6 +251,8 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 			this.reading = false;
 			this.readingComplete = true;
 		}
+		
+		return this;
 	}
 	
 	/**

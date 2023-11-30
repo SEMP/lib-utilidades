@@ -82,7 +82,7 @@ public class CircularByteBuffer implements List<Byte>
 	 */
 	public byte[] getByteArray()
 	{
-		return byteArray;
+		return this.byteArray;
 	}
 	
 	/**
@@ -205,7 +205,7 @@ public class CircularByteBuffer implements List<Byte>
 	 * <b>false</b> if the bytes couldn't be added.
 	 * @author Sergio Morel
 	 */
-	public boolean add(byte... array)
+	public boolean add(byte... array) //TODO permitir establecer el tamaño a agregar.
 	{
 		int copyIndex = 0;
 		

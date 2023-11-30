@@ -12,6 +12,7 @@ module lib_utilidades
 	exports py.com.semp.lib.utilidades.log;
 	exports py.com.semp.lib.utilidades.messages;
 	exports py.com.semp.lib.utilidades.utilities;
+	exports py.com.semp.lib.utilidades.shutdown;
 	
 	requires org.junit.jupiter.api;
 	requires org.junit.jupiter.params;

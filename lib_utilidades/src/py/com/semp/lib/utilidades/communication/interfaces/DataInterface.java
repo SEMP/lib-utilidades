@@ -4,7 +4,10 @@ import java.util.Set;
 
 import py.com.semp.lib.utilidades.communication.listeners.ConnectionEventListener;
 import py.com.semp.lib.utilidades.configuration.ConfigurationValues;
+import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.exceptions.CommunicationException;
+import py.com.semp.lib.utilidades.exceptions.ShutdownException;
+import py.com.semp.lib.utilidades.shutdown.ShutdownCapable;
 
 /**
  * Provides an interface for data communication operations, allowing for connection management,
@@ -15,7 +18,7 @@ import py.com.semp.lib.utilidades.exceptions.CommunicationException;
  * 
  * @author Sergio Morel
  */
-public interface DataInterface
+public interface DataInterface extends ShutdownCapable
 {
 	/**
      * Connects to the data source without any specific configuration.
@@ -148,7 +151,7 @@ public interface DataInterface
 	 * 
      * @throws CommunicationException If any error occurs during the shutdown process.
 	 */
-	public DataInterface shutdown() throws CommunicationException;
+	public DataInterface shutdown() throws ShutdownException;
 	
 	/**
 	 * Indicates if the {@link DataInterface} is disconnecting.
