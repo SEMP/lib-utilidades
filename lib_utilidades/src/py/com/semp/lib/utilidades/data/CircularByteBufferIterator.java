@@ -125,10 +125,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return BUFFER_BOUNDARY;
 		}
 		
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		int dataStart = this.buffer.start;
 		
-		return (internalIndex - dataStart + bufferSize) % bufferSize;
+		return (internalIndex - dataStart + bufferCapacity) % bufferCapacity;
 	}
 	
 	public void goTo(int index)
@@ -361,7 +361,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(distance < 0)
 		{
-			distance += this.buffer.getBufferSize();
+			distance += this.buffer.getBufferCapacity();
 		}
 		
 		return distance;
@@ -374,7 +374,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(distance < 0)
 		{
-			distance += this.buffer.getBufferSize();
+			distance += this.buffer.getBufferCapacity();
 		}
 		
 		return distance;
@@ -619,7 +619,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	@Override
 	public void add(Byte element)
 	{
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		int dataSize = this.buffer.getDataSize();
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
@@ -683,8 +683,8 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		{
 			if(forwardDistance <= backwardDistance)
 			{
-				this.buffer.end = (dataEnd + 1) % bufferSize;
-				this.buffer.start = (dataStart + 1) % bufferSize;
+				this.buffer.end = (dataEnd + 1) % bufferCapacity;
+				this.buffer.start = (dataStart + 1) % bufferCapacity;
 				this.goNext();
 				this.shiftToEnd(this.index);
 				this.buffer.byteArray[this.index] = element;
@@ -714,10 +714,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	{
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
 		return
-		(dataStart <= dataEnd && dataEnd - dataStart < bufferSize - 1) ||
+		(dataStart <= dataEnd && dataEnd - dataStart < bufferCapacity - 1) ||
 		(dataStart > dataEnd && dataStart - 1 > dataEnd);
 	}
 	
@@ -743,13 +743,13 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return insertIndex;
 		}
 		
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
-		insertIndex = (this.buffer.start - 1) % bufferSize;
+		insertIndex = (this.buffer.start - 1) % bufferCapacity;
 		
 		if(insertIndex < 0)
 		{
-			insertIndex += bufferSize;
+			insertIndex += bufferCapacity;
 		}
 		
 		if(insertIndex == this.buffer.end)
@@ -784,9 +784,9 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return insertIndex;
 		}
 		
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
-		insertIndex = (this.buffer.end + 1) % bufferSize;
+		insertIndex = (this.buffer.end + 1) % bufferCapacity;
 		
 		if(insertIndex == this.buffer.start)
 		{
@@ -829,7 +829,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
 		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
 		if(dataSize < 1 || index == dataEnd)
 		{
@@ -841,11 +841,11 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return index = dataStart;
 		}
 		
-		index = (index + 1) % bufferSize;
+		index = (index + 1) % bufferCapacity;
 		
 		if(index < 0)
 		{
-			index += bufferSize;
+			index += bufferCapacity;
 		}
 		
 		return index;
@@ -882,7 +882,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
 		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
 		if(dataSize < 1 || index == dataStart)
 		{
@@ -894,11 +894,11 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			return index = dataEnd;
 		}
 		
-		index = (index - 1) % bufferSize;
+		index = (index - 1) % bufferCapacity;
 		
 		if(index < 0)
 		{
-			index += bufferSize;
+			index += bufferCapacity;
 		}
 		
 		return index;
@@ -945,7 +945,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		int dataStart = this.buffer.start;
 		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
 		if(dataSize < 1)
 		{
@@ -968,7 +968,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(relativeIndex < 0)
 		{
-			relativeIndex += bufferSize;
+			relativeIndex += bufferCapacity;
 		}
 		
 		int finalRelativeIndex = (relativeIndex + steps) % dataSize;
@@ -978,7 +978,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			finalRelativeIndex += dataSize;
 		}
 		
-		index = (dataStart + finalRelativeIndex) % bufferSize;
+		index = (dataStart + finalRelativeIndex) % bufferCapacity;
 		
 		return index;
 	}
@@ -1027,7 +1027,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		int dataStart = this.buffer.start;
 		int dataEnd = this.buffer.end;
 		int dataSize = this.buffer.getDataSize();
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
 		if(dataSize < 1)
 		{
@@ -1050,7 +1050,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		
 		if(relativeIndex < 0)
 		{
-			relativeIndex += bufferSize;
+			relativeIndex += bufferCapacity;
 		}
 		
 		int finalRelativeIndex = (relativeIndex - steps) % dataSize;
@@ -1060,7 +1060,7 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 			finalRelativeIndex += dataSize;
 		}
 		
-		index = (dataStart + finalRelativeIndex) % bufferSize;
+		index = (dataStart + finalRelativeIndex) % bufferCapacity;
 		
 		return index;
 	}
@@ -1084,9 +1084,9 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	 */
 	protected boolean inRange(int start, int end)
 	{
-		int bufferSize = this.buffer.getBufferSize();
+		int bufferCapacity = this.buffer.getBufferCapacity();
 		
-		if(start < 0 || start >= bufferSize || end < 0 || end >= bufferSize)
+		if(start < 0 || start >= bufferCapacity || end < 0 || end >= bufferCapacity)
 		{
 			return false;
 		}
@@ -1253,15 +1253,15 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	{
 		if(this.buffer.start <= this.buffer.end)
 		{
-			int bufferSize = this.buffer.getBufferSize();
+			int bufferCapacity = this.buffer.getBufferCapacity();
 			
 			if(this.buffer.start > 0)
 			{
 				this.buffer.start--;
 			}
-			else if(this.buffer.end < bufferSize - 1)
+			else if(this.buffer.end < bufferCapacity - 1)
 			{
-				this.buffer.start = bufferSize - 1;
+				this.buffer.start = bufferCapacity - 1;
 			}
 		}
 		else
@@ -1301,9 +1301,9 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 	{
 		if(this.buffer.start <= this.buffer.end)
 		{
-			int bufferSize = this.buffer.getBufferSize();
+			int bufferCapacity = this.buffer.getBufferCapacity();
 			
-			if(this.buffer.end < bufferSize - 1)
+			if(this.buffer.end < bufferCapacity - 1)
 			{
 				this.buffer.end++;
 			}

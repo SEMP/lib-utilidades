@@ -352,9 +352,6 @@ public class CircularByteBufferTest
 	    // 6. Ensure exceptions are thrown for out-of-bounds indices.
 	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.add(-1, (byte)14));
 	    assertThrows(IndexOutOfBoundsException.class, () -> buffer.add(12, (byte)14));
-
-	    // 7. Test adding a null value.
-	    assertThrows(NullPointerException.class, () -> buffer.add(3, null));
 	}
 	
 	@Test

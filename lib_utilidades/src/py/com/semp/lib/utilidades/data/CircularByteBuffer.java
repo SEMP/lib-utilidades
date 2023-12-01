@@ -205,20 +205,100 @@ public class CircularByteBuffer implements List<Byte>
 	 * <b>false</b> if the bytes couldn't be added.
 	 * @author Sergio Morel
 	 */
-	public boolean add(byte... array) //TODO permitir establecer el tamaño a agregar.
+	public boolean add(byte[] bytes)
 	{
-		int copyIndex = 0;
-		
-		int bufferSize = this.getBufferSize();
-		
-		if(array.length > bufferSize)
+		return this.addBytes(bytes, 0,  bytes.length);
+	}
+	
+	/**
+	 * Adds a specified portion of the byte array to the buffer.
+	 * 
+	 * <p>This method attempts to add bytes from the provided array up to the specified
+	 * dataSize. If dataSize is larger than the array's length, the method throws
+	 * an IndexOutOfBoundsException with a descriptive error message. It starts adding bytes
+	 * from the beginning of the array and continues until either dataSize bytes have
+	 * been added, or the buffer is full.</p>
+	 *
+	 * <p>If the buffer does not have enough space to accommodate dataSize bytes,
+	 * this method calculates the starting index in the array such that only the last
+	 * portion of the array that fits in the buffer is added.</p>
+	 *
+	 * @param bytes The byte array from which bytes are to be added.
+	 * @param dataSize The number of bytes to add from the beginning of the array. 
+	 * This value should not exceed the array's length.
+	 * @return <b>true</b> if the bytes are added successfully.
+	 *         <b>false</b> if any byte cannot be added to the buffer.
+	 * @throws IndexOutOfBoundsException
+	 * If dataSize is greater than the array's length. The exception message includes
+	 * the invalid index and the array's length for reference.
+	 * @see #add(byte[])
+	 */
+	public boolean add(byte[] bytes, int dataSize)
+	{
+		if(dataSize > bytes.length)
 		{
-			copyIndex = array.length - bufferSize;
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, dataSize, bytes.length);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
 		}
 		
-		while(copyIndex < array.length)
+		return this.addBytes(bytes, 0, dataSize);
+	}
+	
+	/**
+	 * Adds a portion of the byte array to the buffer, starting from a specified index up to a specified data size.
+	 *
+	 * <p>This method adds bytes to the buffer starting at the 'from' index of the byte array, and continues adding
+	 * until it reaches the end of the data that has been read, specified by 'dataSize'. This is useful for adding only
+	 * a part of a buffer that has been filled up to a certain point.</p>
+	 *
+	 * <p>If 'from' is beyond the end of the data that has been read into the buffer, or if 'dataSize' exceeds the
+	 * actual data length, an IndexOutOfBoundsException is thrown.</p>
+	 *
+	 * @param bytes The byte array from which bytes are to be added.
+	 * @param from The starting index in the array from which to begin adding bytes.
+	 * @param dataSize The total number of bytes that have been read into the array.
+	 * @return <b>true</b> if the bytes are added successfully, <b>false</b> otherwise.
+	 * @throws IndexOutOfBoundsException If 'from' is beyond the data read, or if 'dataSize' exceeds the buffer length.
+	 */
+	public boolean add(byte[] bytes, int from, int dataSize)
+	{
+		if(from > dataSize)
 		{
-			if(!this.add(array[copyIndex++]))
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, from, dataSize);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		else if(dataSize > bytes.length)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, dataSize, bytes.length);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		if(from == dataSize)
+		{
+			return false;
+		}
+		
+		return this.addBytes(bytes, from, dataSize);
+	}
+
+	private boolean addBytes(byte[] bytes, int from, int dataSize)
+	{
+		int copyIndex = from;
+		
+		int bufferCapacity = this.getBufferCapacity();
+		
+		if((dataSize - from) > bufferCapacity)
+		{
+			copyIndex = dataSize - bufferCapacity;
+		}
+		
+		while(copyIndex < dataSize)
+		{
+			//TODO ver si se puede optimizar usando una version mas simplificada del add.
+			if(!this.add(bytes[copyIndex++]))
 			{
 				return false;
 			}
@@ -245,7 +325,7 @@ public class CircularByteBuffer implements List<Byte>
 	 */
 	public boolean add(byte data)
 	{
-		int bufferSize = this.getBufferSize();
+		int bufferCapacity = this.getBufferCapacity();
 		
 		if(this.start == BUFFER_BOUNDARY)
 		{
@@ -254,11 +334,11 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		else
 		{
-			this.end = (this.end + 1) % bufferSize;
+			this.end = (this.end + 1) % bufferCapacity;
 			
 			if(this.start == this.end)
 			{
-				this.start = (this.start + 1) % bufferSize;
+				this.start = (this.start + 1) % bufferCapacity;
 			}
 		}
 		
@@ -400,7 +480,7 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		else
 		{
-			return ((this.getBufferSize() - start) + end) + 1;
+			return ((this.getBufferCapacity() - start) + end) + 1;
 		}
 	}
 	
@@ -423,7 +503,7 @@ public class CircularByteBuffer implements List<Byte>
 	 * - size of the underlying buffer.
 	 * @author Sergio Morel
 	 */
-	public int getBufferSize()
+	public int getBufferCapacity()
 	{
 		return this.byteArray.length;
 	}
@@ -656,7 +736,7 @@ public class CircularByteBuffer implements List<Byte>
 	protected byte[] extract(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
-		int bufferSize = this.getBufferSize();
+		int bufferCapacity = this.getBufferCapacity();
 		
 		byte[] segment = new byte[dataSize];
 		
@@ -664,7 +744,7 @@ public class CircularByteBuffer implements List<Byte>
 		
 		for(int i = start; j < dataSize; i++)
 		{
-			if(i == bufferSize)
+			if(i == bufferCapacity)
 			{
 				i = 0;
 			}
@@ -695,7 +775,7 @@ public class CircularByteBuffer implements List<Byte>
 	protected Byte[] extractInByteArray(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
-		int bufferSize = this.getBufferSize();
+		int bufferCapacity = this.getBufferCapacity();
 		
 		Byte[] segment = new Byte[dataSize];
 		
@@ -703,7 +783,7 @@ public class CircularByteBuffer implements List<Byte>
 		
 		for(int i = start; j < dataSize; i++)
 		{
-			if(i == bufferSize)
+			if(i == bufferCapacity)
 			{
 				i = 0;
 			}
@@ -734,7 +814,7 @@ public class CircularByteBuffer implements List<Byte>
 	protected Object[] extractInObjectArray(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
-		int bufferSize = this.getBufferSize();
+		int bufferCapacity = this.getBufferCapacity();
 		
 		Object[] segment = new Object[dataSize];
 		
@@ -742,7 +822,7 @@ public class CircularByteBuffer implements List<Byte>
 		
 		for(int i = start; j < dataSize; i++)
 		{
-			if(i == bufferSize)
+			if(i == bufferCapacity)
 			{
 				i = 0;
 			}
@@ -1169,11 +1249,11 @@ public class CircularByteBuffer implements List<Byte>
 	@Override
 	public boolean addAll(int index, Collection<? extends Byte> collection)
 	{
-		int bufferSize = this.getBufferSize();
+		int bufferCapacity = this.getBufferCapacity();
 		
-		if(index >= bufferSize)
+		if(index >= bufferCapacity)
 		{
-			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, bufferSize);
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, index, bufferCapacity);
 			
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
