@@ -1,5 +1,10 @@
 package py.com.semp.lib.utilidades.exceptions;
 
+/**
+ * Exception to be thrown when an invalida action for a closed connection is attempted.
+ * 
+ * @author Sergio Morel
+ */
 public class ConnectionClosedException extends CommunicationException
 {
 	private static final long serialVersionUID = -3559924976436305597L;

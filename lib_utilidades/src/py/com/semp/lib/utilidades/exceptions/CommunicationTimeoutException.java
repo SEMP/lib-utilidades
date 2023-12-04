@@ -1,5 +1,10 @@
 package py.com.semp.lib.utilidades.exceptions;
 
+/**
+ * Exception to be thrown when a timeout expires.
+ * 
+ * @author Sergio Morel
+ */
 public class CommunicationTimeoutException extends CommunicationException
 {
 	private static final long serialVersionUID = -3107110459474414366L;

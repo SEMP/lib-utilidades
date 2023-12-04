@@ -318,6 +318,17 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		return this.readingComplete;
 	}
 	
+	@Override
+	public boolean isShuttingdown()
+	{
+		if(this.dataReceiver == null)
+		{
+			return false;
+		}
+		
+		return this.dataReceiver.isShuttingdown();
+	}
+	
 	public void setPollDelayMS(int pollDelayMS)
 	{
 		this.pollDelayMS = pollDelayMS;
