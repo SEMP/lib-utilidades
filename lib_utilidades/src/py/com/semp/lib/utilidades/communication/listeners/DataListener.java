@@ -45,5 +45,5 @@ public interface DataListener
 	 * @param dataInterface  Data source where the error occurred.
 	 * @param throwable      Throwable thrown when reading data.
 	 */
-	void onReceivingError(Instant instant, DataInterface dataInterface, Throwable exception);
+	void onReceivingError(Instant instant, DataInterface dataInterface, Throwable throwable);
 }

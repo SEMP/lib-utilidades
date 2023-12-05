@@ -51,13 +51,13 @@ public interface DataTransmitter
 	 * 
 	 * @param data
 	 * - Data tried to be sent when the error occurred.
-	 * @param exception
+	 * @param throwable
 	 * - The exception that occurred.
 	 * 
 	 * @return
 	 * - A reference to this {@link DataTransmitter} instance.
 	 */
-	public DataTransmitter informOnSendingError(byte[] data, Throwable exception);
+	public DataTransmitter informOnSendingError(byte[] data, Throwable throwable);
 	
 	/**
 	 * Sends data.

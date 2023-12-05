@@ -54,13 +54,13 @@ public interface DataReceiver
 	 * Informs the {@link DataListener} instances of exceptions occurring when
 	 * receiving data.
 	 * 
-	 * @param exception
+	 * @param throwable
 	 * - The exception that occurred.
 	 * 
 	 * @return
 	 * - A reference to this {@link DataReceiver} instance.
 	 */
-	public DataReceiver informOnReceivingError(Throwable exception);
+	public DataReceiver informOnReceivingError(Throwable throwable);
 	
 	/**
 	 * Obtains the data reader for this {@link DataReceiver}.
