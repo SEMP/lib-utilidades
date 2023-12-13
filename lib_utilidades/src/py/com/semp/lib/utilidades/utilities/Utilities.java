@@ -1,5 +1,8 @@
 package py.com.semp.lib.utilidades.utilities;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -191,5 +194,12 @@ public final class Utilities
 		}
 		
 		return true;
+	}
+	
+	public static String toString(Instant instant)
+	{
+		ZonedDateTime zonedDateTime = instant.atZone(ZoneId.systemDefault());
+		
+		return zonedDateTime.toString();
 	}
 }

@@ -17,6 +17,7 @@ import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.log.Logger;
 import py.com.semp.lib.utilidades.log.LoggerManager;
+import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**
  * The {@link DefaultDataReader} class is responsible for asynchronously reading data from a data receiver
@@ -362,7 +363,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	{
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append(Instant.now()).append(": ");
+		sb.append(Utilities.toString(Instant.now())).append(": ");
 		sb.append(dataInterface.getDynamicStringIdentifier());
 		
 		return sb.toString();

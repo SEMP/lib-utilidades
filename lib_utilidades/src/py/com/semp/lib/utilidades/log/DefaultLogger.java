@@ -1,5 +1,9 @@
 package py.com.semp.lib.utilidades.log;
 
+import java.time.Instant;
+
+import py.com.semp.lib.utilidades.utilities.Utilities;
+
 /**
  * The DefaultLogger class provides a simple logging mechanism that writes log messages
  * to standard output streams.
@@ -29,6 +33,7 @@ public class DefaultLogger implements Logger
 	{
 		if(level == LogLevel.ERROR || level == LogLevel.FATAL || level == LogLevel.WARNING)
 		{
+			System.err.println(Utilities.toString(Instant.now()));
 			System.err.println(message);
 		}
 		else
@@ -37,11 +42,13 @@ public class DefaultLogger implements Logger
 			{
 				if(this.debug)
 				{
+					System.out.println(Utilities.toString(Instant.now()));
 					System.out.println(message);
 				}
 			}
 			else
 			{
+				System.out.println(Utilities.toString(Instant.now()));
 				System.out.println(message);
 			}
 		}
@@ -52,6 +59,7 @@ public class DefaultLogger implements Logger
 	{
 		if(level == LogLevel.ERROR || level == LogLevel.FATAL || level == LogLevel.WARNING)
 		{
+			System.err.println(Utilities.toString(Instant.now()));
 			System.err.println(message);
 			throwable.printStackTrace(System.err);
 		}
@@ -61,12 +69,14 @@ public class DefaultLogger implements Logger
 			{
 				if(this.debug)
 				{
+					System.out.println(Utilities.toString(Instant.now()));
 					System.out.println(message);
 					throwable.printStackTrace(System.out);
 				}
 			}
 			else
 			{
+				System.out.println(Utilities.toString(Instant.now()));
 				System.out.println(message);
 				throwable.printStackTrace(System.out);
 			}
