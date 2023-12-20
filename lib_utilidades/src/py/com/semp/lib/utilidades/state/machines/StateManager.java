@@ -106,7 +106,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			return;
 		}
 		
-		String nextState = null;
+		String nextStateKey = null;
 		
 		this.lock.lock();
 		
@@ -114,14 +114,14 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		{
 			Iterator<String> iterator = states.keySet().iterator();
 			
-			nextState = iterator.next();
+			nextStateKey = iterator.next();
 		}
 		finally
 		{
 			this.lock.unlock();
 		}
 		
-		while(nextState != null)
+		while(nextStateKey != null)
 		{
 			if(this.isShuttingdown())
 			{
@@ -142,7 +142,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			
 			try
 			{
-				meterState = states.get(nextState);
+				meterState = states.get(nextStateKey);
 			}
 			finally
 			{
@@ -151,12 +151,12 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			
 			if(meterState == null)
 			{
-				String errorMessage = MessageUtil.getMessage(Messages.STATE_NOT_FOUND_ERROR, nextState);
+				String errorMessage = MessageUtil.getMessage(Messages.STATE_NOT_FOUND_ERROR, nextStateKey);
 				
 				throw new StateNotFoundException(errorMessage);
 			}
 			
-			nextState = meterState.executeState();
+			nextStateKey = meterState.executeState();
 		}
 	}
 	
