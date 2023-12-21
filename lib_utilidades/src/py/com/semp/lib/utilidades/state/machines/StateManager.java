@@ -18,6 +18,8 @@ import py.com.semp.lib.utilidades.shutdown.ShutdownCapable;
  * This abstract class manages the execution of states in a state machine. It provides a framework
  * for managing state transitions, handling shutdown requests, and ensuring thread-safe operation.
  * Implementing classes should define the specific states and transitions of the state machine.
+ * 
+ * @author Sergio Morel
  */
 public abstract class StateManager implements Runnable, ShutdownCapable
 {
@@ -26,10 +28,10 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	private ReentrantLock lock = new ReentrantLock();
 	
 	/**
-     * Initiates the execution of the state machine. This method is called when the class is run
-     * as a thread. It handles {@link StateNotFoundException} by logging the error and ensures
-     * proper shutdown handling.
-     */
+	 * Initiates the execution of the state machine. This method is called when the class is run
+	 * as a thread. It handles {@link StateNotFoundException} by logging the error and ensures
+	 * proper shutdown handling.
+	 */
 	@Override
 	public void run()
 	{
@@ -38,20 +40,35 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			this.loadStates();
 			this.executeStates();
 		}
-		catch(StateNotFoundException | InterruptedException e)
+		catch(Exception e)
 		{
-			Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
-			
-			logger.error(e);
+			this.handleException(e);
 		}
 		finally
 		{
-			this.onShutdown();
+			this.finalizeStates();
 		}
 	}
 	
-	protected abstract void onShutdown();
-
+	private void handleException(Exception e)
+	{
+		Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
+		
+		if(e instanceof InterruptedException)
+		{
+			try
+			{
+				this.shutdown();
+			}
+			catch(ShutdownException e1)
+			{
+				e.addSuppressed(e1);
+			}
+		}
+		
+		logger.error(e);
+	}
+	
 	/**
 	 * Provides the Map of states managed by this state machine.
 	 *
@@ -61,7 +78,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	{
 		return this.states;
 	}
-
+	
 	/**
 	 * Adds a new state to the state map.
 	 * 
@@ -83,23 +100,23 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			this.lock.unlock();
 		}
 	}
-
+	
 	/**
-     * Implement this method to define the logic for loading states into the state machine.
-     */
+	 * Implement this method to define the logic for loading states into the state machine.
+	 */
 	public abstract void loadStates();
 	
 	/**
-     * Executes the states in the state machine. This method iterates through the states based on
-     * their transition logic and executes each one until there are no more states to execute, a
-     * state transition error occurs, or a shutdown is requested. 
-     *
-     * @throws StateNotFoundException if a specified next state is not found in the state machine.
-     * @throws InterruptedException if the thread executing the state machine is interrupted.
-     */
+	 * Executes the states in the state machine. This method iterates through the states based on
+	 * their transition logic and executes each one until there are no more states to execute, a
+	 * state transition error occurs, or a shutdown is requested. 
+	 *
+	 * @throws StateNotFoundException if a specified next state is not found in the state machine.
+	 * @throws InterruptedException if the thread executing the state machine is interrupted.
+	 */
 	public void executeStates() throws StateNotFoundException, InterruptedException
 	{
-		Map<String,State> states = this.getStates();
+		Map<String, State> states = this.getStates();
 		
 		if(states.isEmpty())
 		{
@@ -160,14 +177,29 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		}
 	}
 	
+	/**
+	 * To be executed after the state machine finishes executing.
+	 */
+	protected abstract void finalizeStates();
+	
+	/**
+	 * To be executed when the {@code shutdown()} method has been called.
+	 */
+	protected abstract void onShutdown();
+	
 	@Override
 	public ShutdownCapable shutdown() throws ShutdownException
 	{
-		this.shutdownRequested = true;
+		if(!this.shutdownRequested)
+		{
+			this.shutdownRequested = true;
+			
+			this.onShutdown();
+		}
 		
 		return this;
 	}
-
+	
 	@Override
 	public boolean isShuttingdown()
 	{
