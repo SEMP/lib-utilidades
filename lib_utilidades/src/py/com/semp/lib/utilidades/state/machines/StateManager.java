@@ -58,6 +58,8 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		{
 			try
 			{
+				Thread.currentThread().interrupt();
+
 				this.shutdown();
 			}
 			catch(ShutdownException e1)
