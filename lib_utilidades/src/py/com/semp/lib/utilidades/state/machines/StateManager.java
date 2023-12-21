@@ -46,7 +46,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		}
 		finally
 		{
-			this.finalizeStates();
+			this.finalizeStateMachine();
 		}
 	}
 	
@@ -188,7 +188,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	/**
 	 * To be executed after the state machine finishes executing.
 	 */
-	protected abstract void finalizeStates();
+	protected abstract void finalizeStateMachine();
 	
 	/**
 	 * To be executed when the {@code shutdown()} method has been called.
