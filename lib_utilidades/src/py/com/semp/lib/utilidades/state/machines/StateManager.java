@@ -50,25 +50,31 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		}
 	}
 	
-	private void handleException(Exception e)
+	/**
+	 * Handles and logs the exception.
+	 * 
+	 * @param exception
+	 * - Exception to handle.
+	 */
+	private void handleException(Exception exception)
 	{
 		Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
 		
-		if(e instanceof InterruptedException)
+		if(exception instanceof InterruptedException)
 		{
 			try
 			{
 				Thread.currentThread().interrupt();
-
+				
 				this.shutdown();
 			}
-			catch(ShutdownException e1)
+			catch(ShutdownException e)
 			{
-				e.addSuppressed(e1);
+				exception.addSuppressed(e);
 			}
 		}
 		
-		logger.error(e);
+		logger.error(exception);
 	}
 	
 	/**
