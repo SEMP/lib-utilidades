@@ -170,6 +170,31 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		return true;
 	}
 	
+	/**
+	 * Checks if the buffer has remaining elements after the current position.
+	 * 
+	 * @param remainingElements amount of remaining elements to check.
+	 * @return
+	 * - <b>true</b> if the buffer has the amount of elements after the current one.<br>
+	 * - <b>false</b> otherwise.
+	 */
+	public boolean hasNext(int remainingElements)
+	{
+		int internalIndex = this.getInternalIndex();
+		
+		for(int i = 0; i < remainingElements; i++)
+		{
+			internalIndex = this.goNext(internalIndex);
+			
+			if(internalIndex == BUFFER_BOUNDARY)
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	@Override
 	public boolean hasPrevious()
 	{

@@ -1016,6 +1016,72 @@ public class CircularByteBuffer implements List<Byte>
 		return new byte[]{};
 	}
 	
+	public byte[] extractOne(String startHeader, String endHeader, int extraBytesAfter)
+	{
+		return this.extractOne(startHeader.getBytes(StandardCharsets.UTF_8), endHeader.getBytes(StandardCharsets.UTF_8), extraBytesAfter);
+	}
+	
+	/**
+	 * Extracts from the buffer the first data segment found between occurrences of the start header and end header plus some extra bytes.
+	 * The segment of data extracted includes both the start and the extra bytes after the end header.
+	 * 
+	 * @param startHeader
+	 * - The starting header.
+	 * @param endHeader
+	 * - The ending header.
+	 * @param
+	 * - Extra bytes to be included after the end header.
+	 * @return
+	 * - The first segment of data found between the headers, including the headers and extra bytes.
+	 * @author Sergio Morel
+	 */
+	public byte[] extractOne(byte[] startHeader, byte[] endHeader, int extraBytesAfter)
+	{
+		boolean betweenHeaders = false;
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		while(iterator.hasNext())
+		{
+			iterator.goNext();
+			
+			// Start header found
+			if(iterator.patternFound(startHeader))
+			{
+				int index = iterator.getInternalIndex();
+				
+				this.start = iterator.rewind(index, startHeader.length - 1);
+				
+				betweenHeaders = true;
+			}
+			
+			// End header found
+			if(iterator.patternFound(endHeader) && iterator.hasNext(extraBytesAfter))
+			{
+				int index = iterator.getInternalIndex();
+				
+				if(betweenHeaders)
+				{
+					iterator.forward(extraBytesAfter);
+					
+					index = iterator.getInternalIndex();
+					
+					byte[] segment = this.extract(this.start, index);
+					
+					this.start = iterator.goNext(index);
+					
+					return segment;
+				}
+				
+				this.start = iterator.goNext(index);
+				
+				betweenHeaders = false;
+			}
+		}
+		
+		return new byte[]{};
+	}
+	
 	/**
 	 * Extracts from the buffer all the data segments found between occurrences of the start header and end header.
 	 * Each segment of data extracted includes both the start and end headers.

@@ -1,0 +1,128 @@
+[
+    {
+	    "testName": "Single Match Extraction",
+	    "input": "Hello <start> first message <end> Hi <start> second message <end> Bye",
+	    "startHeader": "<start>",
+	    "endHeader": "<end>",
+	    "expectedOutput": ["<start> first message <end> H"],
+	    "expectedRemainingData": "i <start> second message <end> Bye",
+	    "extraBytesAfter": 2
+	},
+	{
+        "testName": "Unpaired Start Header",
+        "input": "Hello <start> first message Hi <start> second message <end> Bye",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": ["<start> second message <end>"],
+        "expectedRemainingData": " Bye",
+        "extraBytesAfter": 0
+    },
+    {
+        "testName": "Unpaired End Header",
+        "input": "Hello <start> first message <end> Hi <end> second message <end> Bye",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": ["<start> first message <end> Hi <e"],
+        "expectedRemainingData": "nd> second message <end> Bye",
+        "extraBytesAfter": 6
+    },
+    {
+        "testName": "Consecutive Start Headers",
+        "input": "Hello <start> <start> first message Hi <start> second message <end> Bye",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": ["<start> second message <end> Bye"],
+        "expectedRemainingData": "",
+        "extraBytesAfter": 4
+    },
+    {
+        "testName": "Consecutive Start Headers",
+        "input": "Hello <start> <start> first message Hi <start> second message <end> Bye",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "<start> second message <end> Bye",
+        "extraBytesAfter": 5
+    },
+    {
+        "testName": "No Matches",
+        "input": "Hello World",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "Hello World",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Only Start Header",
+        "input": "Hello <start> World",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "<start> World",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Only End Header",
+        "input": "Hello World <end>",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "Hello World <end>",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Extract from Empty Buffer",
+        "input": "",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Start and End Header Overlapping",
+        "input": "Hello <st<start>art> overlapping <end> example",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": ["<start>art> overlapping <end> e"],
+        "expectedRemainingData": "xample",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Multiple Overlapping Headers",
+        "input": "<st<start>ar<end>t<end> overlapping",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": ["<start>ar<end>t<"],
+        "expectedRemainingData": "end> overlapping",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Very Long Input without Match",
+        "input": "Lorem ipsum...[a very long string]...end",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "Lorem ipsum...[a very long string]...end",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Headers at the Extremes",
+        "input": "<start>Hello World<end>",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "<start>Hello World<end>",
+        "extraBytesAfter": 2
+    },
+    {
+        "testName": "Buffer Full Situation",
+        "input": "...[assuming it fills the buffer completely]...",
+        "startHeader": "<start>",
+        "endHeader": "<end>",
+        "expectedOutput": [""],
+        "expectedRemainingData": "...[assuming it fills the buffer completely]...",
+        "extraBytesAfter": 2
+    }
+]

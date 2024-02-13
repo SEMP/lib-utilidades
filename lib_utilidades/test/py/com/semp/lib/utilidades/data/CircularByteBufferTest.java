@@ -48,6 +48,11 @@ public class CircularByteBufferTest
 		"extract_one_2h.json"
 	};
 	
+	private static final String[] JSON_FILES_EXTRACT_ONE_2H_EXTRA_AFTER =
+	{
+		"extract_one_2h_extra_after.json"
+	};
+	
 	private static final String[] JSON_FILES_CIRCULAR_BUFFER =
 	{
 		"circular_buffer_byteArray.json",
@@ -704,6 +709,47 @@ public class CircularByteBufferTest
 	}
 	
 	@ParameterizedTest
+	@MethodSource("readExtractOne2HExtraAfterData")
+	public void testExtractOne2HExtraAfter(ExtractDto testDTO)
+	{
+		String startHeader = testDTO.getStartHeader();
+		String endHeader = testDTO.getEndHeader();
+		String input = testDTO.getInput();
+		String[] expectedOutput = testDTO.getExpectedOutput();
+		String expectedRemainingData = testDTO.getExpectedRemainingData();
+		Integer extraBytesAfter = testDTO.getExtraBytesAfter();
+		
+		byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
+		
+		CircularByteBuffer buffer;
+		
+		if(inputBytes.length < 1)
+		{
+			buffer = new CircularByteBuffer(10);
+		}
+		else
+		{
+			buffer = new CircularByteBuffer(inputBytes);
+		}
+		
+		byte[] extracted = buffer.extractOne(startHeader, endHeader, extraBytesAfter);
+		
+		assertEquals(1, expectedOutput.length, testDTO.toString());
+		
+		String expected = expectedOutput[0];
+		String actual = new String(extracted);
+		String message = testDTO + expected + " != " + actual;
+		
+		assertEquals(expected, actual, message);
+		
+		byte[] remainingBytes = buffer.getData();
+		String remaining = new String(remainingBytes);
+		message = testDTO + expectedRemainingData + " != " + remaining;
+		
+		assertEquals(expectedRemainingData, remaining, message);
+	}
+	
+	@ParameterizedTest
 	@MethodSource("readCircularTestData")
 	public void testCircular(CircularTestDto testDTO)
 	{
@@ -773,6 +819,13 @@ public class CircularByteBufferTest
 		TypeReference<List<ExtractDto>> typeReference = new TypeReference<>(){};
 		
 		return TestUtils.streamArgumentsFromFiles(typeReference, DATA_DIRECTORY, JSON_FILES_EXTRACT_ONE_2H);
+	}
+	
+	private static Stream<Arguments> readExtractOne2HExtraAfterData() throws Exception
+	{
+		TypeReference<List<ExtractDto>> typeReference = new TypeReference<>(){};
+		
+		return TestUtils.streamArgumentsFromFiles(typeReference, DATA_DIRECTORY, JSON_FILES_EXTRACT_ONE_2H_EXTRA_AFTER);
 	}
 	
 	private static Stream<Arguments> readCircularTestData() throws Exception

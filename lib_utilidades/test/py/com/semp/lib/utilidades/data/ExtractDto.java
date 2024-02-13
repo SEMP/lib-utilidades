@@ -16,6 +16,7 @@ public class ExtractDto implements TestDTO
 	public String[] expectedOutput;
 	public String expectedRemainingData;
 	public String fileName;
+	public Integer extraBytesAfter;
 	
 	public String getTestName()
 	{
@@ -74,6 +75,11 @@ public class ExtractDto implements TestDTO
 	public void setFileName(String fileName)
 	{
 		this.fileName = fileName;
+	}
+	
+	public Integer getExtraBytesAfter()
+	{
+		return this.extraBytesAfter;
 	}
 	
 	@Override
