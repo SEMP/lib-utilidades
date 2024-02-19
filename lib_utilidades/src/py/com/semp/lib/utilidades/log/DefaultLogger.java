@@ -61,6 +61,14 @@ public class DefaultLogger implements Logger
 		{
 			System.err.println(Utilities.toString(Instant.now()));
 			System.err.println(message);
+			
+			Throwable[] suppressedExceptions = throwable.getSuppressed();
+			
+			for(Throwable suppressedException : suppressedExceptions)
+			{
+		        System.err.println("Suppressed exception: " + suppressedException.getMessage());
+		    }
+			
 			throwable.printStackTrace(System.err);
 		}
 		else
