@@ -2,6 +2,8 @@ package py.com.semp.lib.utilidades.log;
 
 import java.time.Instant;
 
+import py.com.semp.lib.utilidades.internal.MessageUtil;
+import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**
@@ -66,7 +68,9 @@ public class DefaultLogger implements Logger
 			
 			for(Throwable suppressedException : suppressedExceptions)
 			{
-		        System.err.println("Suppressed exception: " + suppressedException.getMessage());
+				String errorMessage = MessageUtil.getMessage(Messages.SUPPRESSED_EXCEPTION, suppressedException.getMessage());
+				
+		        System.err.println(errorMessage);
 		    }
 			
 			throwable.printStackTrace(System.err);
