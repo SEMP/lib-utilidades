@@ -49,6 +49,15 @@ public interface DataInterface extends ShutdownCapable
 	public DataInterface disconnect() throws CommunicationException;
 	
 	/**
+	 * Reconnects to the data source if supported. If not supported, no action should be performed.
+	 * 
+	 * @return
+	 * - A reference to this {@link DataInterface} instance.
+	 * @throws CommunicationException If any error occurs during the connection process.
+	 */
+	public DataInterface requestReconnect() throws CommunicationException;
+	
+	/**
      * Sets the configuration values for this data interface.
      *
      * @param configurationValues The configuration values to be set.

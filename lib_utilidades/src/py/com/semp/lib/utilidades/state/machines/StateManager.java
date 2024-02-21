@@ -24,8 +24,9 @@ import py.com.semp.lib.utilidades.shutdown.ShutdownCapable;
 public abstract class StateManager implements Runnable, ShutdownCapable
 {
 	private volatile boolean shutdownRequested = false;
-	private final Map<String, State> states = new LinkedHashMap<>();
-	private ReentrantLock lock = new ReentrantLock();
+	protected final Map<String, State> states = new LinkedHashMap<>();
+	protected ReentrantLock lock = new ReentrantLock();
+	protected Logger logger;
 	
 	/**
 	 * Initiates the execution of the state machine. This method is called when the class is run
@@ -58,7 +59,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	 */
 	private void handleException(Exception exception)
 	{
-		Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
+		Logger logger = this.getLogger();
 		
 		if(exception instanceof InterruptedException)
 		{
@@ -85,6 +86,28 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	protected Map<String, State> getStates()
 	{
 		return this.states;
+	}
+	
+	/**
+	 * Retrieves the {@link Logger} instance associated with this state manager. 
+	 * If the logger has not been initialized, it initializes a new logger using the 
+	 * {@link LoggerManager}.
+	 *
+	 * @return The {@link Logger} instance used for logging messages and errors.
+	 */
+	protected Logger getLogger()
+	{
+		if(this.logger == null)
+		{
+			this.logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT); 
+		}
+		
+		return this.logger;
+	}
+	
+	protected void setLogger(Logger logger)
+	{
+		this.logger = logger;
 	}
 	
 	/**
@@ -146,6 +169,8 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			this.lock.unlock();
 		}
 		
+		Logger logger = this.getLogger();
+		
 		while(nextStateKey != null)
 		{
 			if(this.isShuttingdown())
@@ -180,6 +205,8 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 				
 				throw new StateNotFoundException(errorMessage);
 			}
+			
+			logger.debug(nextStateKey);
 			
 			nextStateKey = meterState.executeState();
 		}

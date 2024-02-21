@@ -196,6 +196,48 @@ public final class Utilities
 		return true;
 	}
 	
+	/**
+	 * Finds and returns the maximum value among a variable number of {@code Long} values.
+	 * This method is null-safe, meaning it can handle {@code null} as an input array or
+	 * contain {@code null} elements within the array. If the input array is {@code null} or
+	 * contains only {@code null} elements, this method returns {@code null}.
+	 * 
+	 * @param values A variable number of {@code Long} values or a {@code Long[]} array. 
+	 *               It can be {@code null} or contain {@code null} elements.
+	 * @return The maximum {@code Long} value among the provided values. If the input is 
+	 *         {@code null} or all elements are {@code null}, returns {@code null}.
+	 *         If there is at least one non-null element, returns the maximum value found
+	 *         ignoring any {@code null} elements.
+	 * 
+	 * @example Long maxValue = maxValue(1L, 2L, null, 4L); // returns 4L
+	 * @example Long maxValue = maxValue(null, null); // returns null
+	 * @example Long maxValue = maxValue(); // returns null
+	 */
+	public static Long maxValue(Long... values)
+	{
+		if(values == null)
+		{
+			return null;
+		}
+		
+		Long max = null;
+		
+		for(Long value : values)
+		{
+			if(value == null)
+			{
+				continue;
+			}
+			
+			if(max == null || value > max)
+			{
+				max = value;
+			}
+		}
+		
+		return max;
+	}
+	
 	public static String toString(Instant instant)
 	{
 		ZonedDateTime zonedDateTime = instant.atZone(ZoneId.systemDefault());
