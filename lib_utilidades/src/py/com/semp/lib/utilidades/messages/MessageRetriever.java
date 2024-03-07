@@ -54,7 +54,26 @@ public abstract class MessageRetriever
 	{
 		MessageManager messageManager = this.getMessageManager();
 		
-		return messageManager.getMessage(messageKey, arguments);
+		try
+		{
+			return messageManager.getMessage(messageKey, arguments);
+		}
+		catch(Exception e)
+		{
+			StringBuilder errorMessage = new StringBuilder();
+			
+			errorMessage.append("Failed to load message: ");
+			errorMessage.append(messageKey).append("\n");
+			
+			for(Object object : arguments)
+			{
+				errorMessage.append(" - ");
+				errorMessage.append(object);
+				errorMessage.append("\n");
+			}
+			
+			return errorMessage.toString();
+		}
 	}
 	
 	/**
