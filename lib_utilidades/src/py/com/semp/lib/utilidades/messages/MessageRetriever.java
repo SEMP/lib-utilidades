@@ -5,6 +5,10 @@ import java.util.ResourceBundle;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import py.com.semp.lib.utilidades.configuration.Values;
+import py.com.semp.lib.utilidades.log.Logger;
+import py.com.semp.lib.utilidades.log.LoggerManager;
+
 /**
  * An abstract class for retrieval of messages.
  * This class is should be used as base for classes that would manage a {@link MessageManager} instance.
@@ -115,6 +119,12 @@ public abstract class MessageRetriever
 					{
 						this.messageManager = this.getNewMessageManager(Locale.getDefault());
 					}
+				}
+				catch(Exception e)
+				{
+					Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
+					
+					logger.error(e);
 				}
 				finally
 				{
