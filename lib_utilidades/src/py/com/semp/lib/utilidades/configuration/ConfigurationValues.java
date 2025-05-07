@@ -169,7 +169,7 @@ public abstract class ConfigurationValues
 	 * {@link TypedParameter} that contains the data type and name of the required parameter.
 	 * @return
 	 * - <b>true</b> if the required parameter is stored.<br>
-	 * - <b>true</b> if the required parameter isn't stored or if the data type is not compatible.<br>
+	 * - <b>false</b> if the required parameter isn't stored or if the data type is not compatible.<br>
 	 */
 	private boolean checkRequiredParameter(TypedParameter requiredParameter)
 	{
