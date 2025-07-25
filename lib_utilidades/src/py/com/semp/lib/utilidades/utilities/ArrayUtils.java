@@ -937,7 +937,7 @@ public final class ArrayUtils
 	}
 	
 	/**
-	 * Creates a {@link String} from the byte array. The resulting string is
+	 * Creates a {@link String} from the byte array. The resulting string
 	 * uses the following format: 0xA0BD7801
 	 * @param bytes
 	 * - bytes to be converted to the corresponding string.

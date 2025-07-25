@@ -1,5 +1,6 @@
 package py.com.semp.lib.utilidades.utilities;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -195,5 +196,18 @@ class UtilitiesTest
 		byteList2.clear();
 		
 		assertFalse(Utilities.equals(byteList1, byteList2));
+	}
+	
+	@Test
+	void maxValueTest()
+	{
+		// Mix of values and nulls
+		assertEquals(Long.valueOf(5L), Utilities.maxValue(1L, null, 5L, 3L));
+		
+		// All values null
+		assertEquals(null, Utilities.maxValue(null, null));
+		
+		// Null argument array
+		assertEquals(null, Utilities.maxValue((Long[])null));
 	}
 }

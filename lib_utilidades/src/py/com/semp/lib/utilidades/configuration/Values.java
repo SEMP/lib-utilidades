@@ -55,7 +55,7 @@ public interface Values
 		/**
 		 * String for when the value is still not available.
 		 */
-		public static final String PENDING_VAULE = "pending";
+		public static final String PENDING_VALUE = "pending";
 	}
 	
 	/**

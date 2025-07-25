@@ -61,7 +61,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	public void run()
 	{
 		Integer readTimeoutMS = this.getConfiguration(Values.VariableNames.READ_TIMEOUT_MS, Values.Defaults.READ_TIMEOUT_MS);
-		long readTimeoutNanos = TimeUnit.MICROSECONDS.toNanos(readTimeoutMS);
+		long readTimeoutNanos = TimeUnit.MILLISECONDS.toNanos(readTimeoutMS);
 		
 		this.setThreadName();
 		
