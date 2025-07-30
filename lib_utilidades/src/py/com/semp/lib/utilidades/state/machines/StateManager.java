@@ -186,20 +186,20 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 				throw new InterruptedException(errorMessage);
 			}
 			
-			State meterState = null;
+			State state = null;
 			
 			this.lock.lock();
 			
 			try
 			{
-				meterState = states.get(nextStateKey);
+				state = states.get(nextStateKey);
 			}
 			finally
 			{
 				this.lock.unlock();
 			}
 			
-			if(meterState == null)
+			if(state == null)
 			{
 				String errorMessage = MessageUtil.getMessage(Messages.STATE_NOT_FOUND_ERROR, nextStateKey);
 				
@@ -208,7 +208,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			
 			logger.debug(nextStateKey);
 			
-			nextStateKey = meterState.executeState();
+			nextStateKey = state.executeState();
 		}
 	}
 	
