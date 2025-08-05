@@ -33,7 +33,8 @@ public enum Messages implements MessageKey
 	INTERRUPTED_ERROR,
 	CONNECTION_ERROR,
 	STATE_NOT_FOUND_ERROR,
-	SUPPRESSED_EXCEPTION;
+	SUPPRESSED_EXCEPTION,
+	ACCESS_DENIED_ENV_ERROR;
 	
 	@Override
 	public String getMessageKey()

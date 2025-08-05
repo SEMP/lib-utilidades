@@ -10,6 +10,8 @@ import py.com.semp.lib.utilidades.data.TypedParameter;
 import py.com.semp.lib.utilidades.data.TypedValue;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
+import py.com.semp.lib.utilidades.log.Logger;
+import py.com.semp.lib.utilidades.log.LoggerManager;
 
 /**
  * Class for storing configuration values.
@@ -291,6 +293,127 @@ public abstract class ConfigurationValues
 		TypedParameter typedParameter = new TypedParameter(parameterType, parameterName);
 		
 		return this.addOptionalParameter(typedParameter);
+	}
+	
+	
+	//TODO hacer función para cargar todas las env (como String las que no existen)
+	/**
+	 * Loads environment variables into the configuration.
+	 * <p>
+	 * For each required and optional parameter, this method checks if an environment variable
+	 * with the same name exists (case-sensitive), and if so, loads its value into the configuration.
+	 * <p>
+	 * The type of each parameter will be inferred from the parameter definition.
+	 * 
+	 * @return the same {@code ConfigurationValues} instance, for method chaining
+	 */
+	public ConfigurationValues loadFromEnvironment()
+	{
+		for(TypedParameter parameter : this.requiredParameters)
+		{
+			this.loadEnvParameter(parameter);
+		}
+		
+		for(TypedParameter parameter : this.optionalParameters)
+		{
+			this.loadEnvParameter(parameter);
+		}
+		
+		return this;
+	}
+	
+	/**
+	 * Loads an environment variable corresponding to a parameter, if present.
+	 *
+	 * @param parameter the typed parameter to look for in the environment
+	 */
+	private String loadEnvParameter(TypedParameter parameter)
+	{
+		String name = parameter.getName();
+		Class<?> type = parameter.getType();
+		
+		String envValue = System.getenv(name);
+		
+		try
+		{
+			envValue = System.getenv(name);
+		}
+		catch(SecurityException e)
+		{
+			Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
+			
+			String errorMessage = MessageUtil.getMessage(Messages.ACCESS_DENIED_ENV_ERROR, name);
+			
+			logger.warning(errorMessage, e);
+			
+			return null;
+		}
+		
+		if(envValue != null)
+		{
+			Object parsedValue = parseEnvValue(type, envValue);
+			
+			TypedValue<?> typedValue = createTypedValue(type, parsedValue);
+			
+			this.checkValidName(name);
+			
+			this.parameters.put(name, typedValue);
+			
+			return name;
+		}
+		
+		return null;
+	}
+	
+	private static <T> TypedValue<T> createTypedValue(Class<T> type, Object value)
+	{
+		@SuppressWarnings("unchecked")
+		T castValue = (T)value;
+		
+		return new TypedValue<>(type, castValue);
+	}
+	
+	/**
+	 * Parses a string environment variable value into the target type.
+	 *
+	 * @param type  expected type
+	 * @param value string value from the environment
+	 * @return parsed object
+	 * @throws IllegalArgumentException if the value can't be parsed
+	 */
+	private Object parseEnvValue(Class<?> type, String value)
+	{
+		if(type == String.class)
+		{
+			return value;
+		}
+		else if(type == Integer.class || type == int.class)
+		{
+			return Integer.parseInt(value);
+		}
+		else if(type == Boolean.class || type == boolean.class)
+		{
+			return Boolean.parseBoolean(value);
+		}
+		else if(type == Long.class || type == long.class)
+		{
+			return Long.parseLong(value);
+		}
+		else if(type == Double.class || type == double.class)
+		{
+			return Double.parseDouble(value);
+		}
+		else if(type.isEnum())
+		{
+			@SuppressWarnings({"rawtypes", "unchecked"})
+			Object enumValue = Enum.valueOf((Class<Enum>)type.asSubclass(Enum.class), value);
+			
+			return enumValue;
+		}
+		else
+		{
+			throw new IllegalArgumentException("Unsupported type for environment parsing: " + type.getName());
+		}
 	}
 	
 	@Override
