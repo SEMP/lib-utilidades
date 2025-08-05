@@ -19,13 +19,14 @@ public class TypedValue<T>
 	private Class<T> type;
 	
 	/**
-     * Constructs a {@link TypedValue} with the specified value and type.
-     * This constructor does not accept null types.
-     * 
-     * @param type type of the value to be set.
-	 * @param value the value to be set.
-     * @throws NullPointerException if value is null.
-     */
+	 * Constructs a {@code TypedValue} with the specified type and value.
+	 * <p>
+	 * This constructor accepts {@code null} values, but the {@code type} must be non-null.
+	 *
+	 * @param type the runtime type of the value.
+	 * @param value the value to wrap, which may be {@code null}.
+	 * @throws NullPointerException if {@code type} is {@code null}.
+	 */
 	public TypedValue(Class<T> type, T value)
 	{
 		super();
@@ -42,15 +43,14 @@ public class TypedValue<T>
 	}
 	
 	/**
-     * Constructs a TypedValue with the specified value.
-     * This constructor does not accept null values.
-     * 
-     * @param value the value to be set.
-     * @throws NullPointerException if value is null.
-     */
+	 * Constructs a {@code TypedValue} by inferring the type from a non-null value.
+	 *
+	 * @param value the non-null value.
+	 * @throws NullPointerException if {@code value} is {@code null}.
+	 */
 	public TypedValue(T value)
 	{
-		this(getClass(value), value);
+		this(resolveClass(value), value);
 	}
 	
 	public T getValue()
@@ -64,13 +64,14 @@ public class TypedValue<T>
 	}
 	
 	/**
-	 * Obtains the value's type.
-	 * 
-	 * @param <T> Value's type.
-	 * @param value the value.
-	 * @return the value's type.
+	 * Resolves the runtime class of a given non-null value.
+	 *
+	 * @param <T> the type of the value.
+	 * @param value the non-null value.
+	 * @return the class of the value.
+	 * @throws NullPointerException if the value is {@code null}.
 	 */
-	private static <T> Class<T> getClass(T value)
+	private static <T> Class<T> resolveClass(T value)
 	{
 		if(value == null)
 		{

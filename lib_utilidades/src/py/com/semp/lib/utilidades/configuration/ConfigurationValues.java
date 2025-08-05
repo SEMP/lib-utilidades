@@ -1,6 +1,7 @@
 package py.com.semp.lib.utilidades.configuration;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -290,6 +291,32 @@ public abstract class ConfigurationValues
 		TypedParameter typedParameter = new TypedParameter(parameterType, parameterName);
 		
 		return this.addOptionalParameter(typedParameter);
+	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if(this == obj)
+		{
+			return true;
+		}
+		
+		if(obj == null || this.getClass() != obj.getClass())
+		{
+			return false;
+		}
+		
+		ConfigurationValues other = (ConfigurationValues) obj;
+		
+		return Objects.equals(this.parameters, other.parameters) &&
+		       Objects.equals(this.requiredParameters, other.requiredParameters) &&
+		       Objects.equals(this.optionalParameters, other.optionalParameters);
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(this.parameters, this.requiredParameters, this.optionalParameters);
 	}
 	
 	@Override
