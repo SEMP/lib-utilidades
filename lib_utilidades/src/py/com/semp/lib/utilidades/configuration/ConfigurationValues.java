@@ -344,7 +344,7 @@ public abstract class ConfigurationValues
 			
 			String errorMessage = MessageUtil.getMessage(Messages.ACCESS_DENIED_ENV_ERROR, name);
 			
-			logger.warning(errorMessage, e);
+			logger.debug(errorMessage, e);
 			
 			return null;
 		}
