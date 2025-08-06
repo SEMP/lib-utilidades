@@ -1,7 +1,9 @@
 package py.com.semp.lib.utilidades.configuration;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -12,6 +14,7 @@ import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.log.Logger;
 import py.com.semp.lib.utilidades.log.LoggerManager;
+import py.com.semp.lib.utilidades.utilities.Converter;
 
 /**
  * Class for storing configuration values.
@@ -295,125 +298,149 @@ public abstract class ConfigurationValues
 		return this.addOptionalParameter(typedParameter);
 	}
 	
-	
-	//TODO hacer función para cargar todas las env (como String las que no existen)
 	/**
-	 * Loads environment variables into the configuration.
+	 * Loads configuration values from environment variables.
 	 * <p>
 	 * For each required and optional parameter, this method checks if an environment variable
-	 * with the same name exists (case-sensitive), and if so, loads its value into the configuration.
+	 * with the same name exists (case-sensitive). If so, it attempts to parse the value
+	 * using the expected type and stores it into the configuration.
 	 * <p>
-	 * The type of each parameter will be inferred from the parameter definition.
-	 * 
-	 * @return the same {@code ConfigurationValues} instance, for method chaining
+	 * This method fails gracefully if access to environment variables is restricted by the security manager.
+	 *
+	 * @return the current {@code ConfigurationValues} instance (for method chaining)
 	 */
 	public ConfigurationValues loadFromEnvironment()
 	{
+		Map<String, String> envMap;
+		
+		try
+		{
+			envMap = System.getenv();
+		}
+		catch(SecurityException e)
+		{
+			Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
+			
+			String errorMessage = MessageUtil.getMessage(Messages.ACCESS_DENIED_ENV_ERROR);
+			
+			logger.debug(errorMessage, e);
+			
+			return this;
+		}
+		
+		return this.loadFromMap(envMap);
+	}
+	
+	/**
+	 * Loads configuration parameters from a {@link Properties} object.
+	 * <p>
+	 * For each required and optional parameter, this method checks if a property with the same name
+	 * exists, and if so, loads it using the expected type.
+	 * 
+	 * @param properties the {@code Properties} object to load from
+	 * @return the same {@code ConfigurationValues} instance, for method chaining
+	 */
+	public ConfigurationValues loadFromProperties(Properties properties)
+	{
+		Map<String, String> propertyMap = new HashMap<>();
+		
+		for(String name : properties.stringPropertyNames())
+		{
+			propertyMap.put(name, properties.getProperty(name));
+		}
+		
+		return loadFromMap(propertyMap);
+	}
+	
+	/**
+	 * Loads configuration values from a {@code Map<String, String>}, using the expected types
+	 * declared in required and optional parameters.
+	 *
+	 * @param values the map of configuration key-value pairs (as strings)
+	 * @return the same {@code ConfigurationValues} instance, for method chaining
+	 */
+	public ConfigurationValues loadFromMap(Map<String, String> values)
+	{
 		for(TypedParameter parameter : this.requiredParameters)
 		{
-			this.loadEnvParameter(parameter);
+			this.loadParameterFromMap(parameter, values);
 		}
 		
 		for(TypedParameter parameter : this.optionalParameters)
 		{
-			this.loadEnvParameter(parameter);
+			this.loadParameterFromMap(parameter, values);
 		}
 		
 		return this;
 	}
 	
 	/**
-	 * Loads an environment variable corresponding to a parameter, if present.
+	 * Attempts to load and parse a parameter from a provided map of key-value pairs.
+	 * <p>
+	 * If the given parameter's name exists as a key in the source map, its value is parsed
+	 * into the parameter's expected type using {@link Converter#parseStringValue(Class, String)}.
+	 * If successful, the parameter is added to the configuration.
+	 * <p>
+	 * Any parse errors or invalid values are logged but do not interrupt the process.
 	 *
-	 * @param parameter the typed parameter to look for in the environment
+	 * @param parameter the typed parameter definition to load
+	 * @param source the map of raw values (typically from environment variables or properties)
 	 */
-	private String loadEnvParameter(TypedParameter parameter)
+	private void loadParameterFromMap(TypedParameter parameter, Map<String, String> source)
 	{
 		String name = parameter.getName();
 		Class<?> type = parameter.getType();
 		
-		String envValue = System.getenv(name);
+		String rawValue = source.get(name);
 		
-		try
-		{
-			envValue = System.getenv(name);
-		}
-		catch(SecurityException e)
+		if(rawValue != null)
 		{
 			Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
 			
-			String errorMessage = MessageUtil.getMessage(Messages.ACCESS_DENIED_ENV_ERROR, name);
-			
-			logger.debug(errorMessage, e);
-			
-			return null;
+			try
+			{
+				Object parsedValue = Converter.parseStringValue(type, rawValue);
+				
+				TypedValue<?> typedValue = createTypedValue(type, parsedValue);
+				
+				this.checkValidName(name);
+				
+				this.parameters.put(name, typedValue);
+				
+				String debugMessage = MessageUtil.getMessage(Messages.VARIABLE_LOADED, name, rawValue, type.getName());
+				
+				logger.debug(debugMessage);
+			}
+			catch(IllegalArgumentException e)
+			{
+				
+				String errorMessage = MessageUtil.getMessage(Messages.VARIABLE_NOT_LOADED_ERROR, name, type.getName());
+				
+				logger.warning(errorMessage, e);
+				
+				return;
+			}
 		}
-		
-		if(envValue != null)
-		{
-			Object parsedValue = parseEnvValue(type, envValue);
-			
-			TypedValue<?> typedValue = createTypedValue(type, parsedValue);
-			
-			this.checkValidName(name);
-			
-			this.parameters.put(name, typedValue);
-			
-			return name;
-		}
-		
-		return null;
 	}
 	
+	/**
+	 * Creates a {@link TypedValue} instance from a given type and object.
+	 * <p>
+	 * The value is cast to the specified type and wrapped inside a {@code TypedValue}.
+	 * This method assumes the cast is valid; callers are responsible for ensuring type safety.
+	 *
+	 * @param <T> the generic type of the parameter
+	 * @param type the class representing the expected type
+	 * @param value the value to cast and wrap
+	 * @return a {@code TypedValue} instance holding the typed value
+	 * @throws ClassCastException if the cast is invalid
+	 */
 	private static <T> TypedValue<T> createTypedValue(Class<T> type, Object value)
 	{
 		@SuppressWarnings("unchecked")
 		T castValue = (T)value;
 		
 		return new TypedValue<>(type, castValue);
-	}
-	
-	/**
-	 * Parses a string environment variable value into the target type.
-	 *
-	 * @param type  expected type
-	 * @param value string value from the environment
-	 * @return parsed object
-	 * @throws IllegalArgumentException if the value can't be parsed
-	 */
-	private Object parseEnvValue(Class<?> type, String value)
-	{
-		if(type == String.class)
-		{
-			return value;
-		}
-		else if(type == Integer.class || type == int.class)
-		{
-			return Integer.parseInt(value);
-		}
-		else if(type == Boolean.class || type == boolean.class)
-		{
-			return Boolean.parseBoolean(value);
-		}
-		else if(type == Long.class || type == long.class)
-		{
-			return Long.parseLong(value);
-		}
-		else if(type == Double.class || type == double.class)
-		{
-			return Double.parseDouble(value);
-		}
-		else if(type.isEnum())
-		{
-			@SuppressWarnings({"rawtypes", "unchecked"})
-			Object enumValue = Enum.valueOf((Class<Enum>)type.asSubclass(Enum.class), value);
-			
-			return enumValue;
-		}
-		else
-		{
-			throw new IllegalArgumentException("Unsupported type for environment parsing: " + type.getName());
-		}
 	}
 	
 	@Override
