@@ -1,6 +1,7 @@
 package py.com.semp.lib.utilidades.configuration;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -332,6 +333,42 @@ public abstract class ConfigurationValues
 	}
 	
 	/**
+	 * Loads all environment variables into this configuration instance.
+	 * <p>
+	 * This method behaves like {@link #loadAllFromMap(Map)} but specifically reads from the
+	 * system environment via {@link System#getenv()}. It attempts to load both declared
+	 * (required and optional) and undeclared environment variables. Declared parameters
+	 * are parsed using their expected types, while undeclared variables are loaded as
+	 * {@code String}-typed values.
+	 * <p>
+	 * If access to the environment is denied due to security restrictions, the method logs
+	 * the issue and returns without modifying the current configuration.
+	 *
+	 * @return the same {@code ConfigurationValues} instance, for method chaining
+	 */
+	public ConfigurationValues loadAllFromEnvironment()
+	{
+		Map<String, String> envMap;
+		
+		try
+		{
+			envMap = System.getenv();
+		}
+		catch(SecurityException e)
+		{
+			Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
+			
+			String errorMessage = MessageUtil.getMessage(Messages.ACCESS_DENIED_ENV_ERROR);
+			
+			logger.debug(errorMessage, e);
+			
+			return this;
+		}
+		
+		return this.loadAllFromMap(envMap);
+	}
+	
+	/**
 	 * Loads configuration parameters from a {@link Properties} object.
 	 * <p>
 	 * For each required and optional parameter, this method checks if a property with the same name
@@ -350,6 +387,32 @@ public abstract class ConfigurationValues
 		}
 		
 		return loadFromMap(propertyMap);
+	}
+	
+	/**
+	 * Loads configuration parameters from a {@link Properties} object, including both declared
+	 * (required and optional) and undeclared parameters.
+	 * <p>
+	 * Declared parameters are parsed using their expected types. Any additional properties found
+	 * in the input that are not explicitly declared in the configuration schema are loaded as
+	 * {@code String}-typed values.
+	 * <p>
+	 * This method is functionally equivalent to calling {@link #loadAllFromMap(Map)} with a
+	 * {@code Map<String, String>} created from the {@code Properties} object.
+	 *
+	 * @param properties the {@code Properties} object to load values from
+	 * @return the same {@code ConfigurationValues} instance, for method chaining
+	 */
+	public ConfigurationValues loadAllFromProperties(Properties properties)
+	{
+		Map<String, String> propertyMap = new HashMap<>();
+		
+		for(String name : properties.stringPropertyNames())
+		{
+			propertyMap.put(name, properties.getProperty(name));
+		}
+		
+		return loadAllFromMap(propertyMap);
 	}
 	
 	/**
@@ -372,6 +435,93 @@ public abstract class ConfigurationValues
 		}
 		
 		return this;
+	}
+	
+	/**
+	 * Loads all configuration parameters from the given map, including both declared
+	 * (required and optional) and undeclared parameters.
+	 * <p>
+	 * For each parameter declared via {@link #requiredParameters} or {@link #optionalParameters},
+	 * this method attempts to parse and store the value using the expected type.
+	 * <p>
+	 * Any additional parameters found in the input map but not declared are treated as
+	 * {@code String}-typed values and loaded separately via {@link #loadExtraParameters(Set, Map)}.
+	 * <p>
+	 * This method allows the configuration to be populated with a complete set of values from
+	 * a source like {@code System.getenv()} or a {@code Properties} object, even if some keys
+	 * are not explicitly defined in the schema.
+	 *
+	 * @param values the map of configuration values to load
+	 * @return the same {@code ConfigurationValues} instance, for method chaining
+	 */
+	public ConfigurationValues loadAllFromMap(Map<String, String> values)
+	{
+		Set<String> officialParameters = new HashSet<>();
+		
+		for(TypedParameter parameter : this.requiredParameters)
+		{
+			officialParameters.add(parameter.getName());
+			this.loadParameterFromMap(parameter, values);
+		}
+		
+		for(TypedParameter parameter : this.optionalParameters)
+		{
+			officialParameters.add(parameter.getName());
+			this.loadParameterFromMap(parameter, values);
+		}
+		
+		this.loadExtraParameters(officialParameters, values);
+		
+		return this;
+	}
+	
+	/**
+	 * Loads configuration parameters from the given map that were not previously declared
+	 * as required or optional parameters.
+	 * <p>
+	 * These additional parameters are treated as {@code String}-typed values and are validated
+	 * using {@link #checkValidName(String)} before being stored. This method is typically used
+	 * to allow the configuration to include arbitrary or undocumented values beyond the known schema.
+	 * <p>
+	 * Successfully loaded variables are logged at {@code DEBUG} level. Invalid parameter names
+	 * or failed insertions are logged at {@code WARNING} level.
+	 *
+	 * @param officialParameters the set of parameter names that are already declared as required or optional
+	 * @param values the full map of available configuration values (e.g., from environment or property file)
+	 */
+	private void loadExtraParameters(Set<String> officialParameters, Map<String, String> values)
+	{
+		Logger logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
+		
+		for(Map.Entry<String, String> entry : values.entrySet())
+		{
+			String name = entry.getKey();
+			String value = entry.getValue();
+			
+			if(officialParameters.contains(name))
+			{
+				continue;
+			}
+			
+			try
+			{
+				this.checkValidName(name);
+				
+				TypedValue<?> typedValue = createTypedValue(String.class, value);
+				
+				this.parameters.put(name, typedValue);
+				
+				String debugMessage = MessageUtil.getMessage(Messages.VARIABLE_LOADED, name, value, String.class.getName());
+				
+				logger.debug(debugMessage);
+			}
+			catch (IllegalArgumentException e)
+			{
+				String errorMessage = MessageUtil.getMessage(Messages.VARIABLE_NOT_LOADED_ERROR, name, String.class.getName());
+				
+				logger.warning(errorMessage, e);
+			}
+		}
 	}
 	
 	/**
@@ -413,7 +563,6 @@ public abstract class ConfigurationValues
 			}
 			catch(IllegalArgumentException e)
 			{
-				
 				String errorMessage = MessageUtil.getMessage(Messages.VARIABLE_NOT_LOADED_ERROR, name, type.getName());
 				
 				logger.warning(errorMessage, e);
