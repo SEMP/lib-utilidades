@@ -27,6 +27,36 @@ public final class Utilities
 	}
 	
 	/**
+	 * Returns the first non-{@code null} value from the given arguments.
+	 * <p>
+	 * This method mimics the behavior of SQL's {@code COALESCE(...)} function.
+	 * It evaluates the provided values in order and returns the first one that is not {@code null}.
+	 * If all values are {@code null}, or if the array itself is {@code null}, it returns {@code null}.
+	 * </p>
+	 *
+	 * <pre>{@code
+	 * String value = coalesce(null, null, "default", "ignored");
+	 * // value == "default"
+	 * }</pre>
+	 *
+	 * @param <T> the type of the values
+	 * @param values the values to evaluate
+	 * @return the first non-{@code null} value, or {@code null} if none is found
+	 */
+	@SafeVarargs
+	public static <T> T coalesce(T... values)
+	{
+		if(values == null) return null;
+		
+		for(T value : values)
+		{
+			if(value != null) return value;
+		}
+		
+		return null;
+	}
+	
+	/**
 	 * Verifies if the object is present in the collection. It uses Utilities::equals to compare
 	 * the elements, which does a deeper comparison than than Object::equals. This method also
 	 * avoids NullPointerException in case the collection is <b>null</b>.

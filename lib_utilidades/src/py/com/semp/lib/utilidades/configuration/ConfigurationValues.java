@@ -16,6 +16,7 @@ import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.log.Logger;
 import py.com.semp.lib.utilidades.log.LoggerManager;
 import py.com.semp.lib.utilidades.utilities.Converter;
+import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**
  * Class for storing configuration values.
@@ -634,7 +635,7 @@ public abstract class ConfigurationValues
 			Object value = typedValue.getValue();
 			
 			sb.append(" - ");
-			sb.append(type.getCanonicalName());
+			sb.append(Utilities.coalesce(type.getCanonicalName(), type.getName()));
 			sb.append(" ");
 			sb.append(name);
 			sb.append(" = ");
