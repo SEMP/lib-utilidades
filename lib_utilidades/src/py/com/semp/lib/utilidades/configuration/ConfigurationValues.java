@@ -25,7 +25,7 @@ import py.com.semp.lib.utilidades.utilities.Utilities;
  */
 public abstract class ConfigurationValues
 {
-	private final ConcurrentHashMap<String, TypedValue<?>> parameters = new ConcurrentHashMap<>();
+	private final Map<String, TypedValue<?>> parameters = new ConcurrentHashMap<>();
 	private final CopyOnWriteArraySet<TypedParameter> requiredParameters = new CopyOnWriteArraySet<>();
 	private final CopyOnWriteArraySet<TypedParameter> optionalParameters = new CopyOnWriteArraySet<>();
 	

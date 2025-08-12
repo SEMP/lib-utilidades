@@ -344,11 +344,25 @@ public interface Logger
 	}
 	
 	/**
-	 * Indicates if the logger is configured to log the DEBUG level messages.
-	 * 
-	 * @return
-	 * - <b>true</b> if DEBUG level messages are being logged.<br>
-	 * - <b>false</b> if DEBUG level messages are not being logged.
+	 * Checks whether DEBUG level messages are currently being logged.
+	 *
+	 * @return {@code true} if DEBUG logging is enabled; {@code false} otherwise.
+	 * @see #setDebugging(boolean)
 	 */
 	public boolean isDebugging();
+	
+	/**
+	 * Enables or disables logging of DEBUG level messages.
+	 * <p>
+	 * This setting is queried via {@link #isDebugging()}.
+	 * When debugging is enabled, calls to any {@code debug(...)} method will produce output.
+	 * When disabled, DEBUG messages will be suppressed, but higher-severity log
+	 * levels (INFO, WARNING, ERROR, FATAL) will still be logged according to the
+	 * logger's configuration.
+	 * </p>
+	 *
+	 * @param debugging {@code true} to enable debug logging; {@code false} to disable it.
+	 * @see #isDebugging()
+	 */
+	public void setDebugging(boolean debugging);
 }

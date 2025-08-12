@@ -30,6 +30,7 @@ import py.com.semp.lib.utilidades.utilities.Utilities;
 public class DefaultLogger implements Logger
 {
 	private volatile boolean debug = false;
+	
 	@Override
 	public void log(LogLevel level, String message)
 	{
@@ -95,7 +96,8 @@ public class DefaultLogger implements Logger
 		}
 	}
 	
-	public void setDebug(boolean debug)
+	@Override
+	public void setDebugging(boolean debug)
 	{
 		this.debug = debug;
 	}
