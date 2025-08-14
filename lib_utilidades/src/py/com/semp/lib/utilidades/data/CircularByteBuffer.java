@@ -675,10 +675,10 @@ public class CircularByteBuffer implements List<Byte>
 		{
 			StringBuilder methodName = new StringBuilder();
 			
-			methodName.append("boolean ");
+			methodName.append("[collection] boolean ");
 			methodName.append(this.getClass().getSimpleName());
 			methodName.append("::");
-			methodName.append("retainAll(Collection<?>)");
+			methodName.append("retainAll(Collection<?> collection)");
 			
 			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
 			
@@ -1392,10 +1392,10 @@ public class CircularByteBuffer implements List<Byte>
 		{
 			StringBuilder methodName = new StringBuilder();
 			
-			methodName.append("Byte ");
+			methodName.append("[element] Byte ");
 			methodName.append(this.getClass().getSimpleName());
 			methodName.append("::");
-			methodName.append("set(int, Byte)");
+			methodName.append("set(int index, Byte element)");
 			
 			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
 			
@@ -1424,10 +1424,10 @@ public class CircularByteBuffer implements List<Byte>
 		{
 			StringBuilder methodName = new StringBuilder();
 			
-			methodName.append("Byte ");
+			methodName.append("[element] void ");
 			methodName.append(this.getClass().getSimpleName());
 			methodName.append("::");
-			methodName.append("set(int, Byte)");
+			methodName.append("set(int index, Byte element");
 			
 			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
 			

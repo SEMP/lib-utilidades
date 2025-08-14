@@ -8,7 +8,7 @@ package py.com.semp.lib.utilidades.exceptions;
  */
 public class DataAccessException extends Exception
 {
-	private static final long serialVersionUID = 458025485484740361L;
+	private static final long serialVersionUID = -4173957900721703812L;
 	
 	public DataAccessException()
 	{

@@ -628,10 +628,10 @@ public class CircularByteBufferIterator implements ListIterator<Byte>
 		{
 			StringBuilder methodName = new StringBuilder();
 			
-			methodName.append("Byte ");
+			methodName.append("[element] void ");
 			methodName.append(this.getClass().getSimpleName());
 			methodName.append("::");
-			methodName.append("set(int, Byte)");
+			methodName.append("set(Byte element)");
 			
 			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
 			
