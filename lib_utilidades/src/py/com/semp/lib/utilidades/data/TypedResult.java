@@ -2,7 +2,7 @@ package py.com.semp.lib.utilidades.data;
 
 import java.util.List;
 
-//FIXME revisar
+//FIXME revisar, mover a database
 public final class TypedResult
 {
 	private final List<TypedRow> rows;
