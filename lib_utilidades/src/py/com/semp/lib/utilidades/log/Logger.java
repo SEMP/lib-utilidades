@@ -234,6 +234,8 @@ public interface Logger
 	 */
 	default void debug(Throwable throwable)
 	{
+		if(!this.isDebugging()) return;
+		
 		String message = throwable.getLocalizedMessage();
 		
 		this.log(LogLevel.DEBUG, message != null ? message : throwable.toString(), throwable);
@@ -246,6 +248,8 @@ public interface Logger
 	 */
 	default void debug(String message)
 	{
+		if(!this.isDebugging()) return;
+		
 		this.log(LogLevel.DEBUG, message);
 	}
 	
@@ -256,6 +260,8 @@ public interface Logger
 	 */
 	default void debug(Object object)
 	{
+		if(!this.isDebugging()) return;
+		
 		String message = Objects.toString(object);
 		
 		this.log(LogLevel.DEBUG, message);
@@ -269,6 +275,8 @@ public interface Logger
 	 */
 	default void debug(String message, Throwable throwable)
 	{
+		if(!this.isDebugging()) return;
+		
 		this.log(LogLevel.DEBUG, message, throwable);
 	}
 	
@@ -280,6 +288,8 @@ public interface Logger
 	 */
 	default void debug(Object object, Throwable throwable)
 	{
+		if(!this.isDebugging()) return;
+		
 		String message = Objects.toString(object);
 		
 		this.log(LogLevel.DEBUG, message, throwable);

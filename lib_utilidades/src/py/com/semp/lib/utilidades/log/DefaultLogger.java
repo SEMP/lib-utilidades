@@ -41,19 +41,8 @@ public class DefaultLogger implements Logger
 		}
 		else
 		{
-			if(level == LogLevel.DEBUG)
-			{
-				if(this.debug)
-				{
-					System.out.println(Utilities.toString(Instant.now()));
-					System.out.println(message);
-				}
-			}
-			else
-			{
-				System.out.println(Utilities.toString(Instant.now()));
-				System.out.println(message);
-			}
+			System.out.println(Utilities.toString(Instant.now()));
+			System.out.println(message);
 		}
 	}
 	
@@ -78,21 +67,9 @@ public class DefaultLogger implements Logger
 		}
 		else
 		{
-			if(level == LogLevel.DEBUG)
-			{
-				if(this.debug)
-				{
-					System.out.println(Utilities.toString(Instant.now()));
-					System.out.println(message);
-					throwable.printStackTrace(System.out);
-				}
-			}
-			else
-			{
-				System.out.println(Utilities.toString(Instant.now()));
-				System.out.println(message);
-				throwable.printStackTrace(System.out);
-			}
+			System.out.println(Utilities.toString(Instant.now()));
+			System.out.println(message);
+			throwable.printStackTrace(System.out);
 		}
 	}
 	
