@@ -173,7 +173,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		
 		while(nextStateKey != null)
 		{
-			if(this.isShuttingdown())
+			if(this.isShuttingDown())
 			{
 				break;
 			}
@@ -236,7 +236,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	}
 	
 	@Override
-	public boolean isShuttingdown()
+	public boolean isShuttingDown()
 	{
 		return this.shutdownRequested;
 	}

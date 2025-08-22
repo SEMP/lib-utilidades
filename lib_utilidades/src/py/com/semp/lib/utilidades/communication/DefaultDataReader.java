@@ -67,7 +67,7 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 		
 		while(true)
 		{
-			if(this.dataReceiver.isShuttingdown())
+			if(this.dataReceiver.isShuttingDown())
 			{
 				this.shutdown();
 				
@@ -320,14 +320,14 @@ public class DefaultDataReader<T extends DataReceiver & DataInterface> implement
 	}
 	
 	@Override
-	public boolean isShuttingdown()
+	public boolean isShuttingDown()
 	{
 		if(this.dataReceiver == null)
 		{
 			return false;
 		}
 		
-		return this.dataReceiver.isShuttingdown();
+		return this.dataReceiver.isShuttingDown();
 	}
 	
 	public void setPollDelayMS(int pollDelayMS)

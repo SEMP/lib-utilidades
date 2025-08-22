@@ -178,7 +178,7 @@ public interface DataInterface extends ShutdownCapable
 	 * - <b>true</b> if the {@link DataInterface} is being shutdown.<br>
 	 * - <b>false</b> otherwise.
 	 */
-	public boolean isShuttingdown();
+	public boolean isShuttingDown();
 	
 	/**
      * Checks if the data interface is currently connected to its data source.

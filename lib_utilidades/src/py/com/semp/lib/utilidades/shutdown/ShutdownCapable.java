@@ -26,5 +26,5 @@ public interface ShutdownCapable
 	 * <b>true</b> if a shutdown has been requested.<br>
 	 * <b>false</b> otherwise.
 	 */
-	public boolean isShuttingdown();
+	public boolean isShuttingDown();
 }
