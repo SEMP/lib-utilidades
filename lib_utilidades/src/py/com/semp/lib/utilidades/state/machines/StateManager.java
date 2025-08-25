@@ -3,6 +3,8 @@ package py.com.semp.lib.utilidades.state.machines;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import py.com.semp.lib.utilidades.configuration.Values;
@@ -13,6 +15,7 @@ import py.com.semp.lib.utilidades.internal.Messages;
 import py.com.semp.lib.utilidades.log.Logger;
 import py.com.semp.lib.utilidades.log.LoggerManager;
 import py.com.semp.lib.utilidades.shutdown.ShutdownCapable;
+import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**
  * This abstract class manages the execution of states in a state machine. It provides a framework
@@ -23,10 +26,12 @@ import py.com.semp.lib.utilidades.shutdown.ShutdownCapable;
  */
 public abstract class StateManager implements Runnable, ShutdownCapable
 {
-	private volatile boolean shutdownRequested = false;
+	private final AtomicBoolean shutdownRequested = new AtomicBoolean(false);
+	private final AtomicBoolean statesFrozen = new AtomicBoolean(false);
 	protected final Map<String, State> states = new LinkedHashMap<>();
-	protected ReentrantLock lock = new ReentrantLock();
-	protected Logger logger;
+	private String initialStateKey;
+	protected final ReentrantLock lock = new ReentrantLock();
+	protected volatile Logger logger;
 	
 	/**
 	 * Initiates the execution of the state machine. This method is called when the class is run
@@ -39,6 +44,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		try
 		{
 			this.loadStates();
+			this.statesFrozen.set(true);
 			this.executeStates();
 		}
 		catch(Exception e)
@@ -48,6 +54,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		finally
 		{
 			this.finalizeStateMachine();
+			this.statesFrozen.set(false);
 		}
 	}
 	
@@ -66,13 +73,24 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			try
 			{
 				Thread.currentThread().interrupt();
-				
+			}
+			catch(SecurityException e)
+			{
+				logger.error(e);
+			}
+			
+			try
+			{
 				this.shutdown();
 			}
 			catch(ShutdownException e)
 			{
 				exception.addSuppressed(e);
 			}
+			
+			logger.debug(exception);
+			
+			return;
 		}
 		
 		logger.error(exception);
@@ -99,7 +117,7 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	{
 		if(this.logger == null)
 		{
-			this.logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT); 
+			this.logger = LoggerManager.getLogger(Values.Constants.UTILITIES_CONTEXT);
 		}
 		
 		return this.logger;
@@ -120,6 +138,21 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	 */
 	protected void addState(String key, State state)
 	{
+		Objects.requireNonNull(key, "key");
+		Objects.requireNonNull(state, "state");
+		
+		if(this.statesFrozen.get())
+		{
+			String className = Utilities.coalesce(this.getClass().getCanonicalName(), this.getClass().getName());
+			String stateClassName = Utilities.coalesce(state.getClass().getCanonicalName(), state.getClass().getName());
+			
+			String method = String.format("[%s, %s] void %s::addState(String, State)",key, stateClassName, className);
+			
+			String errorMessage = MessageUtil.getMessage(Messages.EDIT_STATE_MACHINE_IN_EXECUTION_ERROR, method);
+			
+			throw new IllegalStateException(errorMessage);
+		}
+		
 		this.lock.lock();
 		
 		try
@@ -130,6 +163,36 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 		{
 			this.lock.unlock();
 		}
+	}
+	
+	public void setInitialStateKey(String initialStateKey)throws StateNotFoundException
+	{
+		Objects.requireNonNull(initialStateKey, "initialStateKey");
+		
+		if(this.statesFrozen.get())
+		{
+			String className = Utilities.coalesce(this.getClass().getCanonicalName(), this.getClass().getName());
+			
+			String method = String.format("void %s::setInitialStateKey(String)", className);
+			
+			String errorMessage = MessageUtil.getMessage(Messages.EDIT_STATE_MACHINE_IN_EXECUTION_ERROR, method);
+			
+			throw new IllegalStateException(errorMessage);
+		}
+		
+		if(!this.states.containsKey(initialStateKey))
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.STATE_NOT_FOUND_ERROR, initialStateKey);
+			
+			throw new StateNotFoundException(errorMessage);
+		}
+		
+		this.initialStateKey = initialStateKey;
+	}
+	
+	public String getInitialStateKey()
+	{
+		return this.initialStateKey;
 	}
 	
 	/**
@@ -154,19 +217,13 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			return;
 		}
 		
-		String nextStateKey = null;
+		String nextStateKey = this.initialStateKey;
 		
-		this.lock.lock();
-		
-		try
+		if(nextStateKey == null)
 		{
 			Iterator<String> iterator = states.keySet().iterator();
 			
 			nextStateKey = iterator.next();
-		}
-		finally
-		{
-			this.lock.unlock();
 		}
 		
 		Logger logger = this.getLogger();
@@ -180,24 +237,14 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			
 			if(Thread.interrupted())
 			{
-				String methodName = "void StateManager::executeStates() ";
+				String className = Utilities.coalesce(this.getClass().getCanonicalName(), this.getClass().getName());
+				String methodName = String.format("void %s::executeStates()", className);
 				String errorMessage = MessageUtil.getMessage(Messages.INTERRUPTED_ERROR, methodName);
 				
 				throw new InterruptedException(errorMessage);
 			}
 			
-			State state = null;
-			
-			this.lock.lock();
-			
-			try
-			{
-				state = states.get(nextStateKey);
-			}
-			finally
-			{
-				this.lock.unlock();
-			}
+			State state = states.get(nextStateKey);
 			
 			if(state == null)
 			{
@@ -208,7 +255,22 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 			
 			logger.debug(nextStateKey);
 			
-			nextStateKey = state.executeState();
+			final String current = nextStateKey;
+			
+			try
+			{
+				nextStateKey = state.executeState();
+			}
+			catch(Exception e)
+			{
+				String errorMessage = MessageUtil.getMessage(Messages.SUPPRESSED_EXCEPTION, String.format("State: %s", current));
+				
+				Exception wrapped = new Exception(errorMessage, e);
+				
+				this.handleException(wrapped);
+				
+				return;
+			}
 		}
 	}
 	
@@ -225,10 +287,8 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	@Override
 	public ShutdownCapable shutdown() throws ShutdownException
 	{
-		if(!this.shutdownRequested)
+		if(this.shutdownRequested.compareAndSet(false, true))
 		{
-			this.shutdownRequested = true;
-			
 			this.onShutdown();
 		}
 		
@@ -238,6 +298,6 @@ public abstract class StateManager implements Runnable, ShutdownCapable
 	@Override
 	public boolean isShuttingDown()
 	{
-		return this.shutdownRequested;
+		return this.shutdownRequested.get();
 	}
 }
