@@ -73,11 +73,11 @@ class ArrayUtilsTest
 	{
 		byte[] array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 		
-		assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]", ArrayUtils.toString(array));
+		assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]", ArrayUtils.toArrayString(array));
 		assertEquals("[00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 0A, 0B, 0C, 0D, 0E, 0F, 10]", ArrayUtils.toHexaArrayString(array));
 		assertEquals("0x000102030405060708090A0B0C0D0E0F10", ArrayUtils.toHexaString(array));
 		assertEquals(null, ArrayUtils.toHexaArrayString(null));
-		assertEquals(null, ArrayUtils.toString(null));
+		assertEquals(null, ArrayUtils.toArrayString(null));
 		assertEquals(null, ArrayUtils.toHexaString(null));
 	}
 	

@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.IntPredicate;
 
 import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
@@ -357,6 +358,18 @@ public class CircularByteBuffer implements List<Byte>
 	public byte[] getData()
 	{
 		return this.extract(this.start, this.end);
+	}
+	
+	/**
+	 * Gets a new array with the data from the circular buffer.<br>
+	 * It receives a filter that test which bytes would be included in the result.
+	 * @return
+	 * - new array with the data from the circular buffer.
+	 * @author Sergio Morel
+	 */
+	public byte[] getData(IntPredicate filter)
+	{
+		return this.extract(this.start, this.end, filter);
 	}
 	
 	/**
@@ -772,6 +785,103 @@ public class CircularByteBuffer implements List<Byte>
 	 * - the extracted segment.
 	 * @author Sergio Morel.
 	 */
+	
+	/**
+	 * Extracts from the circular buffer the segment contained between the given indexes,
+	 * including both start and end positions, and applies a filter to determine which
+	 * bytes are included in the result. The buffer itself is not modified.
+	 * <p>
+	 * The filter receives each byte as an <em>unsigned</em> {@code int} in the range
+	 * {@code [0, 255]} to simplify testing against ASCII values or other numeric ranges.
+	 * Only values for which the filter returns {@code true} are copied into the result.
+	 * </p>
+	 *
+	 * @param start
+	 *        the internal index of the first element in the segment (inclusive).
+	 * @param end
+	 *        the internal index of the last element in the segment (inclusive).
+	 * @param filter
+	 *        an {@link IntPredicate} used to test which bytes are included in the result.
+	 *        The predicate is evaluated with the byte value masked to {@code 0xFF}. It
+	 *        must not be {@code null}.
+	 * @return a newly allocated {@code byte[]} containing the filtered data from the
+	 *         specified segment, in the same order they appear in the buffer.
+	 *
+	 * @throws IndexOutOfBoundsException
+	 *         if {@code start} or {@code end} are outside the valid buffer index range.
+	 *
+	 * @see java.util.function.IntPredicate
+	 */
+	protected byte[] extract(int start, int end, IntPredicate filter)
+	{
+		int bufferCapacity = this.getBufferCapacity();
+		
+		int resultSize = 0;
+		
+		for(int i = start; ; i = (i + 1) % bufferCapacity)
+		{
+			int intValue = this.byteArray[i] & 0xFF;
+			
+			if(filter.test(intValue))
+			{
+				resultSize++;
+			}
+			
+			if(i == end)
+			{
+				break;
+			}
+		}
+		
+		int j = 0;
+		
+		byte[] segment = new byte[resultSize];
+		
+		for(int i = start; j < resultSize; i = (i + 1) % bufferCapacity)
+		{
+			int intValue = this.byteArray[i] & 0xFF;
+			
+			if(filter.test(intValue))
+			{
+				segment[j++] = this.byteArray[i];
+			}
+			
+			if(i == end)
+			{
+				break;
+			}
+		}
+		
+		return segment;
+	}
+	
+	public static void main(String[] args)
+	{
+		byte[] datos = new byte[] {2, 'F', 'i', 'l', 3, 't', 'r', 'a', 'r'};
+		CircularByteBuffer buffer = new CircularByteBuffer(datos);
+		
+		IntPredicate printable = v ->
+        v == 0x09 || v == 0x0A || v == 0x0D || (v >= 0x20 && v <= 0x7E);
+        
+        String filtrar = new String(datos);
+        String filtrado = new String(buffer.getData(printable));
+        
+        System.out.println(filtrar + " size: " + filtrar.length());
+        System.out.println(filtrado  + " size: " + filtrado.length());
+	}
+	
+	/**
+	 * Extracts from the buffer the segment contained between the indexes. The
+	 * segment includes the content of both indexes. This does not modify the buffer.
+	 * 
+	 * @param start
+	 * - start internal index (inclusive).
+	 * @param end
+	 * - end internal index (inclusive).
+	 * @return
+	 * - the extracted segment.
+	 * @author Sergio Morel.
+	 */
 	protected Byte[] extractInByteArray(int start, int end)
 	{
 		int dataSize = this.getDataSize(start, end);
@@ -1162,7 +1272,7 @@ public class CircularByteBuffer implements List<Byte>
 	
 	private String formatValue(byte value)
 	{
-		return String.format("%02x", value).toUpperCase();
+		return String.format("%02X", value);
 	}
 	
 	@Override

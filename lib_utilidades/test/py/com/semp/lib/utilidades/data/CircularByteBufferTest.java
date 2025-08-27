@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.IntPredicate;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,20 @@ public class CircularByteBufferTest
 		"circular_buffer_byteArray.json",
 		"circular_buffer_capacity.json"
 	};
+	
+	@Test
+	public void testFilter()
+	{
+		byte[] originalArray = new byte[] {2, 'F', 'i', 'l', 3, 't', 'r', 'a', 'r', 0x15};
+		
+		CircularByteBuffer buffer = new CircularByteBuffer(originalArray);
+		
+		IntPredicate printable = v -> v == 0x09 || v == 0x0A || v == 0x0D || (v >= 0x20 && v <= 0x7E);
+        
+        byte[] filtered = buffer.getData(printable);
+        
+        assertEquals("Filtrar", new String(filtered));
+	}
 	
 	@Test
 	public void testBytes()

@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 import py.com.semp.lib.utilidades.internal.MessageUtil;
@@ -869,29 +870,14 @@ public final class ArrayUtils
 			return null;
 		}
 		
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("[");
-		
-		boolean includeSeparator = false;
-		
-		String separator = ", ";
+		StringJoiner joiner = new StringJoiner(", ", "[", "]");
 		
 		for(byte b : bytes)
 		{
-			if(includeSeparator)
-			{
-				sb.append(separator);
-			}
-			
-			sb.append(String.format("%02X", b));
-			
-			includeSeparator = true;
+			joiner.add(String.format("%02X", b));
 		}
 		
-		sb.append("]");
-		
-		return sb.toString();
+		return joiner.toString();
 	}
 	
 	/**
@@ -904,36 +890,21 @@ public final class ArrayUtils
 	 * - <b>null</b> if the parameter is null.
 	 * @author Sergio Morel
 	 */
-	public static String toString(byte... bytes)
+	public static String toArrayString(byte... bytes)
 	{
 		if(bytes == null)
 		{
 			return null;
 		}
 		
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("[");
-		
-		boolean includeSeparator = false;
-		
-		String separator = ", ";
+		StringJoiner joiner = new StringJoiner(", ", "[", "]");
 		
 		for(byte b : bytes)
 		{
-			if(includeSeparator)
-			{
-				sb.append(separator);
-			}
-			
-			sb.append(b);
-			
-			includeSeparator = true;
+			joiner.add(Byte.toString(b));
 		}
 		
-		sb.append("]");
-		
-		return sb.toString();
+		return joiner.toString();
 	}
 	
 	/**
