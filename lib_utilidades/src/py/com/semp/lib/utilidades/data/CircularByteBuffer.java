@@ -212,6 +212,30 @@ public class CircularByteBuffer implements List<Byte>
 	}
 	
 	/**
+	 * Adds all elements of the given array into this circular buffer, subject to
+	 * the provided filter.
+	 * <p>
+	 * Each byte is tested against {@code filter}, which receives the value as an
+	 * unsigned {@code int} in the range {@code [0, 255]}. Only bytes for which the
+	 * predicate returns {@code true} are appended. If the buffer is full, the oldest
+	 * elements are overwritten (same semantics as {@link #add(Byte)}).
+	 * </p>
+	 *
+	 * @param bytes
+	 *        the source array (must not be {@code null})
+	 * @param filter
+	 *        an {@link IntPredicate} deciding inclusion of each byte; may be {@code null},
+	 *        in which case all bytes are appended
+	 * @return {@code true} if at least one byte was appended (i.e., the buffer changed),
+	 *         {@code false} if the array was empty or all bytes were rejected
+	 * @throws NullPointerException if {@code bytes} is {@code null}
+	 */
+	public boolean add(byte[] bytes, IntPredicate filter)
+	{
+		return this.addBytes(bytes, 0,  bytes.length, filter);
+	}
+	
+	/**
 	 * Adds a specified portion of the byte array to the buffer.
 	 * 
 	 * <p>This method attempts to add bytes from the provided array up to the specified
@@ -244,6 +268,42 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		
 		return this.addBytes(bytes, 0, dataSize);
+	}
+	/**
+	 * Adds the first {@code dataSize} elements of the given array into this circular
+	 * buffer, subject to the provided filter.
+	 * <p>
+	 * This method considers the range {@code [0, dataSize)}. Each byte in that
+	 * prefix is tested against {@code filter}, which receives the value as an
+	 * unsigned {@code int} in the range {@code [0, 255]}. Only bytes for which the
+	 * predicate returns {@code true} are appended. If the buffer is full, the oldest
+	 * elements are overwritten.
+	 * </p>
+	 *
+	 * @param bytes
+	 *        the source array (must not be {@code null})
+	 * @param dataSize
+	 *        number of elements to take from the start of {@code bytes};
+	 *        must satisfy {@code 0 <= dataSize <= bytes.length}
+	 * @param filter
+	 *        an {@link IntPredicate} deciding inclusion of each byte; may be {@code null},
+	 *        in which case all bytes are appended
+	 * @return {@code true} if at least one byte was appended, {@code false} if
+	 *         {@code dataSize == 0} or all bytes were rejected
+	 * @throws IndexOutOfBoundsException if {@code dataSize > bytes.length}
+	 * @throws NullPointerException if {@code bytes} is {@code null}
+	 */
+	
+	public boolean add(byte[] bytes, int dataSize, IntPredicate filter)
+	{
+		if(dataSize > bytes.length)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, dataSize, bytes.length);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		return this.addBytes(bytes, 0, dataSize, filter);
 	}
 	
 	/**
@@ -284,7 +344,76 @@ public class CircularByteBuffer implements List<Byte>
 		
 		return this.addBytes(bytes, from, dataSize);
 	}
+	
+	
+	/**
+	 * Adds a subrange of the given array into this circular buffer, subject to the
+	 * provided filter.
+	 * <p>
+	 * The source range is {@code [from, dataSize)}, with {@code from} inclusive and
+	 * {@code dataSize} exclusive. Each byte in this range is tested against
+	 * {@code filter}, which receives the value as an unsigned {@code int} in the
+	 * range {@code [0, 255]}. Only bytes for which the predicate returns
+	 * {@code true} are appended. If the buffer is full, the oldest elements are
+	 * overwritten.
+	 * </p>
+	 *
+	 * @param bytes
+	 *        the source array (must not be {@code null})
+	 * @param from
+	 *        starting index (inclusive); must be {@code >= 0}
+	 * @param dataSize
+	 *        end index (exclusive); must satisfy {@code from <= dataSize <= bytes.length}
+	 * @param filter
+	 *        an {@link IntPredicate} deciding inclusion of each byte; may be {@code null},
+	 *        in which case all bytes in the range are appended
+	 * @return {@code true} if at least one byte in the range was appended, {@code false}
+	 *         if the range was empty or all bytes were rejected
+	 * @throws IndexOutOfBoundsException if indices are out of range
+	 * @throws NullPointerException if {@code bytes} is {@code null}
+	 */
+	public boolean add(byte[] bytes, int from, int dataSize, IntPredicate filter)
+	{
+		if(from > dataSize)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, from, dataSize);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		else if(dataSize > bytes.length)
+		{
+			String errorMessage = MessageUtil.getMessage(Messages.INDEX_OUT_OF_BOUNDS, dataSize, bytes.length);
+			
+			throw new IndexOutOfBoundsException(errorMessage);
+		}
+		
+		if(from == dataSize)
+		{
+			return false;
+		}
+		
+		return this.addBytes(bytes, from, dataSize, filter);
+	}
 
+	/**
+	 * Internal helper that appends a subrange of the given array into this circular
+	 * buffer without filtering.
+	 * <p>
+	 * The source range is {@code [from, dataSize)}. If the range length exceeds the
+	 * buffer capacity, only the last {@code capacity} bytes are appended. As with
+	 * {@link #add(Byte)}, appending overwrites the oldest data when the buffer is full.
+	 * </p>
+	 *
+	 * @param bytes
+	 *        the source array
+	 * @param from
+	 *        starting index (inclusive)
+	 * @param dataSize
+	 *        end index (exclusive)
+	 * @return always {@code true} if at least one element was attempted; {@code false}
+	 *         only if no bytes were appended (e.g., {@code from == dataSize})
+	 * @throws IndexOutOfBoundsException if indices are out of range
+	 */
 	private boolean addBytes(byte[] bytes, int from, int dataSize)
 	{
 		int copyIndex = from;
@@ -306,6 +435,68 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Adds a filtered view of a subrange of the given byte array into this circular buffer.
+	 * <p>
+	 * The source range is the half-open interval {@code [from, dataSize)}. Each byte
+	 * is tested against the provided {@code filter}, which receives the value as an
+	 * unsigned {@code int} in the range {@code [0, 255]}. Only bytes for which the
+	 * predicate returns {@code true} are appended. If the buffer is full, the oldest
+	 * data is overwritten (same semantics as {@link #add(byte)}).
+	 * </p>
+	 *
+	 * <p>The return value indicates whether <em>any</em> bytes were actually appended.
+	 * Specifically:
+	 * <ul>
+	 *   <li>Returns {@code true} if at least one byte in the specified range
+	 *       satisfied the filter and was written to the buffer.</li>
+	 *   <li>Returns {@code false} if the range was empty or all bytes were rejected
+	 *       by the filter (i.e., no change to the buffer contents).</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param bytes     the source array (must not be {@code null})
+	 * @param from      start index (inclusive) in {@code bytes}
+	 * @param dataSize  end index (exclusive) in {@code bytes};
+	 *                  must satisfy {@code 0 <= from <= dataSize <= bytes.length}
+	 * @param filter    an {@link IntPredicate} to test inclusion of each byte
+	 *                  (receives {@code b & 0xFF}); must not be {@code null}
+	 * @return {@code true} if at least one byte passed the filter and was appended,
+	 *         {@code false} otherwise
+	 * @throws IndexOutOfBoundsException if indices are out of bounds
+	 */
+	private boolean addBytes(byte[] bytes, int from, int dataSize, IntPredicate filter)
+	{
+		int copyIndex = from;
+		
+		int bufferCapacity = this.getBufferCapacity();
+		
+		if((dataSize - from) > bufferCapacity)
+		{
+			copyIndex = dataSize - bufferCapacity;
+		}
+		
+		boolean somethingInserted = false;
+		
+		while(copyIndex < dataSize)
+		{
+			byte byteValue = bytes[copyIndex++];
+			
+			int intValue = byteValue & 0xFF;
+			
+			boolean inserted = false;
+			
+			if(filter.test(intValue))
+			{
+				inserted = this.add(byteValue);
+			}
+			
+			somethingInserted = somethingInserted || inserted;
+		}
+		
+		return somethingInserted;
 	}
 	
 	@Override
@@ -346,6 +537,38 @@ public class CircularByteBuffer implements List<Byte>
 		this.byteArray[this.end] = data;
 		
 		return true;
+	}
+	
+	/**
+	 * Attempts to add a single byte to the circular buffer if it satisfies the
+	 * provided filter.
+	 * <p>
+	 * The filter is evaluated with the byte value promoted to an unsigned
+	 * {@code int} in the range {@code [0, 255]}. If the predicate returns
+	 * {@code true}, the byte is written into the buffer using
+	 * {@link #add(byte)}; otherwise, the byte is ignored.
+	 * </p>
+	 *
+	 * @param data
+	 *        the byte value to be tested and potentially stored.
+	 * @param filter
+	 *        an {@link IntPredicate} that decides whether the byte should
+	 *        be included. The argument passed to {@link IntPredicate#test(int)}
+	 *        is {@code data & 0xFF}.
+	 *
+	 * @return {@code true} if the byte was accepted by the filter and added
+	 *         to the buffer; {@code false} if the filter rejected it.
+	 */
+	public boolean add(byte data, IntPredicate filter)
+	{
+		int intValue = data & 0xFF;
+		
+		if(filter.test(intValue))
+		{
+			return this.add(data);
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -853,21 +1076,6 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		
 		return segment;
-	}
-	
-	public static void main(String[] args)
-	{
-		byte[] datos = new byte[] {2, 'F', 'i', 'l', 3, 't', 'r', 'a', 'r'};
-		CircularByteBuffer buffer = new CircularByteBuffer(datos);
-		
-		IntPredicate printable = v ->
-        v == 0x09 || v == 0x0A || v == 0x0D || (v >= 0x20 && v <= 0x7E);
-        
-        String filtrar = new String(datos);
-        String filtrado = new String(buffer.getData(printable));
-        
-        System.out.println(filtrar + " size: " + filtrar.length());
-        System.out.println(filtrado  + " size: " + filtrado.length());
 	}
 	
 	/**
