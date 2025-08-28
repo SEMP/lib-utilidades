@@ -39,7 +39,8 @@ public enum Messages implements MessageKey
 	ENUM_DOES_NOT_EXIST_ERROR,
 	VALUE_PARSE_ERROR,
 	VARIABLE_NOT_LOADED_ERROR,
-	VARIABLE_LOADED;
+	VARIABLE_LOADED,
+	INVALID_VALUE_ERROR;
 	
 	@Override
 	public String getMessageKey()

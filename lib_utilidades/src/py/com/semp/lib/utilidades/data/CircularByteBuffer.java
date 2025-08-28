@@ -14,6 +14,7 @@ import java.util.function.IntPredicate;
 import py.com.semp.lib.utilidades.configuration.Values;
 import py.com.semp.lib.utilidades.internal.MessageUtil;
 import py.com.semp.lib.utilidades.internal.Messages;
+import py.com.semp.lib.utilidades.utilities.Utilities;
 
 /**
  * Circular buffer, when the buffer is full, the oldest data is
@@ -194,6 +195,98 @@ public class CircularByteBuffer implements List<Byte>
 		}
 		
 		return dataAdded;
+	}
+	
+	/**
+	 * Checks whether the entire contents of the given array can fit into this
+	 * circular buffer without overwriting existing data.
+	 * <p>
+	 * The method computes the remaining free space as
+	 * {@code capacity - size}, where {@link #getBufferCapacity()} is the total
+	 * capacity of the buffer and {@link #getDataSize()} is the number of elements
+	 * currently stored. It then compares that against {@code bytes.length}.
+	 * </p>
+	 *
+	 * <p>Note that this differs from the semantics of {@link #add(Byte)} and its
+	 * bulk variants, which will overwrite the oldest elements when the buffer is
+	 * full. This method is a stricter check: it returns {@code true} only if
+	 * the given data can be appended without any overwrite.</p>
+	 *
+	 * @param bytes
+	 *        the array to check (must not be {@code null})
+	 * @return {@code true} if the array length is less than or equal to the free
+	 *         space in the buffer; {@code false} otherwise
+	 * @throws NullPointerException if {@code bytes} is {@code null}, with a message
+	 *         formatted using {@code Messages.NULL_VALUES_NOT_ALLOWED_ERROR}
+	 *
+	 * @see #getBufferCapacity()
+	 * @see #getDataSize()
+	 */
+	public boolean fits(byte[] bytes)
+	{
+		if(bytes == null)
+		{
+			StringBuilder methodName = new StringBuilder();
+			
+			methodName.append("[bytes] boolean ");
+			methodName.append(Utilities.coalesce(this.getClass().getCanonicalName(), this.getClass().getName()));
+			methodName.append("::fits(byte[] bytes)");
+			
+			String errorMessage = MessageUtil.getMessage(Messages.NULL_VALUES_NOT_ALLOWED_ERROR, methodName.toString());
+			
+			throw new NullPointerException(errorMessage);
+		}
+		
+		return this.fits(bytes.length);
+	}
+	
+	/**
+	 * Checks whether a sequence of the given length can fit into this circular buffer
+	 * without overwriting existing data.
+	 * <p>
+	 * The method computes the remaining free space as
+	 * {@code capacity - size}, where {@link #getBufferCapacity()} is the total
+	 * capacity of the buffer and {@link #getDataSize()} is the number of elements
+	 * currently stored. It then compares that against {@code length}.
+	 * </p>
+	 *
+	 * <p>Note that this is a stricter check than {@link #add(Byte)} or its bulk
+	 * variants, which will overwrite the oldest elements when the buffer is full.
+	 * This method is purely a capacity check: it returns {@code true} only if the
+	 * requested number of bytes can be appended without any overwrite.</p>
+	 *
+	 * @param length
+	 *        the number of bytes to check (must be non-negative)
+	 * @return {@code true} if {@code length} is less than or equal to the remaining
+	 *         space in the buffer; {@code false} otherwise
+	 * @throws IllegalArgumentException if {@code length} is negative, with a message
+	 *         formatted using {@code Messages.INVALID_VALUE_ERROR}
+	 *
+	 * @see #getBufferCapacity()
+	 * @see #getDataSize()
+	 * @see #fits(byte[])
+	 */
+	public boolean fits(int length)
+	{
+		if(length < 0)
+		{
+			StringBuilder methodName = new StringBuilder();
+			
+			methodName.append("[length] boolean ");
+			methodName.append(Utilities.coalesce(this.getClass().getCanonicalName(), this.getClass().getName()));
+			methodName.append("::fits(int length)");
+			
+			String errorMessage = MessageUtil.getMessage(Messages.INVALID_VALUE_ERROR, methodName.toString(), length);
+			
+			throw new IllegalArgumentException(errorMessage);
+		}
+		
+		int bufferCapacity = this.getBufferCapacity();
+		int dataSize = this.getDataSize();
+		
+		int remainingSpace = bufferCapacity - dataSize;
+		
+		return length <= remainingSpace;
 	}
 	
 	/**
