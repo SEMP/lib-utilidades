@@ -2047,4 +2047,22 @@ public class CircularByteBuffer implements List<Byte>
 			throw new IndexOutOfBoundsException(errorMessage);
 		}
 	}
+	
+	//FIXME implemetar trimStart
+	public void trimFromStart(int count)
+	{
+		if(count <= 0)
+		{
+			return;
+		}
+	}
+	
+	//FIXME implemetar trimEnd
+	public void trimFromEnd(int count)
+	{
+		if(count <= 0)
+		{
+			return;
+		}
+	}
 }
