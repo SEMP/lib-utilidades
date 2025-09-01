@@ -2048,45 +2048,45 @@ public class CircularByteBuffer implements List<Byte>
 		}
 	}
 	
-    public void trimFromStart(int count)
-    {
-        if(count <= 0 || this.isEmpty())
-        {
-            return;
-        }
-
-        int dataSize = this.getDataSize();
-
-        if(count >= dataSize)
-        {
-            this.clear();
-            
-            return;
-        }
-
-        CircularByteBufferIterator iterator = this.iterator();
-        
-        this.start = iterator.forward(this.start, count);
-    }
+	public void trimFromStart(int count)
+	{
+		if(count <= 0 || this.isEmpty())
+		{
+			return;
+		}
+		
+		int dataSize = this.getDataSize();
+		
+		if(count >= dataSize)
+		{
+			this.clear();
+			
+			return;
+		}
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		this.start = iterator.forward(this.start, count);
+	}
 	
-    public void trimFromEnd(int count)
-    {
-        if(count <= 0 || this.isEmpty())
-        {
-            return;
-        }
-
-        int dataSize = this.getDataSize();
-
-        if(count >= dataSize)
-        {
-            this.clear();
-            
-            return;
-        }
-
-        CircularByteBufferIterator iterator = this.iterator();
-        
-        this.end = iterator.rewind(this.end, count);
-    }
+	public void trimFromEnd(int count)
+	{
+		if(count <= 0 || this.isEmpty())
+		{
+			return;
+		}
+		
+		int dataSize = this.getDataSize();
+		
+		if(count >= dataSize)
+		{
+			this.clear();
+			
+			return;
+		}
+		
+		CircularByteBufferIterator iterator = this.iterator();
+		
+		this.end = iterator.rewind(this.end, count);
+	}
 }
