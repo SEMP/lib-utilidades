@@ -521,6 +521,63 @@ public class CircularByteBufferTest
 	}
 	
 	@Test
+	public void testTrimFromStartLinear()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0,1,2,3,4,5,6,7,8,9});
+		buffer.trimStart(3);
+		assertArrayEquals(new byte[]{3,4,5,6,7,8,9}, buffer.getData());
+		assertEquals("[00, 01, 02, (03), 04, 05, 06, 07, 08, {09}]", buffer.stateToString());
+	}
+	
+	@Test
+	public void testTrimFromStartWrap()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0,1,2,3,4,5,6,7,8,9});
+		buffer.start = 8; // simulate wrapped range [8,9,0,1,2,3,4]
+		buffer.end = 4;
+		buffer.trimStart(3);
+		assertEquals("[00, (01), 02, 03, {04}, 05, 06, 07, 08, 09]", buffer.stateToString());
+		assertArrayEquals(new byte[]{1,2,3,4}, buffer.getData());
+	}
+	
+	@Test
+	public void testTrimFromEndLinear()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0,1,2,3,4,5,6,7,8,9});
+		buffer.trimEnd(4);
+		assertEquals("[(00), 01, 02, 03, 04, {05}, 06, 07, 08, 09]", buffer.stateToString());
+		assertArrayEquals(new byte[]{0,1,2,3,4,5}, buffer.getData());
+	}
+	
+	@Test
+	public void testTrimFromEndWrap()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0,1,2,3,4,5,6,7,8,9});
+		buffer.start = 8; // [8,9,0,1,2,3,4]
+		buffer.end = 4;
+		buffer.trimEnd(2);
+		assertEquals("[00, 01, {02}, 03, 04, 05, 06, 07, (08), 09]", buffer.stateToString());
+		assertArrayEquals(new byte[]{8,9,0,1,2}, buffer.getData());
+	}
+	
+	@Test
+	public void testTrimNoOpAndClear()
+	{
+		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0,1,2,3,4});
+		byte[] original = buffer.getData();
+		buffer.trimStart(0);
+		buffer.trimEnd(0);
+		buffer.trimStart(-1);
+		buffer.trimEnd(-2);
+		assertArrayEquals(original, buffer.getData());
+		
+		buffer.trimStart(10); // >= size clears
+		assertTrue(buffer.isEmpty());
+		assertEquals(0, buffer.size());
+		assertArrayEquals(new byte[]{}, buffer.getData());
+	}
+	
+	@Test
 	public void testExtractInByteArray()
 	{
 		CircularByteBuffer buffer = new CircularByteBuffer(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});

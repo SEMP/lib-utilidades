@@ -2048,7 +2048,22 @@ public class CircularByteBuffer implements List<Byte>
 		}
 	}
 	
-	public void trimFromStart(int count)
+    /**
+     * Trims elements from the beginning of the buffer by moving the start index.
+     * <p>
+     * Index-only operation: no bytes are copied or shifted. Runs in O(1).
+     * </p>
+     *
+     * <p>Behavior:</p>
+     * - If {@code count <= 0} or the buffer is empty, this is a no-op.<br>
+     * - If {@code count >= size()}, the buffer is cleared.<br>
+     * - Otherwise, {@code start} is advanced by {@code count} positions (with wrap-around).
+     *
+     * @param count
+     * - number of elements to drop from the start
+     * @author Sergio Morel
+     */
+    public void trimStart(int count)
 	{
 		if(count <= 0 || this.isEmpty())
 		{
@@ -2069,7 +2084,22 @@ public class CircularByteBuffer implements List<Byte>
 		this.start = iterator.forward(this.start, count);
 	}
 	
-	public void trimFromEnd(int count)
+    /**
+     * Trims elements from the end of the buffer by moving the end index.
+     * <p>
+     * Index-only operation: no bytes are copied or shifted. Runs in O(1).
+     * </p>
+     *
+     * <p>Behavior:</p>
+     * - If {@code count <= 0} or the buffer is empty, this is a no-op.<br>
+     * - If {@code count >= size()}, the buffer is cleared.<br>
+     * - Otherwise, {@code end} is moved backward by {@code count} positions (with wrap-around).
+     *
+     * @param count
+     * - number of elements to drop from the end
+     * @author Sergio Morel
+     */
+    public void trimEnd(int count)
 	{
 		if(count <= 0 || this.isEmpty())
 		{
