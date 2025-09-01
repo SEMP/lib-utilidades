@@ -2048,21 +2048,45 @@ public class CircularByteBuffer implements List<Byte>
 		}
 	}
 	
-	//FIXME implemetar trimStart
-	public void trimFromStart(int count)
-	{
-		if(count <= 0)
-		{
-			return;
-		}
-	}
+    public void trimFromStart(int count)
+    {
+        if(count <= 0 || this.isEmpty())
+        {
+            return;
+        }
+
+        int dataSize = this.getDataSize();
+
+        if(count >= dataSize)
+        {
+            this.clear();
+            
+            return;
+        }
+
+        CircularByteBufferIterator iterator = this.iterator();
+        
+        this.start = iterator.forward(this.start, count);
+    }
 	
-	//FIXME implemetar trimEnd
-	public void trimFromEnd(int count)
-	{
-		if(count <= 0)
-		{
-			return;
-		}
-	}
+    public void trimFromEnd(int count)
+    {
+        if(count <= 0 || this.isEmpty())
+        {
+            return;
+        }
+
+        int dataSize = this.getDataSize();
+
+        if(count >= dataSize)
+        {
+            this.clear();
+            
+            return;
+        }
+
+        CircularByteBufferIterator iterator = this.iterator();
+        
+        this.end = iterator.rewind(this.end, count);
+    }
 }
