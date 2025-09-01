@@ -30,7 +30,7 @@
 - Coverage: prioritize utilities, edge cases, concurrency, and exception paths.
 
 ## Commit & Pull Request Guidelines
-- Commits: short, imperative subject in Spanish preferred (e.g., `utilities: agrega trimFromStart`).
+- Commits: short, imperative subject in Spanish preferred (e.g., `utilities: agrega trimStart`).
 - Scope: optionally prefix with area (e.g., `messages:`, `data:`). Keep subjects ≤72 chars.
 - PRs: include motivation, summary of changes, tests added/updated, and any behavior changes. Link issues and add before/after examples when helpful.
 
