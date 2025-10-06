@@ -880,6 +880,132 @@ public final class ArrayUtils
 		return joiner.toString();
 	}
 	
+	public static String toHexaArrayStringHead(int size, byte... bytes)
+	{
+		if(bytes == null)
+		{
+			return null;
+		}
+		
+		String result = "";
+		
+		if(bytes.length <= size)
+		{
+			StringJoiner joiner = new StringJoiner(", ", "[", "]");
+			
+			for(byte b : bytes)
+			{
+				joiner.add(String.format("%02X", b));
+			}
+			
+			result = joiner.toString();
+		}
+		else
+		{
+			StringBuilder sb = new StringBuilder("[");
+			
+			boolean comma = false;
+			
+			for(int i = 0; i < size; i++)
+			{
+				if(comma)
+				{
+					sb.append(", ");
+				}
+				
+				sb.append(String.format("%02X", bytes[i]));
+				
+				comma = true;
+			}
+			
+			sb.append(", ...]");
+			
+			result = sb.toString();
+		}
+		
+		return result;
+	}
+	
+	public static String toHexaArrayStringTail(int size, byte... bytes)
+	{
+		if(bytes == null)
+		{
+			return null;
+		}
+		
+		String result = "";
+		
+		if(bytes.length <= size)
+		{
+			StringJoiner joiner = new StringJoiner(", ", "[", "]");
+			
+			for(byte b : bytes)
+			{
+				joiner.add(String.format("%02X", b));
+			}
+			
+			result = joiner.toString();
+		}
+		else
+		{
+			StringBuilder sb = new StringBuilder("[...");
+			
+			for(int i = bytes.length - size; i < bytes.length; i++)
+			{
+				sb.append(", ");
+				sb.append(String.format("%02X", bytes[i]));
+			}
+			
+			sb.append("]");
+			
+			result = sb.toString();
+		}
+		
+		return result;
+	}
+	
+	public static String toHexaArrayStringHeadTail(int size, byte... bytes)
+	{
+		if(bytes == null)
+		{
+			return null;
+		}
+		
+		String result = "";
+		
+		if(bytes.length <= size * 2)
+		{
+			StringJoiner joiner = new StringJoiner(", ", "[", "]");
+			
+			for(byte b : bytes)
+			{
+				joiner.add(String.format("%02X", b));
+			}
+			
+			result = joiner.toString();
+		}
+		else
+		{
+			StringJoiner joiner = new StringJoiner(", ", "[", "]");
+			
+			for(int i = 0; i < size; i++)
+			{
+				joiner.add(String.format("%02X", bytes[i]));
+			}
+			
+			joiner.add("...");
+			
+			for(int i = bytes.length - size; i < bytes.length; i++)
+			{
+				joiner.add(String.format("%02X", bytes[i]));
+			}
+			
+			result = joiner.toString();
+		}
+		
+		return result;
+	}
+	
 	/**
 	 * Creates a {@link String} from the byte array. Each element is represented
 	 * as a decimal number.
