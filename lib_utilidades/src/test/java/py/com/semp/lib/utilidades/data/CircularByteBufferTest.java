@@ -27,7 +27,7 @@ import py.com.semp.lib.utilidades.test.TestUtils;
 
 public class CircularByteBufferTest
 {
-	public static final String DATA_DIRECTORY = "/resources/data/buffer/";
+	public static final String DATA_DIRECTORY = "/data/buffer/";
 	
 	private static final String[] JSON_FILES_EXTRACT_ALL_1H =
 	{

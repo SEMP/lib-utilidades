@@ -14,11 +14,4 @@ module lib_utilidades
 	exports py.com.semp.lib.utilidades.utilities;
 	exports py.com.semp.lib.utilidades.shutdown;
 	exports py.com.semp.lib.utilidades.state.machines;
-	
-	requires org.junit.jupiter.api;
-	requires org.junit.jupiter.params;
-	requires com.fasterxml.jackson.core;
-	requires com.fasterxml.jackson.databind;
-	
-	opens py.com.semp.lib.utilidades.data to com.fasterxml.jackson.databind;
 }
