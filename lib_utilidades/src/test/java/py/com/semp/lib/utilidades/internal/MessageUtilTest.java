@@ -38,10 +38,10 @@ class MessageUtilTest
 	@Test
 	void testResource()
 	{
-		String name = Values.Constants.MESSAGES_PATH + Values.Resources.MESSAGES_BASE_NAME + ".properties";
-		
+		String name = "/" + Values.Constants.MESSAGES_PATH.replace('.', '/') + Values.Resources.MESSAGES_BASE_NAME + ".properties";
+
 		URL resource = this.getClass().getResource(name);
-		
+
 		assertNotNull(resource, name);
 	}
 	
